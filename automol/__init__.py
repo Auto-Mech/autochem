@@ -14,7 +14,7 @@ Level 1: No dependencies; no interdependencies
  - util
  - error
  - mult
- - formula
+ - form
  - inchi_key
  - vmat
  - prop
@@ -61,34 +61,34 @@ Level 5: L1-4 dependencies; hierarchical interdependency (descending)
 """
 
 # L1
-from automol import const
-from automol import util
-from automol import error
-from automol import mult
-from automol import form
-from automol import inchi_key
-from automol import vmat
-from automol import prop
-from automol import embed
+from . import const
+from . import util
+from . import error
+from . import mult
+from . import form
+from . import inchi_key
+from . import vmat
+from . import prop
+from . import embed
 # L2
 # L3
-from automol import extern
+from . import extern
 # L4
-from automol import graph
-from automol import geom
-from automol import amchi
-from automol import inchi
-from automol import smiles
-from automol import zmat
+from . import graph
+from . import geom
+from . import amchi
+from . import inchi
+from . import smiles
+from . import zmat
 # L5
-from automol import etrans
-from automol import combine
-from automol import reac
-from automol import _deprecated
-from automol import data
-from automol import symm
+from . import etrans
+from . import combine
+from . import reac
+from . import _deprecated
+from . import data
+from . import symm
 # type imports
-from automol.const import ReactionClass, ReactionSpin, ReactionInfo
+from .const import ReactionClass, ReactionSpin, ReactionInfo
 
 
 __all__ = [

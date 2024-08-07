@@ -1,33 +1,64 @@
-r"""Functions for dealing with a list of items encoding a ring
+"""Functions for dealing with a list of items encoding a ring."""
 
-                             1---2
-                            /     \
-  [1, 2, 3, 4, 5, 6]  <=>  6       3
-                            \     /
-                             5---4
-"""
 import itertools
-from typing import List, Tuple
+from collections.abc import Sequence
+
+import more_itertools as mit
+
+
+def normalize(items: Sequence[object]) -> tuple[object, ...]:
+    """Normalize the ordering of items in a ring.
+
+    :param items: The ring items
+    :return: The ring items, in normalized order
+    """
+    nitems = len(items)
+    start_item = min(items)
+    next_item = items[(items.index(start_item) + 1) % nitems]
+    prev_item = items[(items.index(start_item) - 1) % nitems]
+    if next_item > prev_item:
+        items = list(reversed(items))
+    return cycle(items, count=items.index(start_item))
+
+
+def cycle(items: Sequence[object], count: int = 1) -> tuple[object]:
+    """Cycle ring items once.
+
+    Example:    (1, 2, 3, 4) -> (2, 3, 4, 1)
+
+    :param items: The ring items
+    :return: The ring items, cycled once
+    """
+    nitems = len(items)
+    cycler = itertools.cycle(items)
+    mit.consume(cycler, n=count % nitems)
+    return tuple(itertools.islice(cycler, nitems))
+
+
+def edges(items: Sequence[object]) -> tuple[tuple[object, object], ...]:
+    """Get the edge pairs of a ring.
+
+    Example:    (1, 2, 3, 4) -> ((1, 2), (2, 3), (3, 4), (4, 1))
+
+    :param items: The ring items
+    :return: The ring edge pairs
+    """
+    return tuple(zip(items, cycle(items), strict=False))
 
 
 def distance(
-    items: List[object], item1: object, item2: object, longest: bool = False
+    items: Sequence[object], item1: object, item2: object, longest: bool = False
 ) -> int:
-    """Find the distance between two items in a ring
+    """Find the distance between two items in a ring.
 
     By default, finds the shortest distance. Setting `longest=True` results in the
     longest distance.
 
     :param items: The ring items
-    :type items: List[object]
     :param item1: The item to start measuring distance from
-    :type item1: object
     :param item2: The item to measure distance to
-    :type item2: object
     :param longest: Return the longest distance?, defaults to False
-    :type longest: bool, optional
     :return: The number of ring items between these two
-    :rtype: int
     """
     assert (
         item1 in items and item2 in items
@@ -52,21 +83,17 @@ def distance(
 
 
 def cycle_item_to_front(
-    items: List[object], item: object, end_item: object = None
-) -> List[object]:
-    """Cycle ring items until one is in front
+    items: Sequence[object], item: object, end_item: object = None
+) -> tuple[object, ...]:
+    """Cycle ring items until one is in front.
 
     Optionally, request one adjacent item to be at the end, reversing the ring order if
     necessary.
 
     :param items: The ring items
-    :type items: List[object]
     :parm item: The item to cycle to the font
-    :type item: object
     :param end_item: optionally, ensure that this is the last item in the ring
-    :type end_item: object
     :returns: The ring items with `item` cycled to the front and `end_item` to the end
-    :rtype: List[int]
     """
     items = cycle_items_to_front(items, [item])
 
@@ -81,16 +108,13 @@ def cycle_item_to_front(
 
 
 def cycle_items_to_front(
-    items: List[object], front_items: List[object]
-) -> List[object]:
-    """Cycle ring items until a group of adjacent items is at the front of the list
+    items: Sequence[object], front_items: Sequence[object]
+) -> tuple[object, ...]:
+    """Cycle ring items until a group of adjacent items is at the front of the list.
 
     :param items: The ring items
-    :type items: List[object]
     :parm front_items: The item to cycle to the font
-    :type front_items: List[object]
     :returns: The ring items with `item` cycled to the front and `end_item` to the end
-    :rtype: List[int]
     """
     nitems = len(items)
 
@@ -107,16 +131,13 @@ def cycle_items_to_front(
 
 
 def cycle_items_to_back(
-    items: List[object], back_items: List[object]
-) -> List[object]:
-    """Cycle ring items until a group of adjacent items is at the end of the list
+    items: Sequence[object], back_items: Sequence[object]
+) -> tuple[object, ...]:
+    """Cycle ring items until a group of adjacent items is at the end of the list.
 
     :param items: The ring items
-    :type items: List[object]
     :parm back_items: The item to cycle to the end
-    :type back_items: List[object]
     :returns: The ring items `back_items` cycled to the end
-    :rtype: List[int]
     """
     nitems = len(items)
 
@@ -133,16 +154,15 @@ def cycle_items_to_back(
 
 
 def cycle_to_split(
-    items: List[object], split_pair: Tuple[object, object]
-) -> List[object]:
-    """Cycle to split a pair of adjacent items, putting one on each end of the list
+    items: Sequence[object], split_pair: tuple[object, object]
+) -> tuple[object, ...]:
+    """Cycle to split a pair of adjacent items, putting one on each end of the list.
 
     :param items: The ring items
     :type items: List[object]
     :param split_pair: The pair of items to split
     :type split_pair: Tuple[object, object]
     :return: The ring items with one item in the pair at the start and one at the end
-    :rtype: List[object]
     """
     nitems = len(items)
     split_pair = set(split_pair)
@@ -170,23 +190,21 @@ def cycle_to_split(
 
 
 def cycle_to_optimal_split(
-    items: List[object],
-    split_pairs: List[Tuple[object, object]],
-    back_items: List[object],
-) -> List[object]:
+    items: Sequence[object],
+    split_pairs: Sequence[tuple[object, object]],
+    back_items: Sequence[object],
+) -> tuple[object, ...]:
     """Cycle to find an "optimum split" that puts a subset of items as close as possible
-    to the end of the list
+    to the end of the list.
 
     :param items: The ring items
-    :type items: List[object]
     :param split_pairs: Pairs where the cycle can be split
-    :type split_pairs: List[Tuple[object, object]]
     :param back_items: Adjacent items that should be as close to the end as possible
-    :type back_items: List[object]
     :return: The cycle with the optimal split
-    :rtype: List[object]
     """
     orig_items = items
+    split_pairs = list(split_pairs)
+    back_items = list(back_items)
 
     if not split_pairs and not back_items:
         return orig_items
@@ -198,7 +216,7 @@ def cycle_to_optimal_split(
         return cycle_to_split(orig_items, split_pairs[0])
 
     # Try each split in the forward and reverse direction and see which puts the
-    # `front_items` closest to the front of the list
+    # `back_items` closest to the end of the list
     opt_items = None
     max_dist = 0
     for split_pair in split_pairs:

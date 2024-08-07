@@ -31,11 +31,11 @@ import logging
 import numpy
 import scipy.optimize
 
-from automol.embed._dgeom import (
+from ._dgeom import (
     distance_matrix_from_coordinates,
     greatest_distance_errors,
 )
-from automol.embed._findif import central_difference
+from ._findif import central_difference
 
 # uncomment this line if you want the logging statements while debugging:
 # logging.basicConfig(format='%(message)s', level=logging.DEBUG)

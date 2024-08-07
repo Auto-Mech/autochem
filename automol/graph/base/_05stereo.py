@@ -1,36 +1,40 @@
 """low-level stereochemistry functions
 """
 
+import itertools
 import numbers
 from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import numpy
-from automol import util
-from automol.geom import base as geom_base
-from automol.graph.base._00core import (
+
+from ... import util
+from ...geom import base as geom_base
+from ...util import dict_
+from ._00core import (
     AtomKey,
     AtomKeys,
     BondKey,
     CenterKey,
     CenterKeys,
-    atom_keys,
+    align_with_geometry,
     explicit,
     local_stereo_priorities,
     negate_hydrogen_stereo_priorities,
     stereo_keys,
     stereo_parities,
     tetrahedral_atoms,
+    without_dummy_atoms,
 )
-from automol.graph.base._03kekule import (
+from ._02algo import simple_paths_between_atoms
+from ._03kekule import (
     rigid_planar_bonds,
     rigid_planar_bonds_with_ring_constraints,
 )
-from automol.graph.base._04class import (
+from ._04class import (
     insertions,
     substitutions,
     vinyl_addition_candidates,
 )
-from automol.util import dict_
 
 AtomNeighborDict = Dict[AtomKey, AtomKeys]
 BondNeighborDict = Dict[BondKey, Tuple[AtomKeys, AtomKeys]]
@@ -64,6 +68,7 @@ def stereocenter_candidates(
     :returns: A mapping of candidates onto their stereo-determining neighbors
     :rtype: CenterNeighborDict
     """
+    gra = without_dummy_atoms(gra)  # remove dummy atoms
     cand_dct = {}
 
     # 1. Atom stereocenter candidates: tetrahedral atoms
@@ -202,6 +207,46 @@ def stereocenter_candidates_grouped(
     return cand_atm_dct, cand_bnd_dct
 
 
+def stereoatom_bridgehead_pairs(
+    gra, cand_dct: Optional[CenterNeighborDict] = None
+) -> Dict[
+    AtomKey, Tuple[Tuple[AtomKey, AtomKey, AtomKey], Tuple[AtomKey, AtomKey, AtomKey]]
+]:
+    r"""Identify pairs of interdependent bridgehead stereoatoms, if any
+
+    Bridgehead stereoatoms sharing the same three bridges are interdependent -- the
+    configuration of one dictates that of the other (they must be opposite).
+
+             .....
+            /     \
+        H--C--...--C--H
+            \     /
+             .....
+
+    :param gra: A molecular graph
+    :param cand_dct: A mapping of stereocenter candidates onto their neighbor keys
+        (To avoid recalculating)
+    :return: A dictionary mapping pairs of bridgehead atoms onto the connected neighbors
+        of each, respectively
+    """
+    cand_dct = (
+        stereocenter_candidates(gra, atom=True, bond=False)
+        if cand_dct is None
+        else cand_dct
+    )
+    cand_atm_dct, _ = stereocenter_candidates_grouped(cand_dct)
+
+    bhp_dct = {}
+    for key1, key2 in itertools.combinations(cand_atm_dct.keys(), r=2):
+        paths = simple_paths_between_atoms(gra, key1, key2)
+        conn_dct = {p[1]: p[-2] for p in paths}
+        if len(set(conn_dct.keys())) == len(set(conn_dct.values())) == 3:
+            conn_nkeys1, conn_nkeys2 = zip(*sorted(conn_dct.items()), strict=True)
+            bhp_dct[(key1, key2)] = (conn_nkeys1, conn_nkeys2)
+
+    return bhp_dct
+
+
 # parity evaluation helpers
 def geometry_atom_parity(gra, geo, key, nkeys=None, geo_idx_dct=None):
     r""" Calculate an atom parity directly from a geometry
@@ -245,13 +290,10 @@ def geometry_atom_parity(gra, geo, key, nkeys=None, geo_idx_dct=None):
     :type geo_idx_dct: dict[int: int]
     """
     assert gra == explicit(gra), f"Implicit hydrogens are not a allowed here: {gra}"
-
-    keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-
     nkeys = atom_stereodetermining_neighbor_keys(gra, key) if nkeys is None else nkeys
+    gra, geo, (key, nkeys), *_ = align_with_geometry(
+        gra, geo, (key, nkeys), geo_idx_dct
+    )
 
     # If there are only three groups, use the stereo atom itself as
     # the top apex of the tetrahedron.
@@ -259,7 +301,7 @@ def geometry_atom_parity(gra, geo, key, nkeys=None, geo_idx_dct=None):
 
     assert len(nkeys) == 4, f"nkeys: {nkeys}, key: {key}, gra:\n{gra}"
 
-    xyzs = geom_base.coordinates(geo, idxs=tuple(map(geo_idx_dct.get, nkeys)))
+    xyzs = geom_base.coordinates(geo, idxs=nkeys)
     det_mat = numpy.ones((4, 4))
     det_mat[:, 1:] = xyzs
     det_val = numpy.linalg.det(det_mat)
@@ -327,30 +369,32 @@ def geometry_bond_parity(gra, geo, bnd_key, bnd_nkeys=None, geo_idx_dct=None):
     :type geo_idx_dct: dict[int: int]
     """
     assert gra == explicit(gra), f"Implicit hydrogens are not a allowed here: {gra}"
-
-    keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-
-    bnd_key = sorted(bnd_key)
     bnd_nkeys = (
         bond_stereodetermining_neighbor_keys(gra, *bnd_key)
         if bnd_nkeys is None
         else bnd_nkeys
     )
+    gra, geo, (bnd_key, bnd_nkeys), *_ = align_with_geometry(
+        gra, geo, (bnd_key, bnd_nkeys), geo_idx_dct
+    )
+
+    bnd_key = sorted(bnd_key)
 
     key1, key2 = bnd_key
     nkey1, nkey2 = (nks[-1] for nks in bnd_nkeys)
 
     xyz1, xyz2, nxyz1, nxyz2 = geom_base.coordinates(
-        geo, idxs=tuple(map(geo_idx_dct.get, (key1, key2, nkey1, nkey2)))
+        geo, idxs=(key1, key2, nkey1, nkey2)
     )
 
-    bnd1_vec = numpy.subtract(nxyz1, xyz1)
-    bnd2_vec = numpy.subtract(nxyz2, xyz2)
+    # Project out the central bond direction
+    bvec = numpy.subtract(xyz2, xyz1)
+    nvec1 = numpy.subtract(nxyz1, xyz1)
+    nvec2 = numpy.subtract(nxyz2, xyz2)
+    pvec1 = util.vector.orthogonalize(bvec, nvec1)
+    pvec2 = util.vector.orthogonalize(bvec, nvec2)
 
-    dot_val = numpy.vdot(bnd1_vec, bnd2_vec)
+    dot_val = numpy.vdot(pvec1, pvec2)
     assert dot_val != 0.0  # for now, assume not collinear
     par = bool(dot_val < 0.0)
     return par

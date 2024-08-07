@@ -6,14 +6,16 @@ import itertools
 from typing import List
 
 import numpy
-from automol.geom.base._0core import (
+
+from phydat import ptab
+
+from ._0core import (
     coordinates,
     distance,
     from_string,
     symbols,
     xyz_string,
 )
-from phydat import ptab
 
 
 # # properties used for comparisons
@@ -210,8 +212,7 @@ def minimum_volume_geometry(geos):
                     + (atom1[2] - atom2[2]) ** 2
                 )
                 # Check and see if distance is more than max
-                if rrtest > rrmax:
-                    rrmax = rrtest
+                rrmax = max(rrmax, rrtest)
         # If max below moving threshold, set to smallest geom
         if rrmax < rrminmax:
             rrminmax = rrmax

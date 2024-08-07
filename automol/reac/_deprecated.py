@@ -1,9 +1,8 @@
 """ TS z-matrices for specific reaction classes
 """
-from automol.graph import ts
-from automol.zmat import distance_coordinate_name
-from automol.reac._0core import Reaction
-from automol.reac._0core import ts_graph
+from ..graph import ts
+from ..zmat import distance_coordinate_name
+from ._0core import Reaction, ts_graph
 
 
 # Z-Matrix coordinate functions

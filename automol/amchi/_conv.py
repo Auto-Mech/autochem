@@ -4,28 +4,34 @@
 import itertools
 import numbers
 
-from automol import error, geom
-from automol import graph as graph_
-from automol.amchi.base import (
+from .. import form, geom, inchi_key
+from .. import graph as graph_
+from ..extern import rdkit_
+from ..util import dict_
+from .base import (
     atom_stereo_parities,
     bond_stereo_parities,
     bonds,
     breaking_bond_keys,
     equivalent,
     forming_bond_keys,
+    formula,
+    formula_layer,
     has_stereo,
     hydrogen_valences,
+    is_enantiomer,
     is_inchi,
     is_inverted_enantiomer,
+    is_racemic,
     is_reversed_ts,
     isotope_layers,
+    main_layers,
+    racemic,
     split,
     standard_form,
     symbols,
     with_inchi_prefix,
 )
-from automol.extern import rdkit_
-from automol.util import dict_
 
 
 # # conversions
@@ -38,6 +44,104 @@ def amchi_key(chi):
     """
     chi = with_inchi_prefix(chi)
     return rdkit_.inchi_to_inchi_key(chi)
+
+
+def chemkin_name(chi: str) -> str:
+    """Generate a CHEMKIN name from a ChI string.
+
+    Todo: Simplified names for common species. Anything that can be described as a
+    simple backbone with functional groups gets a simplified name. Examples:
+
+        C3y1 = [CH2]CC = propan-1-yl
+        C3p1 = [O]OCCC = propan-1-peroxy radical
+        C3h1y2 = OOC[CH]C = propan-1-hydroperoxy-2-yl radical
+        C3e1 = C=CC = prop-1-ene
+        C3a1 = O=CCC = propan-1-al (always 1 for aldehydes)
+        C3k2 = CC(=O)C = propan-2-one (never 1 for ketones)
+        C4e12 = O1CC1CC = 1,2-epoxybutane
+        C5e13 = O1CCC1CC = 1,3-epoxypentane
+
+    :param chi: ChI string
+    :return: The CHEMKIN name
+    """
+    return digest(chi, conn_max_len=10, ste_max_len=6)
+
+
+def digest(chi: str, conn_max_len: int = 10, ste_max_len: int = 6) -> str:
+    """Generate a short string summarizing connectivity information.
+
+    :param chi: ChI string
+    :param conn_length: Connectivity hash length, up to 14, defaults to 10
+    :param stereo_length: Stereo hash length, up to 8, defaults to 5
+    :return: The short hash
+    """
+    conn_str = connectivity_digest(chi, max_len=conn_max_len)
+    ste_str = stereo_digest(chi, max_len=ste_max_len)
+    return conn_str + ste_str
+
+
+def connectivity_digest(chi: str, max_len: int = 10) -> str:
+    """Generate a short string summarizing connectivity information.
+
+    :param chi: ChI string
+    :param max_len: The maximum allowed length of the digest
+    :return: The short hash
+    """
+    # hash length by heavy atom count
+    hash_len_dct = {1: 0, 2: 4, 3: 5, 4: 5, 5: 6, 6: 6}
+
+    # Determine appropriate hash length
+    fml = formula(chi)
+    nheavy = form.heavy_atom_count(fml)
+    hash_len = hash_len_dct[nheavy]
+
+    # Form the hash string
+    chk = amchi_key(chi)
+    hash_str = inchi_key.first_hash(chk)[:hash_len].lower()
+
+    # Determine approprriate formula length
+    form_len = max_len - hash_len if max_len > hash_len else 0
+
+    # Form the formula string
+    form_strs = [form.string(fml), form.string(fml, hyd=False), ""]
+    form_str = next(s for s in form_strs if len(s) <= form_len)
+
+    return form_str + hash_str
+
+
+def stereo_digest(chi: str, racem: bool = False, max_len: int | None = None) -> str:
+    """Generate a short string summarizing stereo information.
+
+    :param name: The CHEMKIN name
+    :param chi: The ChI string
+    :param racem: Use a racemic suffix?, defaults to False
+    :param max_len: The maximum allowed length of the digest
+    :return: The CHEMKIN name, with stereo suffix
+    """
+    if not has_stereo(chi):
+        return ""
+
+    # Build the stereo digest
+    bpar_dct = bond_stereo_parities(chi, ordered_key=True)
+    apar_dct = atom_stereo_parities(chi)
+    is_inv = is_inverted_enantiomer(chi)
+    is_enant = is_enantiomer(chi)
+    bpars = list(map(bpar_dct.get, sorted(bpar_dct)))
+    apars = list(map(apar_dct.get, sorted(apar_dct)))
+    bnd_str = "".join("e" if p else "z" for p in bpars)
+    atm_str = "".join("s" if p else "r" for p in apars)
+    inv_str = ""
+    if is_enant:
+        racem = True if is_racemic(chi) else racem
+        inv_str = "R" if racem else ("1" if is_inv else "0")
+    ste_str = "".join((bnd_str, atm_str, inv_str))
+
+    # If longer than the max length, use a hash instead
+    if max_len is not None and len(bnd_str + atm_str) > max_len - 1:
+        hash2 = inchi_key.second_hash(amchi_key(racemic(chi)))
+        ste_str = hash2[: max_len - 1] + inv_str
+
+    return ste_str
 
 
 def smiles(chi, res_stereo=True):
@@ -169,67 +273,6 @@ def geometry(chi, check=True, log=False):
     return geo
 
 
-def conformers(chi, nconfs=1, check=True, accept_fewer=False):
-    """Generate a connected molecular geometry from a single-component ChI
-    string.
-
-    :param chi: ChI string
-    :type chi: str
-    :param nconfs: number of conformer structures to generate
-    :type nconfs: int
-    :param check: check stereo and connectivity?
-    :type check: bool
-    :param accept_fewer: accept fewer than nconfs conformers?
-    :type accept_fewer: bool
-    :rtype: automol molecular geometry
-    """
-    # Convert graph to local stereo to avoid multiple recanonicalizations
-    gra = _connected_graph(chi, stereo=True, local_stereo=True)
-    gra = graph_.explicit(gra)
-
-    smi = _connected_smiles(chi, res_stereo=False)
-    has_ste = has_stereo(chi)
-
-    try:
-        rdm = rdkit_.from_smiles(smi)
-        geos = rdkit_.to_conformers(rdm, nconfs=nconfs)
-    except (RuntimeError, TypeError, ValueError) as err:
-        raise error.FailedGeometryGenerationError("Failed AMChI:", chi) from err
-
-    ret_geos = []
-
-    # If the ChI has stereo, enforce correct stereo on the geometry.
-    if check:
-        for geo in geos:
-            if not has_ste:
-                # If there wasn't stereo, only check connectivity
-                gra_ = geom.graph(geo, stereo=False)
-                if graph_.isomorphism(gra, gra_, stereo=False):
-                    ret_geos.append(geo)
-            else:
-                # There is stereo.
-                # First, check connectivity.
-                gra_ = geom.graph(geo)
-                geo_idx_dct = graph_.isomorphism(gra, gra_, stereo=False)
-
-                if geo_idx_dct is not None:
-                    # Enforce correct stereo parities. This is necessary for
-                    # resonance bond stereo.
-                    geo = graph_.stereo_corrected_geometry(
-                        gra, geo, geo_idx_dct=geo_idx_dct, local_stereo=True
-                    )
-
-                    # Check if the assignment worked.
-                    gra_ = graph_.set_stereo_from_geometry(gra_, geo)
-                    if graph_.isomorphism(gra, gra_):
-                        ret_geos.append(geo)
-
-    if len(ret_geos) < nconfs and not accept_fewer:
-        raise error.FailedGeometryGenerationError("Failed AMChI:", chi)
-
-    return ret_geos
-
-
 def zmatrix(chi, check=True):
     """Generate a z-matrix from an ChI string.
 
@@ -345,6 +388,32 @@ def is_valid_multiplicity(chi, mul):
     """
     assert isinstance(mul, numbers.Integral)
     return mul in graph_.possible_spin_multiplicities(graph(chi, stereo=False))
+
+
+def guess_spin(chi: str) -> int:
+    """Guess the spin of a ChI string.
+
+    Apart from a special list of common molecules, simply guesses 0 or 1 depending on
+    whether the eletron count is even or odd, respectively.
+
+    Could be made smarter by converting to a graph, but that would be more expensive.
+
+    :param chi: A ChI string
+    :return: The ground-state spin guess
+    """
+    # First, check if this is a case with a hardcoded value
+    lookup_dct = {
+        ("O",): 2,
+        ("O2", ("c", "1-2")): 2,
+    }
+    key = (formula_layer(chi), *sorted(main_layers(chi).items()))
+    val = lookup_dct.get(key, None)
+    if val is not None:
+        return val
+
+    # Otherwise, guess based on the formula
+    fml = formula(chi)
+    return form.electron_count(fml) % 2
 
 
 # # derived transformations

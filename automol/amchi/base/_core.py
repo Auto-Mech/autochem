@@ -13,8 +13,8 @@ import numpy
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
-from automol import form, util
-from automol.util import dict_
+from ... import form, util
+from ...util import dict_
 
 
 # Build parser
@@ -1106,7 +1106,7 @@ def low_spin_multiplicity(chi):
 
 
 def is_enantiomer(chi, iso=True):
-    """Is this ChI an enantiomer? (I.e., is it chiral?)
+    """Is this ChI an enantiomer? (I.e., is it chiral?).
 
     Determined based on whether or not the ChI has an s-layer.
 
@@ -1120,6 +1120,19 @@ def is_enantiomer(chi, iso=True):
     ret = "s" in stereo_layers(chi)
     if iso:
         ret |= "s" in isotope_layers(chi)
+    return ret
+
+
+def is_racemic(chi: str, iso: bool = True) -> bool:
+    """Determine whether this is a racemic enantiomer.
+
+    :param ich: ChI string
+    :param iso: Include isotope stereochemistry?
+    :return: `True` if it is, `False` if it isn't
+    """
+    ret = stereo_layers(chi).get("s", None) == "3"
+    if iso:
+        ret |= isotope_layers(chi).get("s", None) == "3"
     return ret
 
 

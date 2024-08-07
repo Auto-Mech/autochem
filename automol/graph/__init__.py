@@ -17,23 +17,22 @@ Level 4 graph functions, which do depend on these things, belong in graph/*.py
 # # constructors
 # L4
 # embedding functions:
-from automol.graph._0embed import (
+from ._0embed import (
     clean_geometry,
-    embed_geometry,
     geometry_matches,
     zmatrix_matches,
 )
 
 # conversion functions:
 # # RMG conversions
-from automol.graph._1rmg import (
+from ._1rmg import (
     RMG_ADJACENCY_LIST,
     from_parsed_rmg_adjacency_list,
     from_rmg_adjacency_list,
 )
 
 # # conversions
-from automol.graph._2conv import (
+from ._2conv import (
     chi,
     display,
     display_reaction,
@@ -48,7 +47,7 @@ from automol.graph._2conv import (
 )
 
 # submodules:
-from automol.graph.base import ts, vmat
+from .base import ts, vmat
 
 # # getters
 # # setters
@@ -60,12 +59,12 @@ from automol.graph.base import ts, vmat
 # # add/remove/insert/without
 # # unions
 # # subgraphs and neighborhoods
-from automol.graph.base._00core import (
+from .base._00core import (
     add_atom_explicit_hydrogens,
     add_atoms,
     add_bonded_atom,
     add_bonds,
-    angle_keys,
+    align_with_geometry,
     apply_zmatrix_conversion,
     argsort_by_size,
     atom_backbone_hydrogen_keys,
@@ -73,6 +72,7 @@ from automol.graph.base._00core import (
     atom_bond_keys,
     atom_count,
     atom_electron_pairs,
+    atom_hypervalencies,
     atom_implicit_hydrogens,
     atom_keys,
     atom_lone_pairs,
@@ -112,9 +112,12 @@ from automol.graph.base._00core import (
     bonds_from_data,
     bonds_neighbor_atom_keys,
     bonds_neighbor_bond_keys,
+    central_angle_keys,
     change_implicit_hydrogens,
     count,
     covalent_radii,
+    dihedral_angle_keys,
+    distance_keys,
     dummy_source_dict,
     electron_count,
     explicit,
@@ -188,7 +191,7 @@ from automol.graph.base._00core import (
 # # algorithms
 # # branches and groups
 # # rings
-from automol.graph.base._02algo import (
+from .base._02algo import (
     are_equivalent_atoms,
     are_equivalent_bonds,
     atom_equivalence_class_reps,
@@ -202,6 +205,13 @@ from automol.graph.base._02algo import (
     branches,
     connected_components,
     connected_components_atom_keys,
+    dfs_,
+    dfs_atom_keys,
+    dfs_bond_keys,
+    dfs_children,
+    dfs_missing_bond_keys,
+    dfs_missing_children,
+    dfs_parents,
     equivalent_atoms,
     equivalent_bonds,
     is_branched,
@@ -227,7 +237,7 @@ from automol.graph.base._02algo import (
     sorted_ring_atom_keys,
     sorted_ring_atom_keys_from_bond_keys,
     spiro_atom_keys,
-    spiro_atoms_grouped_neighbor_keys,
+    spiros,
     subgraph_isomorphism,
     unique,
 )
@@ -235,11 +245,14 @@ from automol.graph.base._02algo import (
 # kekule functions:
 # # core functions
 # # derived properties
-from automol.graph.base._03kekule import (
+from .base._03kekule import (
+    addition_atom_keys,
     atom_centered_cumulene_keys,
     atom_hybridizations,
     atom_hybridizations_from_kekule,
     bad_stereo_bond_keys_from_kekule,
+    beta_scission_bond_keys,
+    beta_scission_bond_keys_from_kekule,
     bond_centered_cumulene_keys,
     good_stereo_bond_keys_from_kekule,
     has_noninchi_stereo,
@@ -277,7 +290,7 @@ from automol.graph.base._03kekule import (
 # geometry functions:
 # # stereo parity evaluations
 # # parity evaluators
-from automol.graph.base._05stereo import (
+from .base._05stereo import (
     geometry_atom_parity,
     geometry_bond_parity,
     parity_evaluator_flip_from_graph,
@@ -288,7 +301,7 @@ from automol.graph.base._05stereo import (
 )
 
 # structural heuristics:
-from automol.graph.base._06heur import (
+from .base._06heur import (
     heuristic_bond_angle,
     heuristic_bond_distance,
     heuristic_bond_distance_limit,
@@ -300,19 +313,18 @@ from automol.graph.base._06heur import (
 )
 
 # # corrections
-from automol.graph.base._07geom import (
+from .base._07geom import (
     geometries_parity_mismatches,
     geometry_correct_linear_vinyls,
     geometry_dihedrals_near_value,
     geometry_local_parity,
-    geometry_pseudorotate_atom,
     geometry_rotate_bond,
 )
 
 # canonicalization functions:
 # # canonical key functions
 # # symmetry class functions
-from automol.graph.base._08canon import (
+from .base._08canon import (
     calculate_stereo,
     canonical,
     canonical_keys,
@@ -323,18 +335,19 @@ from automol.graph.base._08canon import (
 )
 
 # AMChI functions:
-from automol.graph.base._09amchi import amchi, amchi_with_numbers, inchi_is_bad
+from .base._09amchi import amchi, amchi_with_numbers, inchi_is_bad
 
 # SMILES functions:
-from automol.graph.base._10smiles import smiles
+from .base._10smiles import smiles
 
 # # canonical stereo functions
 # stereo functions:
 # # core functions
 # # stereo correction
-from automol.graph.base._11stereo import (
+from .base._11stereo import (
     expand_reaction_stereo,
     expand_stereo,
+    geometry_pseudorotate_atom,
     has_fleeting_atom_or_bond_stereo,
     reflect,
     set_stereo_from_geometry,
@@ -347,7 +360,7 @@ from automol.graph.base._11stereo import (
 # # finders for overaching types
 # # finders for reactive sites and groups
 # # helper functions
-from automol.graph.base._func_group import (
+from .base._func_group import (
     FunctionalGroup,
     alcohol_groups,
     aldehyde_groups,
@@ -441,6 +454,7 @@ __all__ = [
     "atom_bond_counts",
     "atom_unpaired_electrons",
     "bond_unpaired_electrons",
+    "atom_hypervalencies",
     "tetrahedral_atoms",
     "tetrahedral_atom_keys",
     "vinyl_radical_bond_candidates",
@@ -458,7 +472,9 @@ __all__ = [
     "unsaturated_atom_keys",
     "unsaturated_bond_keys",
     "lone_pair_atom_keys",
-    "angle_keys",
+    "distance_keys",
+    "central_angle_keys",
+    "dihedral_angle_keys",
     # # relabeling and changing keys
     "relabel",
     "standard_keys",
@@ -466,6 +482,7 @@ __all__ = [
     "zmatrix_conversion_info",
     "apply_zmatrix_conversion",
     "undo_zmatrix_conversion",
+    "align_with_geometry",
     # # add/remove/insert/without
     "add_atoms",
     "add_bonds",
@@ -526,6 +543,13 @@ __all__ = [
     # # algorithms
     "connected_components",
     "connected_components_atom_keys",
+    "dfs_",
+    "dfs_atom_keys",
+    "dfs_bond_keys",
+    "dfs_children",
+    "dfs_parents",
+    "dfs_missing_bond_keys",
+    "dfs_missing_children",
     "is_connected",
     "atom_shortest_paths",
     "shortest_path_between_atoms",
@@ -551,7 +575,7 @@ __all__ = [
     "ring_systems",
     "ring_systems_atom_keys",
     "ring_systems_bond_keys",
-    "spiro_atoms_grouped_neighbor_keys",
+    "spiros",
     "spiro_atom_keys",
     "is_ring_system",
     "ring_system_decomposed_atom_keys",
@@ -581,6 +605,9 @@ __all__ = [
     "vinyl_radical_atom_keys",
     "sigma_radical_atom_keys",
     "has_separated_radical_sites",
+    "addition_atom_keys",
+    "beta_scission_bond_keys",
+    "beta_scission_bond_keys_from_kekule",
     "resonance_bond_stereo_keys",
     "vinyl_bond_stereo_keys",
     "has_resonance_bond_stereo",
@@ -688,7 +715,6 @@ __all__ = [
     "vmat",
     # L4
     # embedding functions:
-    "embed_geometry",
     "clean_geometry",
     "geometry_matches",
     "zmatrix_matches",

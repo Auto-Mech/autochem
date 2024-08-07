@@ -3,10 +3,10 @@
 
 import itertools
 
-from automol import graph
-from automol.const import ReactionClass
-from automol.graph import ts
-from automol.reac._0core import Reaction, class_, ts_graph
+from .. import graph
+from ..const import ReactionClass
+from ..graph import ts
+from ._0core import Reaction, class_, ts_graph
 
 
 def hydrogen_migration_atom_keys(rxn: Reaction):

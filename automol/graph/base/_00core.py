@@ -14,16 +14,20 @@ Data structure:
 
 BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 """
+
 import functools
 import itertools
 import numbers
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy
 import yaml
-from automol import form, util
-from automol.util import ZmatConv, dict_, zmat_conv
+
 from phydat import phycon, ptab
+
+from ... import form, util
+from ...geom import base as geom_base
+from ...util import ZmatConv, dict_, zmat_conv
 
 ATM_SYM_POS = 0
 ATM_IMP_HYD_POS = 1
@@ -1360,7 +1364,7 @@ def atom_bond_counts(gra, bond_order=True, with_implicit=True, ts_=True):
     return atm_nbnd_dct
 
 
-def atom_unpaired_electrons(gra, bond_order=True):
+def atom_unpaired_electrons(gra, bond_order: bool = True):
     """The number of unpaired electrons on each atom, calculated as the atomic
     valences minus the bond count
 
@@ -1413,6 +1417,18 @@ def bond_unpaired_electrons(gra, bond_order=True):
     return bnd_unp_dct
 
 
+def atom_hypervalencies(gra, bond_order: bool = True) -> Dict[int, int]:
+    """The number of excess bonds per atom, as a dictionary
+
+    :param gra: A graph
+    :param bond_order: Use the bond orders in the graph?, defaults to True
+    :return: The hypervalencies, as a dictionary by atom key
+    """
+    atm_unp_dct = atom_unpaired_electrons(gra, bond_order=bond_order)
+    atm_hyp_dct = {k: abs(v) if v < 0 else 0 for k, v in atm_unp_dct.items()}
+    return atm_hyp_dct
+
+
 def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
     """Get a mapping of tetrahedral atom keys onto their neighbor keys
 
@@ -1427,6 +1443,7 @@ def tetrahedral_atoms(gra, min_ncount: int = 3) -> Dict[int, tuple]:
         substitution TS graphs, the reactant neighbors will be returned
     :rtype: Dict[int, tuple]
     """
+    gra = without_dummy_atoms(gra)  # remove dummy atoms
     gra = without_pi_bonds(gra)  # remove pi-bonds for the bond count below
     nlp_dct = atom_lone_pairs(gra)
     nhyd_dct = atom_implicit_hydrogens(gra)
@@ -1480,7 +1497,7 @@ def vinyl_radical_bond_candidates(gra, min_ncount: int = 1) -> Dict[AtomKey, Bon
     :type gra: automol graph data structure
     :param min_ncount: Minimal # neighbor keys for consideration
     :type min_ncount: int, optional
-    :return: A mappping of vinyl radical atom keys onto vinyl bond keys
+    :return: A mappping of vinyl radical bond keys onto vinyl atom keys
     """
     ncount_dct = atom_bond_counts(gra, bond_order=False)
     npair_dct = atom_electron_pairs(gra, bond_order=False)
@@ -1553,7 +1570,9 @@ def atom_symbol_keys(gra):
     return symb_idx_dct
 
 
-def backbone_and_nonbackbone_hydrogen_keys(gra) -> (frozenset[int], frozenset[int]):
+def backbone_and_nonbackbone_hydrogen_keys(
+    gra,
+) -> Tuple[frozenset[int], frozenset[int]]:
     """Get the backbone and non-backbone hydrogen keys of this molecular graph
 
     :param gra: molecular graph
@@ -1740,27 +1759,69 @@ def unsaturated_bond_keys(gra):
     return unsat_bnd_keys
 
 
-def angle_keys(gra):
-    """Get triples of keys for pairs of adjacent bonds, with the central atom
-    in the middle
+def distance_keys(
+    gra, dup: bool = False, ts_: bool = True
+) -> frozenset[tuple[AtomKey, AtomKey]]:
+    """Get keys for distance coordinates
 
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :returns: The angle keys
-    :rtype: frozenset[tuple[int]]
+    :param gra: A molecular graph
+    :param dup: Include duplicate coordinates, i.e. (0, 1) as well as (1, 0)?
+    :param ts_: Include TS-specific coordinates?
+    :returns: The distance keys
     """
-    bnd_keys = bond_keys(gra)
+    dist_keys = frozenset(map(tuple, map(sorted, bond_keys(gra, ts_=ts_))))
+    if dup:
+        dist_keys |= frozenset(map(tuple, map(reversed, dist_keys)))
+    return dist_keys
+
+
+def central_angle_keys(
+    gra, dup: bool = False, ts_: bool = False
+) -> frozenset[tuple[AtomKey, AtomKey, AtomKey, AtomKey]]:
+    """Get keys for central angle coordinates
+
+    :param gra: A molecular graph
+    :param dup: Include duplicate coordinates, i.e. (2, 0, 1) as well as (1, 0, 2)?
+    :param ts_: Include TS-specific coordinates?
+    :returns: The angle keys
+    """
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=ts_)
 
     ang_keys = []
-    for bnd_key1, bnd_key2 in itertools.combinations(bnd_keys, r=2):
-        if bnd_key1 != bnd_key2 and bnd_key1 & bnd_key2:
-            (atm2_key,) = bnd_key1 & bnd_key2
-            (atm1_key,) = bnd_key1 - {atm2_key}
-            (atm3_key,) = bnd_key2 - {atm2_key}
-            ang_keys.append((atm1_key, atm2_key, atm3_key))
-            ang_keys.append((atm3_key, atm2_key, atm1_key))
+    for key in atom_keys(gra):
+        nkeys = nkeys_dct[key]
+        nkey_pairs = list(map(sorted, itertools.combinations(nkeys, r=2)))
+        new_ang_keys = [(n1, key, n2) for n1, n2 in nkey_pairs]
+        ang_keys.extend(new_ang_keys)
+        if dup:
+            ang_keys.extend(map(tuple, map(reversed, new_ang_keys)))
 
     return frozenset(ang_keys)
+
+
+def dihedral_angle_keys(
+    gra, dup: bool = False, ts_: bool = False
+) -> frozenset[tuple[AtomKey, AtomKey, AtomKey, AtomKey]]:
+    """Get keys for dihedral angle coordinates
+
+    :param gra: A molecular graph
+    :param dup: Include duplicate coordinates, i.e. (2, 0, 3, 1) and (1, 3, 0, 2)?
+    :param ts_: Include TS-specific coordinates?
+    :return: The dihedral keys
+    """
+    nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=ts_)
+
+    dih_keys = []
+    for key1, key2 in distance_keys(gra, dup=dup, ts_=ts_):
+        nkey1s = nkeys_dct[key1] - {key2}
+        nkey2s = nkeys_dct[key2] - {key1}
+        nkey_pairs = [
+            (n1, n2) for n1, n2 in itertools.product(nkey1s, nkey2s) if n1 != n2
+        ]
+        new_dih_keys = [(n1, key1, key2, n2) for n1, n2 in nkey_pairs]
+        dih_keys.extend(new_dih_keys)
+
+    return frozenset(dih_keys)
 
 
 # # relabeling and changing keys
@@ -1885,6 +1946,62 @@ def undo_zmatrix_conversion(gra, zc_: ZmatConv = None):
     gra = remove_atoms(gra, zmat_conv.insert_dict(zc_))
     gra = relabel(gra, zmat_conv.relabel_dict(zc_, "zmat"))
     return gra
+
+
+def align_with_geometry(
+    gra: Any,
+    geo: Any,
+    args: Optional[List[Any]] = None,
+    geo_idx_dct: Optional[Dict[AtomKey, AtomKey]] = None,
+) -> Tuple[Any, Any, List[Any], Dict[AtomKey, AtomKey], Dict[AtomKey, AtomKey]]:
+    """Align a graph with a geometry, preserving the relative atom ordering of the graph
+
+    By preserving relative ordering of graph atoms, local parities will remain valid,
+    even though the neighboring keys have changed
+
+    Transformations:
+        - Graph keys will be made consecutive while preserving their relative ordering
+        - Geometry will be reordered to match the graph ordering
+        - Arguments will be mapped from the original graph keys to the consecutive ones
+
+    :param gra: A molecular graph
+    :param geo: A molecular geometry
+    :param args: A list of arguments consisting of nested lists of graph keys, to be
+        aligned with the graph and the geometry, defaults to None
+    :param geo_idx_dct: Geometry indices by graph key, defaults to None
+    :return: The aligned graph, geometry, and arguments, followed by two mappings of the
+        new keys/indices onto the original graph keys and the original geometry indices
+    """
+    all_keys = sorted(atom_keys(gra))
+    geo_idx_dct = (
+        {k: i for i, k in enumerate(all_keys)} if geo_idx_dct is None else geo_idx_dct
+    )
+    geo_idx_dct = dict_.filter_by_value(geo_idx_dct, lambda x: x is not None)
+
+    # 1. Make the graph keys consecutive
+    cons_keys = [k for k in all_keys if k in geo_idx_dct.keys()]
+    cons_key_dct = {k: i for i, k in enumerate(cons_keys)}
+    gra = subgraph(gra, cons_keys, stereo=True)
+    gra = relabel(gra, cons_key_dct, check=True)
+
+    # 2. Apply the same transformation to args
+    args = util.translate(args, cons_key_dct, drop=False)
+
+    # 3. Determine the mapping of new (aligned) graph keys onto the originals
+    key_dct = dict(map(reversed, cons_key_dct.items()))
+
+    # 4. Determine the mapping of new (aligned) geometry indices onto the originals
+    idx_dct = dict_.transform_keys(geo_idx_dct, cons_key_dct.get)
+
+    # 5. Align the geometry indices with the consecutive graph keys
+    geo = geom_base.reorder(geo, dict(map(reversed, idx_dct.items())))
+
+    # Sanity check: Check for alignment among the atom symbols
+    symbs = util.dict_.values_sorted_by_key(atom_symbols(gra))
+    symbs_ = geom_base.symbols(geo)
+    assert symbs == symbs_, f"{symbs} != {symbs_}\n{gra}\n{geo}\n{geo_idx_dct}"
+
+    return gra, geo, args, key_dct, idx_dct
 
 
 # # add/remove/insert/without
@@ -2156,11 +2273,11 @@ def without_pi_bonds(gra):
     # don't set dummy bonds to one!
     bnd_ord_dct = bond_orders(gra)
     bnd_ords = [
-        0
-        if round(v, 1) == 0
-        else round(v % 1, 1)
-        if round(v % 1, 1) in (0.1, 0.9)
-        else 1
+        (
+            0
+            if round(v, 1) == 0
+            else round(v % 1, 1) if round(v % 1, 1) in (0.1, 0.9) else 1
+        )
         for v in map(bnd_ord_dct.__getitem__, bnd_keys)
     ]
     bnd_ord_dct = dict(zip(bnd_keys, bnd_ords))

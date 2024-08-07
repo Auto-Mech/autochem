@@ -5,8 +5,8 @@ import itertools
 
 import numpy
 
-from automol.vmat import coordinates
-from automol.zmat.base._core import set_values_by_name, value_dictionary
+from ...vmat import coordinates
+from ._core import set_values_by_name, value_dictionary
 
 
 def samples(zma, nsamp, range_dct):

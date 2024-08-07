@@ -13,96 +13,99 @@ Import hierarchy:
 
 # L2
 # common v-matrix/z-matrix functions:
-from automol.vmat import symbols
-from automol.vmat import key_matrix
-from automol.vmat import name_matrix
-from automol.vmat import count
-from automol.vmat import atom_indices
-from automol.vmat import coordinate_key_matrix
-from automol.vmat import coordinates
-from automol.vmat import coordinate
-from automol.vmat import torsion_axis
-from automol.vmat import names
-from automol.vmat import distance_names
-from automol.vmat import central_angle_names
-from automol.vmat import dihedral_angle_names
-from automol.vmat import angle_names
-from automol.vmat import dummy_coordinate_names
-from automol.vmat import standard_names
-from automol.vmat import standard_name_matrix
-from automol.vmat import distance_coordinate_name
-from automol.vmat import central_angle_coordinate_name
-from automol.vmat import dihedral_angle_coordinate_name
-from automol.vmat import dummy_keys
-from automol.vmat import dummy_source_dict
-from automol.vmat import conversion_info
+from ..vmat import symbols
+from ..vmat import key_matrix
+from ..vmat import name_matrix
+from ..vmat import count
+from ..vmat import atom_indices
+from ..vmat import coordinate_key_matrix
+from ..vmat import coordinates
+from ..vmat import distance_coordinates
+from ..vmat import central_angle_coordinates
+from ..vmat import dihedral_angle_coordinates
+from ..vmat import coordinate
+from ..vmat import torsion_axis
+from ..vmat import names
+from ..vmat import distance_names
+from ..vmat import central_angle_names
+from ..vmat import dihedral_angle_names
+from ..vmat import angle_names
+from ..vmat import dummy_coordinate_names
+from ..vmat import standard_names
+from ..vmat import standard_name_matrix
+from ..vmat import distance_coordinate_name
+from ..vmat import central_angle_coordinate_name
+from ..vmat import dihedral_angle_coordinate_name
+from ..vmat import dummy_keys
+from ..vmat import dummy_source_dict
+from ..vmat import conversion_info
 # core functions
 # # constructors
-from automol.zmat.base._core import from_data
-from automol.zmat.base._core import from_geometry
+from .base._core import from_data
+from .base._core import from_geometry
 # # getters
-from automol.zmat.base._core import value_matrix
-from automol.zmat.base._core import value_dictionary
-from automol.zmat.base._core import value
+from .base._core import value_matrix
+from .base._core import value_dictionary
+from .base._core import value
 # # setters
-from automol.zmat.base._core import set_key_matrix
-from automol.zmat.base._core import set_name_matrix
-from automol.zmat.base._core import set_value_matrix
-from automol.zmat.base._core import set_values_by_name
+from .base._core import set_key_matrix
+from .base._core import set_name_matrix
+from .base._core import set_value_matrix
+from .base._core import set_values_by_name
 # # I/O
-from automol.zmat.base._core import string
-from automol.zmat.base._core import from_string
-from automol.zmat.base._core import yaml_data
-from automol.zmat.base._core import from_yaml_data
+from .base._core import string
+from .base._core import from_string
+from .base._core import yaml_data
+from .base._core import from_yaml_data
 # # validation
-from automol.zmat.base._core import is_valid
+from .base._core import is_valid
 # # properties
-from automol.zmat.base._core import torsion_coordinates
+from .base._core import torsion_coordinates
 # # conversions
-from automol.zmat.base._core import vmatrix
-from automol.zmat.base._core import formula
+from .base._core import vmatrix
+from .base._core import formula
 # # relabelling
-from automol.zmat.base._core import rename
-from automol.zmat.base._core import standard_form
-from automol.zmat.base._core import round_
+from .base._core import rename
+from .base._core import standard_form
+from .base._core import round_
 # # add/remove atoms
-from automol.zmat.base._core import add_atom
-from automol.zmat.base._core import remove_atom
+from .base._core import add_atom
+from .base._core import remove_atom
 # # comparisons
-from automol.zmat.base._core import almost_equal
+from .base._core import almost_equal
 # extra functions
-from automol.zmat.base._extra import samples
-from automol.zmat.base._extra import constraint_dict
-from automol.zmat.base._extra import set_constraint_names
+from .base._extra import samples
+from .base._extra import constraint_dict
+from .base._extra import set_constraint_names
 # L4
 # conversion functions
 # # conversions
-from automol.zmat._conv import graph
-from automol.zmat._conv import graph_without_stereo
-from automol.zmat._conv import geometry
-from automol.zmat._conv import geometry_with_conversion_info
-from automol.zmat._conv import rdkit_molecule
-from automol.zmat._conv import py3dmol_view
-from automol.zmat._conv import display
+from ._conv import graph
+from ._conv import graph_without_stereo
+from ._conv import geometry
+from ._conv import geometry_with_conversion_info
+from ._conv import rdkit_molecule
+from ._conv import py3dmol_view
+from ._conv import display
 # # derived properties
-from automol.zmat._conv import distance
-from automol.zmat._conv import central_angle
-from automol.zmat._conv import dihedral_angle
+from ._conv import distance
+from ._conv import central_angle
+from ._conv import dihedral_angle
 # # torsions
-from automol.zmat._conv import torsion_coordinate_name
-from automol.zmat._conv import torsion_leading_atom
+from ._conv import torsion_coordinate_name
+from ._conv import torsion_leading_atom
 # # repulsion energy
-from automol.zmat._conv import has_low_relative_repulsion_energy
-from automol.zmat._conv import total_repulsion_energy
+from ._conv import has_low_relative_repulsion_energy
+from ._conv import total_repulsion_energy
 # ring functions:
-from automol.zmat._ring import all_rings_atoms
-from automol.zmat._ring import all_rings_distances
-from automol.zmat._ring import all_rings_dihedrals
-from automol.zmat._ring import all_rings_dct
-from automol.zmat._ring import all_rings_distances_reasonable
-from automol.zmat._ring import ring_distances
-from automol.zmat._ring import ring_dihedrals
-from automol.zmat._ring import ring_distances_reasonable
+from ._ring import all_rings_atoms
+from ._ring import all_rings_distances
+from ._ring import all_rings_dihedrals
+from ._ring import all_rings_dct
+from ._ring import all_rings_distances_reasonable
+from ._ring import ring_distances
+from ._ring import ring_dihedrals
+from ._ring import ring_distances_reasonable
 
 
 __all__ = [
@@ -115,6 +118,9 @@ __all__ = [
     'atom_indices',
     'coordinate_key_matrix',
     'coordinates',
+    'distance_coordinates',
+    'central_angle_coordinates',
+    'dihedral_angle_coordinates',
     'torsion_axis',
     'names',
     'distance_names',

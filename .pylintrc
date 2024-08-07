@@ -25,5 +25,7 @@ disable=
     no-else-raise,
     unnecessary-list-index-lookup,
     invalid-name,
-    c-extension-no-member
+    c-extension-no-member,
+    import-outside-toplevel,
+    import-error
 

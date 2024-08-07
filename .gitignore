@@ -108,3 +108,12 @@ venv.bak/
 bin/
 build/
 lib/
+
+# ignore sela repo
+sella-repo/
+
+# Ignore notebook folder
+notebook/
+# pixi environments
+.pixi
+*.egg-info

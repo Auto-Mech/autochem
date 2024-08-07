@@ -3,10 +3,10 @@
 
 from typing import Tuple
 
-from automol import graph as graph_
-from automol.extern import rdkit_
-from automol.inchi import base as inchi_base
-from automol.smiles.base import (
+from .. import graph as graph_
+from ..extern import rdkit_
+from ..inchi import base as inchi_base
+from .base import (
     parse_connected_molecule_properties,
     reaction_products,
     reaction_reactants,

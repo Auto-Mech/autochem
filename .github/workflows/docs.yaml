@@ -1,0 +1,49 @@
+name: docs
+
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      # Repository
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      # Environment
+      - name: Download environment files
+        run: |
+          wget https://raw.githubusercontent.com/Auto-Mech/amech-dev/main/pixi.toml
+          wget https://raw.githubusercontent.com/Auto-Mech/amech-dev/main/pixi.lock
+
+      - name: Set up Pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
+
+      - name: Pip install
+        run: |
+          pixi run pip install -e . --no-deps
+
+      # Docs
+      - name: Build docs
+        run: |
+          cd docs
+          pixi run make html
+
+      - name: Upload docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-docs
+          path: docs/build/html/
+
+      - name: Deploy docs
+        uses: peaceiris/actions-gh-pages@v4
+        if: github.ref == 'refs/heads/dev'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/build/html

@@ -6,103 +6,107 @@ Extends InChI to allow for resonance double-bond stereo.
 
 # L2
 # # constructor
-from automol.amchi.base._core import from_data
+from .base._core import from_data
 # # recalculate/standardize
-from automol.amchi.base._core import standard_form
+from .base._core import standard_form
 # # getters
-from automol.amchi.base._core import prefix
-from automol.amchi.base._core import version
-from automol.amchi.base._core import formula_layer
-from automol.amchi.base._core import main_layers
-from automol.amchi.base._core import charge_layers
-from automol.amchi.base._core import stereo_layers
-from automol.amchi.base._core import isotope_layers
-from automol.amchi.base._core import ts_layers
+from .base._core import prefix
+from .base._core import version
+from .base._core import formula_layer
+from .base._core import main_layers
+from .base._core import charge_layers
+from .base._core import stereo_layers
+from .base._core import isotope_layers
+from .base._core import ts_layers
 # # setters
-from automol.amchi.base._core import with_inchi_prefix
-from automol.amchi.base._core import reflect
-from automol.amchi.base._core import canonical_enantiomer
-from automol.amchi.base._core import reflect_reaction
-from automol.amchi.base._core import canonical_enantiomer_reaction
+from .base._core import with_inchi_prefix
+from .base._core import reflect
+from .base._core import canonical_enantiomer
+from .base._core import reflect_reaction
+from .base._core import canonical_enantiomer_reaction
 # # conversions
-from automol.amchi.base._core import formula
-from automol.amchi.base._core import formula_string
-from automol.amchi.base._core import connectivity
-from automol.amchi.base._core import without_stereo
-from automol.amchi.base._core import racemic
-from automol.amchi.base._core import are_enantiomers
-from automol.amchi.base._core import are_diastereomers
+from .base._core import formula
+from .base._core import formula_string
+from .base._core import connectivity
+from .base._core import without_stereo
+from .base._core import racemic
+from .base._core import are_enantiomers
+from .base._core import are_diastereomers
 # # properties
 # # # prefix
-from automol.amchi.base._core import is_amchi
-from automol.amchi.base._core import is_inchi
+from .base._core import is_amchi
+from .base._core import is_inchi
 # # # formula layer
-from automol.amchi.base._core import symbols
-from automol.amchi.base._core import canonical_indices
+from .base._core import symbols
+from .base._core import canonical_indices
 # # # main layers
-from automol.amchi.base._core import bonds
-from automol.amchi.base._core import hydrogen_valences
+from .base._core import bonds
+from .base._core import hydrogen_valences
 # # # charge layers
-from automol.amchi.base._core import charge
+from .base._core import charge
 # # # stereo layers
-from automol.amchi.base._core import bond_stereo_parities
-from automol.amchi.base._core import atom_stereo_parities
-from automol.amchi.base._core import is_inverted_enantiomer
-from automol.amchi.base._core import is_canonical_enantiomer
-from automol.amchi.base._core import is_canonical_enantiomer_reaction
-from automol.amchi.base._core import is_canonical_reaction_direction
-from automol.amchi.base._core import is_enantiomer_list
-from automol.amchi.base._core import is_enantiomer_reaction
+from .base._core import bond_stereo_parities
+from .base._core import atom_stereo_parities
+from .base._core import is_inverted_enantiomer
+from .base._core import is_canonical_enantiomer
+from .base._core import is_canonical_enantiomer_reaction
+from .base._core import is_canonical_reaction_direction
+from .base._core import is_enantiomer_list
+from .base._core import is_enantiomer_reaction
 # # # TS layers
-from automol.amchi.base._core import breaking_bond_keys
-from automol.amchi.base._core import forming_bond_keys
-from automol.amchi.base._core import is_reversed_ts
+from .base._core import breaking_bond_keys
+from .base._core import forming_bond_keys
+from .base._core import is_reversed_ts
 # # # isotope layers
-from automol.amchi.base._core import bond_isotope_stereo_parities
-from automol.amchi.base._core import atom_isotope_stereo_parities
-from automol.amchi.base._core import is_inverted_isotope_enantiomer
+from .base._core import bond_isotope_stereo_parities
+from .base._core import atom_isotope_stereo_parities
+from .base._core import is_inverted_isotope_enantiomer
 # # other properties
-from automol.amchi.base._core import has_multiple_components
-from automol.amchi.base._core import has_stereo
-from automol.amchi.base._core import has_mobile_hydrogens
-from automol.amchi.base._core import low_spin_multiplicity
-from automol.amchi.base._core import is_enantiomer
+from .base._core import has_multiple_components
+from .base._core import has_stereo
+from .base._core import has_mobile_hydrogens
+from .base._core import low_spin_multiplicity
+from .base._core import is_enantiomer
+from .base._core import is_racemic
 # # comparisons
-from automol.amchi.base._core import same_connectivity
-from automol.amchi.base._core import equivalent
+from .base._core import same_connectivity
+from .base._core import equivalent
 # # split/join
-from automol.amchi.base._core import split
-from automol.amchi.base._core import join
-from automol.amchi.base._core import sorted_join
+from .base._core import split
+from .base._core import join
+from .base._core import sorted_join
 # # sort
-from automol.amchi.base._core import sorted_
-from automol.amchi.base._core import argsort
+from .base._core import sorted_
+from .base._core import argsort
 # # helpers
-from automol.amchi.base._core import join_layers
-from automol.amchi.base._core import split_layers
-from automol.amchi.base._core import join_layer_strings
-from automol.amchi.base._core import _split_layer_string
+from .base._core import join_layers
+from .base._core import split_layers
+from .base._core import join_layer_strings
+from .base._core import _split_layer_string
 # L4
 # # conversions
-from automol.amchi._conv import amchi_key
-from automol.amchi._conv import smiles
-from automol.amchi._conv import graph
-from automol.amchi._conv import geometry
-from automol.amchi._conv import conformers
-from automol.amchi._conv import zmatrix
-from automol.amchi._conv import rdkit_molecule
-from automol.amchi._conv import rdkit_reaction
-from automol.amchi._conv import display
-from automol.amchi._conv import display_reaction
+from ._conv import amchi_key
+from ._conv import chemkin_name
+from ._conv import connectivity_digest
+from ._conv import stereo_digest
+from ._conv import smiles
+from ._conv import graph
+from ._conv import geometry
+from ._conv import zmatrix
+from ._conv import rdkit_molecule
+from ._conv import rdkit_reaction
+from ._conv import display
+from ._conv import display_reaction
 # # derived properties
-from automol.amchi._conv import is_complete
-from automol.amchi._conv import is_valid_multiplicity
+from ._conv import is_complete
+from ._conv import is_valid_multiplicity
+from ._conv import guess_spin
 # # derived transformations
-from automol.amchi._conv import add_stereo
-from automol.amchi._conv import expand_stereo
+from ._conv import add_stereo
+from ._conv import expand_stereo
 # drawing tools
-from automol.amchi._draw import draw
-from automol.amchi._draw import draw_grid
+from ._draw import draw
+from ._draw import draw_grid
 
 # allow this as an alias
 is_chiral = is_enantiomer
@@ -169,6 +173,7 @@ __all__ = [
     # # other properties
     'has_multiple_components',
     'is_enantiomer',
+    'is_racemic',
     'is_chiral',
     'has_stereo',
     'has_mobile_hydrogens',
@@ -190,10 +195,12 @@ __all__ = [
     # L4
     # # conversions
     'amchi_key',
+    'chemkin_name',
+    'connectivity_digest',
+    'stereo_digest',
     'smiles',
     'graph',
     'geometry',
-    'conformers',
     'zmatrix',
     'rdkit_molecule',
     'rdkit_reaction',
@@ -202,6 +209,7 @@ __all__ = [
     # # derived properties
     'is_complete',
     'is_valid_multiplicity',
+    'guess_spin',
     # # derived transformations
     'add_stereo',
     'expand_stereo',

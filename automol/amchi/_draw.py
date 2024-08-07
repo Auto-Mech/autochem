@@ -1,8 +1,8 @@
 """ Draw 2D images
 """
 
-from automol.extern import rdkit_
-from automol.amchi._conv import smiles
+from ..extern import rdkit_
+from ._conv import smiles
 
 
 def draw(chi, save_path=None):

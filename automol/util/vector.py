@@ -1,59 +1,83 @@
-""" vector functions
-"""
-from typing import Callable, Optional, Tuple
+"""vector functions."""
+from collections.abc import Callable, Sequence
 
 import numpy
 from scipy.spatial.transform import Rotation
+
 from phydat import phycon
 
-Vector = Tuple[float, float, float]
+Vector = numpy.ndarray
 
 
-def unit_norm(xyz):
+def is_vector_like(obj: Sequence | Vector) -> bool:
+    """Check if an object has the right shape and dtype to be a vector.
+
+    :param obj: The object
+    :return: `True` if it does, `False` if it doesn't
+    """
+    arr = numpy.array(obj)
+    return arr.shape == (3,) and numpy.issubdtype(arr.dtype, numpy.number)
+
+
+def require_vector_like(obj: Sequence | Vector):
+    """Require an object to have the right shape and dtype to be a vector.
+
+    :param obj: The object
+    :raises: Raises an AssertionError if the object is not vector-like
+    """
+    assert is_vector_like(obj), f"{obj} is not vector-like"
+
+
+def unit_norm(xyz: Sequence | Vector) -> Vector:
     """Normalize a vector (xyz) to 1.0.
 
-    Returns 0. for null vectors
+    Does nothing to null vectors
 
-    :param xyz: vector
-    :type xyz: tuple, list, or numpy nd.array
-    :rtype: float
+    :param xyz:3D Vector
+    :return: Numbers in the vector
     """
+    require_vector_like(xyz)
     uxyz = xyz
     norm = numpy.linalg.norm(xyz)
-    if not numpy.isclose(norm, 0.):
+    if not numpy.isclose(norm, 0.0):
         uxyz = numpy.divide(xyz, norm)
     return uxyz
 
 
-def unit_direction(xyz1, xyz2):
+def unit_direction(xyz1: Sequence | Vector, xyz2: Sequence | Vector) -> Vector:
     """Calculate a unit direction vector from `xyz1` to `xyz2`.
 
     :param xyz1: 3D vector
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector
-    :type xyz2: tuple, list, or numpy nd.array
-    :rtype: float
+    :return: Unit direction vector from two vectors
     """
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
     dxyz12 = numpy.subtract(xyz2, xyz1)
     uxyz12 = unit_norm(dxyz12)
     return uxyz12
 
 
-def are_parallel(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), anti=False, tol=1e-3):
+def are_parallel(
+    xyz1: Sequence | Vector,
+    xyz2: Sequence | Vector,
+    orig_xyz: Sequence | Vector = (0.0, 0.0, 0.0),
+    anti: bool = False,
+    tol: float = 1e-3,
+) -> bool:
     """Assess if two vectors are parallel to each other.
 
     :param xyz1: 3D vector
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector
-    :type xyz2: tuple, list, or numpy nd.array
-    :param orig_xyz: origin of coordinate system `xyz1` and `xyz2` are in
-    :type orig_xyz: tuple, list, or numpy nd.array
+    :param orig_xyz: Origin of coordinate system `xyz1` and `xyz2` are in
     :param anti: Test for anti-parallelity too?
-    :type anti: bool
-    :param tol: tolerance for checking determinant
-    :type tol: float
-    :rtype: bool
+
+    :param tol: Tolerance for checking determinant
+    :return: True if vectors are parallel, false if not
     """
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
+    require_vector_like(orig_xyz)
     vec1 = numpy.subtract(xyz1, orig_xyz)
     vec2 = numpy.subtract(xyz2, orig_xyz)
     len1 = numpy.linalg.norm(vec1)
@@ -68,8 +92,17 @@ def are_parallel(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), anti=False, tol=1e-3):
     return ret
 
 
-def orthogonalize(xyz1, xyz2, normalize=False):
-    """orthogonalize `xyz2` against `xyz1`"""
+def orthogonalize(
+    xyz1: Sequence | Vector, xyz2: Sequence | Vector, normalize: bool = False
+) -> Vector:
+    """Orthogonalize `xyz2` against `xyz1`.
+    :param xyz1: 3D vector
+    :param xyz2: 3D vector
+    :param normalize: Whether to normalize the result
+    :return: The orthoganol component.
+    """
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
     overlap = numpy.dot(xyz1, xyz2)
     norm = numpy.dot(xyz1, xyz1)
     oxyz2 = numpy.subtract(xyz2, numpy.multiply(overlap / norm, xyz1))
@@ -78,31 +111,32 @@ def orthogonalize(xyz1, xyz2, normalize=False):
     return oxyz2
 
 
-def flip_if_left_handed(xvec, yvec, zvec) -> Vector:
+def flip_if_left_handed(
+    xvec: Sequence | Vector, yvec: Sequence | Vector, zvec: Sequence | Vector
+) -> Vector:
     """Given three vectors, flips the third one, if necessary, to make a right-handed
-    coordinate system
+    coordinate system.
 
     The vectors need not be orthogonal, but they must be linearly independent for this
     to work.  Does not change direction -- only flips the sign, if necessary.
 
     :param xvec: A vector defining the x direction
-    :type xvec: Vector
     :param yvec: A vector defining the y direction
-    :type yvec: Vector
     :param zvec: A vector defining the z direction
-    :type zvec: Vector
     :returns: `zvec` or, if they made a left-handed system, `-zvec`
-    :rtype: Vector
     """
+    require_vector_like(xvec)
+    require_vector_like(yvec)
+    require_vector_like(zvec)
     zdir = numpy.cross(xvec, yvec)
     proj = numpy.dot(zvec, zdir)
     if proj < 0.0:
-        zvec = numpy.negative(zvec)
-    return tuple(map(float, zvec))
+        return numpy.negative(zvec)
+    return zvec
 
 
-def best_unit_perpendicular(xyzs):
-    """Find a vector that is perpendicular to a series of points as much as possible
+def best_unit_perpendicular(xyzs: Sequence[Sequence | Vector]) -> Vector:
+    """Find a vector that is perpendicular to a series of points as much as possible.
 
     For 1 point, this is an arbitrary vector.
     For 2 points, this is an arbitrary perpendicular vector.
@@ -112,8 +146,11 @@ def best_unit_perpendicular(xyzs):
     Solution to the last problem was found here: https://stackoverflow.com/a/51132260
 
     :param xyzs: The points
-    :type xyzs: List[Vector]
+    :return: New vector
     """
+    assert all(
+        is_vector_like(xyz) for xyz in xyzs
+    ), f"One of these is not vector like: {xyzs}"
     if len(xyzs) <= 1:
         nvec = [1, 0, 0]
     elif len(xyzs) == 2:
@@ -125,12 +162,15 @@ def best_unit_perpendicular(xyzs):
         _, _, vmat = numpy.linalg.svd(numpy.subtract(xyzs, xyz0))
         nvec = vmat[2, :]
 
-    nvec = tuple(map(float, nvec))
     return nvec
 
 
-def arbitrary_unit_perpendicular(xyz, orig_xyz=(0.0, 0.0, 0.0)):
-    """determine an arbitrary perpendicular vector"""
+def arbitrary_unit_perpendicular(
+    xyz: Sequence | Vector, orig_xyz: Sequence | Vector = (0.0, 0.0, 0.0)
+) -> Vector:
+    """Determine an arbitrary perpendicular vector."""
+    require_vector_like(xyz)
+    require_vector_like(orig_xyz)
     for xyz2 in ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1]):
         uxyz = unit_perpendicular(xyz, xyz2, orig_xyz=orig_xyz)
         if numpy.linalg.norm(uxyz) > 1e-7:
@@ -140,21 +180,23 @@ def arbitrary_unit_perpendicular(xyz, orig_xyz=(0.0, 0.0, 0.0)):
 
 
 def unit_perpendicular(
-    xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0), value_if_parallel: Vector = (0.0, 0.0, 0.0)
+    xyz1: Sequence | Vector,
+    xyz2: Sequence | Vector,
+    orig_xyz: Sequence | Vector = (0.0, 0.0, 0.0),
+    value_if_parallel: Vector = (0.0, 0.0, 0.0),
 ) -> Vector:
     """Calculate a unit perpendicular on `xyz1` and `xyz2`.
 
     :param xyz1: 3D vector
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector
-    :type xyz2: tuple, list, or numpy nd.array
     :param orig_xyz: origin of coordinate system `xyz1` and `xyz2` are in
-    :type orig_xyz: tuple, list, or numpy nd.array
     :param value_if_parallel: What to return if the vectors are parallel
-    :type value_if_parallel: Vector
-    :rtype: numpy.ndarray
+    :return: Unit vector perpendicular to xyz1 and xyz2.
     """
-
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
+    require_vector_like(orig_xyz)
+    require_vector_like(value_if_parallel)
     xyz1 = numpy.subtract(xyz1, orig_xyz)
     xyz2 = numpy.subtract(xyz2, orig_xyz)
     xyz3 = numpy.cross(xyz1, xyz2)
@@ -162,25 +204,28 @@ def unit_perpendicular(
     if numpy.linalg.norm(xyz3) > 1e-7:
         uxyz3 = unit_norm(xyz3)
     else:
-        uxyz3 = value_if_parallel
+        uxyz3 = numpy.array(value_if_parallel)
 
     return uxyz3
 
 
-def unit_bisector(xyz1, xyz2, orig_xyz, outer: bool = False) -> Vector:
+def unit_bisector(
+    xyz1: Sequence | Vector,
+    xyz2: Sequence | Vector,
+    orig_xyz: Sequence | Vector = (0.0, 0.0, 0.0),
+    outer: bool = False,
+) -> Vector:
     """Calculate a unit bisector.
 
     :param xyz1: 3D vector
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector
-    :type xyz2: tuple, list, or numpy nd.array
-    :param orig_xyz: origin of coordinate system `xyz1` and `xyz2` are in
-    :type orig_xyz: tuple, list, or numpy nd.array
+    :param orig_xyz: Origin of coordinate system `xyz1` and `xyz2` are in
     :param outer: Get the outer, instead of the inner bisector?, defaults to False
-    :type outer: bool, optional
-    :rtype: numpy.ndarray
+    :return: Unit bisector
     """
-
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
+    require_vector_like(orig_xyz)
     ang = central_angle(xyz1, orig_xyz, xyz2)
     rot_ = rotator(
         axis=unit_perpendicular(xyz1, xyz2, orig_xyz),
@@ -194,108 +239,105 @@ def unit_bisector(xyz1, xyz2, orig_xyz, outer: bool = False) -> Vector:
 
 
 def from_internals(
-    dist=0.0,
-    xyz1=(0.0, 0.0, 0.0),
-    ang=0.0,
-    xyz2=(0.0, 0.0, 1.0),
-    dih=0.0,
-    xyz3=(0.0, 1.0, 0.0),
-):
+    dist: float = 0.0,
+    xyz1: Sequence | Vector = (0.0, 0.0, 0.0),
+    ang: float = 0.0,
+    xyz2: Sequence | Vector = (0.0, 0.0, 1.0),
+    dih: float = 0.0,
+    xyz3: Sequence | Vector = (0.0, 1.0, 0.0),
+) -> Vector:
     """Determine the position of a point (xyz4) in Cartesian coordinates whose
     position is related to three other points (xyz1, xyz2, xyz3) via a set
     of internal coordinates.
 
-    :param dist: distance between `xyz1` and `xyz2` (in bohr)
-    :type dist: float
-    :param xyz1: 3D vector to point 1
-    :type xyz1: tuple, list, or numpy nd.array
-    :param angle: angle between `xyz1`, `xyz2`, `xyz3` (in radians)
-    :type angle: float
+    :param dist: Distance between `xyz1` and `xyz2` (in bohr)
+    :param angle: Angle between `xyz1`, `xyz2`, `xyz3` (in radians)
     :param xyz2: 3D vector to point 2
-    :type xyz2: tuple, list, or numpy nd.array
-    :param dih: dihedral from `xyz1`, `xyz2`, `xyz3` to `xyz4` (in radians)
-    :type dih: float
+    :param dih: Dihedral from `xyz1`, `xyz2`, `xyz3` to `xyz4` (in radians)
     :param xyz3: 3D vector to point 2
-    :type xyz3: tuple, list, or numpy nd.array
-    :rtyp: tuple(float)
+    :return: New point 'xyz4'
     """
-
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
+    require_vector_like(xyz3)
     local_xyz = _local_position(dist=dist, ang=ang, dih=dih)
     local_basis = _local_axes(xyz1=xyz1, xyz2=xyz2, xyz3=xyz3)
-    xyz4 = tuple(xyz1 + numpy.dot(local_xyz, local_basis))
+    xyz4 = xyz1 + numpy.dot(local_xyz, local_basis)
 
     return xyz4
 
 
-def _local_position(dist=0.0, ang=0.0, dih=0.0):
+def _local_position(dist: float = 0.0, ang: float = 0.0, dih: float = 0.0) -> Vector:
     """Determine the xyz coordinates of a point in the local axis frame
     defined by a set of internal coordinates.
 
     :param dist: distance between `xyz1` and `xyz2` (in bohr)
-    :type dist: float
     :param angle: angle between `xyz1`, `xyz2`, `xyz3` (in radians)
-    :type angle: float
     :param dih: dihedral from `xyz1`, `xyz2`, `xyz3` to `xyz4` (in radians)
-    :type dih: float
-    :rtyp: tuple(float)
+    :return: New coordinates
     """
-
     x_comp = dist * numpy.sin(ang) * numpy.sin(dih)
     y_comp = dist * numpy.sin(ang) * numpy.cos(dih)
     z_comp = dist * numpy.cos(ang)
 
-    return (x_comp, y_comp, z_comp)
+    return numpy.array([x_comp, y_comp, z_comp])
 
 
-def _local_axes(xyz1=(0.0, 0.0, 0.0), xyz2=(0.0, 0.0, 1.0), xyz3=(0.0, 1.0, 0.0)):
+def _local_axes(
+    xyz1: Sequence | Vector = (0.0, 0.0, 0.0),
+    xyz2: Sequence | Vector = (0.0, 0.0, 1.0),
+    xyz3: Sequence | Vector = (0.0, 1.0, 0.0),
+) -> Vector:
     """Determine the  local axes for defining bond, angle, dihedral from
     the Cartesian coordinates of three support atoms.
 
     :param xyz1: 3D vector to point 1
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector to point 2
-    :type xyz2: tuple, list, or numpy nd.array
     :param xyz3: 3D vector to point 2
-    :type xyz3: tuple, list, or numpy nd.array
-    :rtyp: tuple(float)
+    :return: Local axes
     """
-
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
+    require_vector_like(xyz3)
     uxyz12 = unit_direction(xyz1, xyz2)
     uxyz23 = unit_direction(xyz2, xyz3)
     uxyz123_perp = unit_perpendicular(uxyz23, uxyz12)
 
-    z_ax = tuple(uxyz12)
-    y_ax = tuple(unit_perpendicular(uxyz12, uxyz123_perp))
-    x_ax = tuple(unit_perpendicular(y_ax, z_ax))
-    return (x_ax, y_ax, z_ax)
+    z_ax = uxyz12
+    y_ax = unit_perpendicular(uxyz12, uxyz123_perp)
+    x_ax = unit_perpendicular(y_ax, z_ax)
+    return numpy.array([x_ax, y_ax, z_ax])
 
 
-def distance(xyz1, xyz2):
+def distance(xyz1: Sequence | Vector, xyz2: Sequence | Vector) -> float:
     """Measure the distance between points.
 
     :param xyz1: 3D vector to point 1
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector to point 2
-    :type xyz2: tuple, list, or numpy nd.array
-    :rtype: float
+    :return: Distance
     """
-
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
     dist = numpy.linalg.norm(numpy.subtract(xyz1, xyz2))
 
     return dist
 
 
-def angle(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0)):
+def angle(
+    xyz1: Sequence | Vector,
+    xyz2: Sequence | Vector,
+    orig_xyz: Sequence | Vector = (0.0, 0.0, 0.0),
+) -> float:
     """Measure the angle inscribed by three atoms.
 
     :param xyz1: 3D vector to point 1
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector to point 2
-    :type xyz2: tuple, list, or numpy nd.array
-    :param xyz3: 3D vector to point 3
-    :type xyz3: tuple, list, or numpy nd.array
-    :rtype: float
+    :param orig_xyz: Origin to measure the vector angle from
+    :return: Angle between three atoms
     """
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
+    require_vector_like(orig_xyz)
     uxyz1 = unit_direction(orig_xyz, xyz1)
     uxyz2 = unit_direction(orig_xyz, xyz2)
     cos = numpy.dot(uxyz1, uxyz2)
@@ -309,33 +351,40 @@ def angle(xyz1, xyz2, orig_xyz=(0.0, 0.0, 0.0)):
     return ang
 
 
-def central_angle(xyz1, xyz2, xyz3):
+def central_angle(
+    xyz1: Sequence | Vector,
+    xyz2: Sequence | Vector,
+    xyz3: Sequence | Vector,
+) -> float:
     """Measure the angle inscribed by three atoms.
 
     :param xyz1: 3D vector to point 1
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector to point 2
-    :type xyz2: tuple, list, or numpy nd.array
     :param xyz3: 3D vector to point 3
-    :type xyz3: tuple, list, or numpy nd.array
-    :rtype: float
+    :return: Angle inscribed by three atoms
     """
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
+    require_vector_like(xyz3)
     return angle(xyz1=xyz1, xyz2=xyz3, orig_xyz=xyz2)
 
 
-def projected_central_angle(xyz1, xyz2, xyz3):
+def projected_central_angle(
+    xyz1: Sequence | Vector,
+    xyz2: Sequence | Vector,
+    xyz3: Sequence | Vector,
+) -> float:
     """Measure the angle inscribed by three atoms,
     projected onto the normal plane of the central atom.
 
     :param xyz1: 3D vector to point 1
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector to point 2
-    :type xyz2: tuple, list, or numpy nd.array
     :param xyz3: 3D vector to point 3
-    :type xyz3: tuple, list, or numpy nd.array
-    :rtype: float
+    :return: Angle projected on normal plane
     """
-
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
+    require_vector_like(xyz3)
     uxyz21 = unit_perpendicular(xyz2, xyz1)
     uxyz23 = unit_perpendicular(xyz2, xyz3)
     cos = numpy.dot(uxyz21, uxyz23)
@@ -349,20 +398,24 @@ def projected_central_angle(xyz1, xyz2, xyz3):
     return ang
 
 
-def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
+def dihedral_angle(
+    xyz1: Sequence | Vector,
+    xyz2: Sequence | Vector,
+    xyz3: Sequence | Vector,
+    xyz4: Sequence | Vector,
+) -> float:
     """Measure the dihedral angle defined by four atoms.
 
     :param xyz1: 3D vector to point 1
-    :type xyz1: tuple, list, or numpy nd.array
     :param xyz2: 3D vector to point 2
-    :type xyz2: tuple, list, or numpy nd.array
     :param xyz3: 3D vector to point 3
-    :type xyz3: tuple, list, or numpy nd.array
     :param xyz4: 3D vector to point 4
-    :type xyz4: tuple, list, or numpy nd.array
-    :rtype: float
+    :return: Dihedral angle of four atoms
     """
-
+    require_vector_like(xyz1)
+    require_vector_like(xyz2)
+    require_vector_like(xyz3)
+    require_vector_like(xyz4)
     # Get the cosine of the angle
     uxyz21 = unit_direction(xyz2, xyz1)
     uxyz23 = unit_direction(xyz2, xyz3)
@@ -392,23 +445,21 @@ def dihedral_angle(xyz1, xyz2, xyz3, xyz4):
 
 
 # transformations
+# Note: does not have updated format because that causes issues with geometry tests
 def rotator(
-    axis: Vector, ang: float, degree: bool = False, orig_xyz: Optional[Vector] = None
+    axis: Vector,
+    ang: float,
+    degree: bool = False,
+    orig_xyz: Vector | Sequence = (0.0, 0.0, 0.0),
 ) -> Callable[[Vector], Vector]:
-    """Get a function for axis-angle rotations, optionally specifying the origin
+    """Get a function for axis-angle rotations, optionally specifying the origin.
 
     :param axis: Rotational axis (norm is ignored)
-    :type axis: Vector
     :param ang: Rotational angle
-    :type ang: float
     :param degree: _description_, defaults to False
-    :type degree: bool, optional
-    :param orig_xyz: _description_, defaults to None
-    :type orig_xyz: Optional[Vector], optional
     :return: _description_
-    :rtype: Callable[[Vector], Vector]
     """
-    orig_xyz = numpy.array([0.0, 0.0, 0.0] if orig_xyz is None else orig_xyz)
+    orig_xyz = numpy.array(orig_xyz)
     ang = ang * phycon.DEG2RAD if degree else ang
 
     axis = unit_norm(axis)
@@ -423,16 +474,17 @@ def rotator(
 
 
 # I/O
-def string(vec, num_per_row=None, val_format="{0:>8.3f}"):
+def string(
+    vec: Sequence | Vector,
+    num_per_row: int | None = None,
+    val_format: str = "{0:>8.3f}",
+) -> str:
     """Write a vector to a string.
 
     :param vec: vector to form string with
-    :type vec: list, tuple, or nd.array
     :param num_per_row: number of vector elements to write to a row
-    :type num_per_row: int
-    :rtype: str
+    :return: String
     """
-
     if num_per_row is None:
         num_per_row = len(vec)
 

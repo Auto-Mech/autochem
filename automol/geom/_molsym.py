@@ -3,8 +3,9 @@
 import qcelemental as qcel
 
 import molsym
-from automol.geom.base import xyz_string
 from molsym.symtext.symel import PointGroup
+
+from .base import xyz_string
 
 
 def point_group_from_geometry(geo, tol: float = 0.05) -> PointGroup:

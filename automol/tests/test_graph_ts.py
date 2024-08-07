@@ -1,8 +1,10 @@
 """ test graph.ts
 """
 
-import automol
 import numpy
+import pytest
+
+import automol
 from automol import graph
 
 # Sn2 Atom Stereo
@@ -636,32 +638,37 @@ C6H11O2b_TSG = (
 #       *           *
 # [* marks a constrained bond stereocenter -- must be cis]
 C5H7O_TSG = (
-{0: ('C', 0, None),
-  1: ('C', 0, None),
-  2: ('C', 0, None),
-  3: ('C', 0, None),
-  4: ('O', 0, None),
-  5: ('C', 0, None),
-  6: ('H', 0, None),
-  7: ('H', 0, None),
-  8: ('H', 0, None),
-  9: ('H', 0, None),
-  10: ('H', 0, None),
-  11: ('H', 0, None),
-  12: ('H', 0, None)},
- {frozenset({3, 4}): (1, None),
-  frozenset({5, 11}): (1, None),
-  frozenset({0, 6}): (1, None),
-  frozenset({2, 3}): (1, None),
-  frozenset({1, 2}): (1, None),
-  frozenset({3, 9}): (1, None),
-  frozenset({4, 5}): (1, None),
-  frozenset({0, 1}): (1, None),
-  frozenset({5, 12}): (1, None),
-  frozenset({2, 10}): (0.1, None),
-  frozenset({1, 8}): (1, None),
-  frozenset({5, 10}): (0.9, None),
-  frozenset({0, 7}): (1, None)})
+    {
+        0: ("C", 0, None),
+        1: ("C", 0, None),
+        2: ("C", 0, None),
+        3: ("C", 0, None),
+        4: ("O", 0, None),
+        5: ("C", 0, None),
+        6: ("H", 0, None),
+        7: ("H", 0, None),
+        8: ("H", 0, None),
+        9: ("H", 0, None),
+        10: ("H", 0, None),
+        11: ("H", 0, None),
+        12: ("H", 0, None),
+    },
+    {
+        frozenset({3, 4}): (1, None),
+        frozenset({5, 11}): (1, None),
+        frozenset({0, 6}): (1, None),
+        frozenset({2, 3}): (1, None),
+        frozenset({1, 2}): (1, None),
+        frozenset({3, 9}): (1, None),
+        frozenset({4, 5}): (1, None),
+        frozenset({0, 1}): (1, None),
+        frozenset({5, 12}): (1, None),
+        frozenset({2, 10}): (0.1, None),
+        frozenset({1, 8}): (1, None),
+        frozenset({5, 10}): (0.9, None),
+        frozenset({0, 7}): (1, None),
+    },
+)
 
 # Constrained TS Bond Stereo + (Reactant Bond Stereo => Product Atom Stereo)
 # C/C=C/C + C=CC=C => C[C@H]1[C@H](C)CC=CC1
@@ -746,67 +753,116 @@ C8H14_GEO = (
 )
 
 # Unusual linearity case (biradical)
-# 
+#
 # [CH2]/C=[C]/C#C => C=C=C=C=[CH] + [H]
 #          -  - -      - - -  -
 # [- marks a potentially linear atom]
-C5H4_TSG = ({0: ('C', 0, None),
-             1: ('C', 0, None),
-             2: ('H', 0, None),
-             3: ('H', 0, None),
-             4: ('C', 0, None),
-             5: ('C', 0, None),
-             6: ('C', 0, None),
-             7: ('H', 0, None),
-             8: ('H', 0, None)},
-            {frozenset({1, 4}): (1, True),
-             frozenset({0, 3}): (1, None),
-             frozenset({4, 5}): (1, None),
-             frozenset({6, 7}): (1, None),
-             frozenset({0, 1}): (1, None),
-             frozenset({0, 2}): (1, None),
-             frozenset({5, 6}): (1, None),
-             frozenset({1, 8}): (0.9, None)})
+C5H4_TSG = (
+    {
+        0: ("C", 0, None),
+        1: ("C", 0, None),
+        2: ("H", 0, None),
+        3: ("H", 0, None),
+        4: ("C", 0, None),
+        5: ("C", 0, None),
+        6: ("C", 0, None),
+        7: ("H", 0, None),
+        8: ("H", 0, None),
+    },
+    {
+        frozenset({1, 4}): (1, True),
+        frozenset({0, 3}): (1, None),
+        frozenset({4, 5}): (1, None),
+        frozenset({6, 7}): (1, None),
+        frozenset({0, 1}): (1, None),
+        frozenset({0, 2}): (1, None),
+        frozenset({5, 6}): (1, None),
+        frozenset({1, 8}): (0.9, None),
+    },
+)
+
+# Bridghead Atom Stereo Pair
+# OO[C@@H]1CC=C[CH]1 => C=1[C@H]2C[C@H](C=1)O2 + [OH]
+#    *          *           *      *
+# [* marks a pair of bridgehead stereo atoms]
+C5H6O_TSG = (
+    {
+        0: ("O", 0, None),
+        1: ("O", 0, None),
+        2: ("C", 0, None),
+        3: ("H", 0, None),
+        4: ("C", 0, None),
+        5: ("C", 0, None),
+        6: ("C", 0, None),
+        7: ("C", 0, None),
+        8: ("H", 0, None),
+        9: ("H", 0, None),
+        10: ("H", 0, None),
+        11: ("H", 0, None),
+        12: ("H", 0, None),
+        13: ("H", 0, None),
+    },
+    {
+        frozenset({4, 10}): (1, None),
+        frozenset({2, 3}): (1, None),
+        frozenset({1, 2}): (1, None),
+        frozenset({4, 5}): (1, None),
+        frozenset({0, 1}): (0.9, None),
+        frozenset({6, 7}): (1, None),
+        frozenset({5, 12}): (1, None),
+        frozenset({7, 8}): (1, None),
+        frozenset({2, 4}): (1, None),
+        frozenset({5, 6}): (1, None),
+        frozenset({4, 11}): (1, None),
+        frozenset({6, 13}): (1, None),
+        frozenset({1, 5}): (0.1, None),
+        frozenset({2, 7}): (1, None),
+        frozenset({0, 9}): (1, None),
+    },
+)
 
 
-def test__set_stereo_from_geometry():
+@pytest.mark.parametrize(
+    "formula,tsg,geo,npars1,npars2",
+    [
+        ("CH4CLFNO", CH4CLFNO_TSG, CH4CLFNO_GEO, 1, 1),
+        ("C4H11O2", C4H11O2_TSG, C4H11O2_GEO, 1, 1),
+        ("C4H9O3", C4H9O3_TSG, C4H9O3_GEO, 2, 2),
+        ("C2H3F2O", C2H3F2O_TSG, C2H3F2O_GEO, 2, 2),
+        ("C4H5F3O2", C4H5F3O2_TSG, C4H5F3O2_GEO, 3, 4),
+        ("C4H9O2", C4H9O2_TSG, C4H9O2_GEO, 2, 2),
+        ("C2H4O2", C2H4O2_TSG, C2H4O2_GEO, 1, 1),
+        ("C4H4F2", C4H4F2_TSG, C4H4F2_GEO, 2, 2),
+        ("C8H14", C8H14_TSG, C8H14_GEO, 2, 2),
+    ],
+)
+def test__set_stereo_from_geometry(formula, tsg, geo, npars1, npars2):
     """test graph.set_stereo_from_geometry"""
 
-    def _test(formula, tsg, geo, npars1, npars2):
-        print(f"{formula}: testing set_stereo_from_geometry")
-        ftsg = graph.without_stereo(tsg)
-        rtsg = graph.ts_reverse(ftsg)
-        assert ftsg != rtsg
-        # Check that they have the same stereogenic keys
-        fste_keys = graph.unassigned_stereocenter_keys(ftsg)
-        rste_keys = graph.unassigned_stereocenter_keys(rtsg)
-        print(fste_keys)
-        print(rste_keys)
-        assert len(fste_keys) == len(rste_keys) == npars1
-        assert fste_keys == rste_keys
-        # Check that they have the same parities
-        ftsg = graph.set_stereo_from_geometry(ftsg, geo)
-        rtsg = graph.set_stereo_from_geometry(rtsg, geo)
-        fste_par_dct = automol.util.dict_.filter_by_value(
-            graph.stereo_parities(ftsg), lambda x: x is not None
-        )
-        rste_par_dct = automol.util.dict_.filter_by_value(
-            graph.stereo_parities(rtsg), lambda x: x is not None
-        )
-        print(fste_par_dct)
-        print(rste_par_dct)
-        assert len(fste_par_dct) == len(rste_par_dct) == npars2
-        assert fste_par_dct == rste_par_dct
-
-    _test("CH4CLFNO", CH4CLFNO_TSG, CH4CLFNO_GEO, 1, 1)
-    _test("C4H11O2", C4H11O2_TSG, C4H11O2_GEO, 1, 1)
-    _test("C4H9O3", C4H9O3_TSG, C4H9O3_GEO, 2, 2)
-    _test("C2H3F2O", C2H3F2O_TSG, C2H3F2O_GEO, 2, 2)
-    _test("C4H5F3O2", C4H5F3O2_TSG, C4H5F3O2_GEO, 3, 4)
-    _test("C4H9O2", C4H9O2_TSG, C4H9O2_GEO, 2, 2)
-    _test("C2H4O2", C2H4O2_TSG, C2H4O2_GEO, 1, 1)
-    _test("C4H4F2", C4H4F2_TSG, C4H4F2_GEO, 2, 2)
-    _test("C8H14", C8H14_TSG, C8H14_GEO, 2, 2)
+    print(f"{formula}: testing set_stereo_from_geometry")
+    ftsg = graph.without_stereo(tsg)
+    rtsg = graph.ts_reverse(ftsg)
+    assert ftsg != rtsg
+    # Check that they have the same stereogenic keys
+    fste_keys = graph.unassigned_stereocenter_keys(ftsg)
+    rste_keys = graph.unassigned_stereocenter_keys(rtsg)
+    print(fste_keys)
+    print(rste_keys)
+    assert len(fste_keys) == len(rste_keys) == npars1
+    assert fste_keys == rste_keys
+    # Check that they have the same parities
+    ftsg = graph.set_stereo_from_geometry(ftsg, geo)
+    rtsg = graph.set_stereo_from_geometry(rtsg, geo)
+    fste_par_dct = automol.util.dict_.filter_by_value(
+        graph.stereo_parities(ftsg), lambda x: x is not None
+    )
+    rste_par_dct = automol.util.dict_.filter_by_value(
+        graph.stereo_parities(rtsg), lambda x: x is not None
+    )
+    print(fste_par_dct)
+    print(rste_par_dct)
+    assert len(fste_par_dct) == len(rste_par_dct) == npars2
+    assert fste_par_dct == rste_par_dct
 
 
 def test__to_local_stereo():
@@ -859,25 +915,28 @@ def test__from_local_stereo():
     _test("C8H14", C8H14_TSG)
 
 
-def test__ts__expand_reaction_stereo():
+@pytest.mark.parametrize(
+    "formula,ts_gra,ts_counts",
+    [
+        ("CH4CLFNO", CH4CLFNO_TSG, [1, 1]),
+        ("C4H11O2", C4H11O2_TSG, [2]),
+        ("C2H3O4", C2H3O4_TSG, [1]),
+        ("C4H9O3", C4H9O3_TSG, [2, 2]),
+        ("C2H3F2O", C2H3F2O_TSG, [1, 1, 1, 1]),
+        ("C4H5F3O2", C4H5F3O2_TSG, [1] * 12),
+        ("C4H9O2", C4H9O2_TSG, [1, 1, 1, 1]),
+        ("C2H4O2", C2H4O2_TSG, [1, 1]),
+        ("C4H4F2", C4H4F2_TSG, [1, 1, 1, 1]),
+        ("C8H14", C8H14_TSG, [1, 1, 1, 1]),
+        ("C5H6O", C5H6O_TSG, [1, 1]),
+    ],
+)
+def test__ts__expand_reaction_stereo(formula, ts_gra, ts_counts):
     """test graph.ts.expand_reaction_stereo"""
-
-    def _test(formula, tsg, num_ts_assignments_lst):
-        print(f"{formula}: testing ts.expand_reaction_stereo")
-        _, _, ts_sgras_lst = zip(*graph.ts.expand_reaction_stereo(tsg))
-        print(list(map(len, ts_sgras_lst)))
-        assert list(map(len, ts_sgras_lst)) == num_ts_assignments_lst
-
-    _test("CH4CLFNO", CH4CLFNO_TSG, [1, 1])
-    _test("C4H11O2", C4H11O2_TSG, [2])
-    _test("C2H3O4", C2H3O4_TSG, [1])
-    _test("C4H9O3", C4H9O3_TSG, [2, 2])
-    _test("C2H3F2O", C2H3F2O_TSG, [1, 1, 1, 1])
-    _test("C4H5F3O2", C4H5F3O2_TSG, [1] * 12)
-    _test("C4H9O2", C4H9O2_TSG, [1, 1, 1, 1])
-    _test("C2H4O2", C2H4O2_TSG, [1, 1])
-    _test("C4H4F2", C4H4F2_TSG, [1, 1, 1, 1])
-    _test("C8H14", C8H14_TSG, [1, 1, 1, 1])
+    print(f"{formula}: testing ts.expand_reaction_stereo")
+    _, _, ts_sgras_lst = zip(*graph.ts.expand_reaction_stereo(ts_gra))
+    print(list(map(len, ts_sgras_lst)))
+    assert list(map(len, ts_sgras_lst)) == ts_counts
 
 
 def test__ts__fleeting_stereocenter_keys():
@@ -979,49 +1038,53 @@ def test__ts__reagents_graph():
     _test("C5H7O", C5H7O_TSG, {}, {frozenset({2, 3}): True})
 
 
-def test__amchi():
+@pytest.mark.parametrize(
+    "formula,tsg",
+    [
+        ("CH4CLFNO", CH4CLFNO_TSG),
+        ("C4H11O2", C4H11O2_TSG),
+        ("C2H3O4", C2H3O4_TSG),
+        ("C4H9O3", C4H9O3_TSG),
+        ("C2H3F2O", C2H3F2O_TSG),
+        ("C4H5F3O2", C4H5F3O2_TSG),
+        ("C4H9O2", C4H9O2_TSG),
+        ("C2H4O2", C2H4O2_TSG),
+        ("C4H4F2", C4H4F2_TSG),
+        ("C8H14", C8H14_TSG),
+    ],
+)
+def test__amchi(formula, tsg):
     """test graph.amchi"""
+    print(f"{formula}: testing amchi")
+    ftsg = tsg
+    rtsg = graph.ts.reverse(ftsg)
 
-    def _test(formula, tsg):
-        print(f"{formula}: testing amchi")
-        ftsg = tsg
-        rtsg = graph.ts.reverse(ftsg)
+    fchi = graph.amchi(ftsg)
+    rchi = graph.amchi(rtsg)
 
-        fchi = graph.amchi(ftsg)
-        rchi = graph.amchi(rtsg)
+    # Check interconversion
+    print(fchi)
+    print(graph.amchi(automol.amchi.graph(fchi)))
+    assert graph.amchi(automol.amchi.graph(fchi)) == fchi
+    assert graph.amchi(automol.amchi.graph(rchi)) == rchi
 
-        # Check interconversion
-        assert graph.amchi(automol.amchi.graph(fchi)) == fchi
-        assert graph.amchi(automol.amchi.graph(rchi)) == rchi
+    print("fchi:", fchi)
+    print("rchi:", rchi)
+    assert fchi[:-1] == rchi[:-1]
 
-        print("fchi:", fchi)
-        print("rchi:", rchi)
-        assert fchi[:-1] == rchi[:-1]
+    orig_keys = sorted(graph.atom_keys(tsg))
+    for _ in range(5):
+        perm_keys = numpy.random.permutation(orig_keys)
+        perm_dct = dict(zip(orig_keys, perm_keys))
 
-        orig_keys = sorted(graph.atom_keys(tsg))
-        for _ in range(5):
-            perm_keys = numpy.random.permutation(orig_keys)
-            perm_dct = dict(zip(orig_keys, perm_keys))
+        perm_ftsg = graph.relabel(ftsg, perm_dct)
+        perm_rtsg = graph.relabel(rtsg, perm_dct)
 
-            perm_ftsg = graph.relabel(ftsg, perm_dct)
-            perm_rtsg = graph.relabel(rtsg, perm_dct)
+        perm_fchi = graph.amchi(perm_ftsg)
+        perm_rchi = graph.amchi(perm_rtsg)
 
-            perm_fchi = graph.amchi(perm_ftsg)
-            perm_rchi = graph.amchi(perm_rtsg)
-
-            assert perm_fchi == fchi, f"\n{perm_fchi} !=\n{fchi}"
-            assert perm_rchi == rchi, f"\n{perm_rchi} !=\n{rchi}"
-
-    _test("CH4CLFNO", CH4CLFNO_TSG)
-    _test("C4H11O2", C4H11O2_TSG)
-    _test("C2H3O4", C2H3O4_TSG)
-    _test("C4H9O3", C4H9O3_TSG)
-    _test("C2H3F2O", C2H3F2O_TSG)
-    _test("C4H5F3O2", C4H5F3O2_TSG)
-    _test("C4H9O2", C4H9O2_TSG)
-    _test("C2H4O2", C2H4O2_TSG)
-    _test("C4H4F2", C4H4F2_TSG)
-    _test("C8H14", C8H14_TSG)
+        assert perm_fchi == fchi, f"\n{perm_fchi} !=\n{fchi}"
+        assert perm_rchi == rchi, f"\n{perm_rchi} !=\n{rchi}"
 
 
 def test__linear_atom_keys():
@@ -1106,13 +1169,211 @@ def test__rotational_bond_keys():
     assert graph.rotational_bond_keys(rtsg) == frozenset()
 
 
+def test__radical_atom_keys():
+    """test graph.radical_atom_keys"""
+    # [CH2]CC=C + [OH] => [CH2]C[CH]CO
+    tsg = (
+        {
+            0: ("C", 0, None),
+            1: ("H", 0, None),
+            2: ("H", 0, None),
+            3: ("C", 0, None),
+            4: ("C", 0, None),
+            5: ("C", 0, None),
+            6: ("H", 0, None),
+            7: ("H", 0, None),
+            8: ("H", 0, None),
+            9: ("H", 0, None),
+            10: ("H", 0, None),
+            11: ("O", 0, None),
+            12: ("H", 0, None),
+        },
+        {
+            frozenset({3, 4}): (1, None),
+            frozenset({5, 11}): (0.1, None),
+            frozenset({11, 12}): (1, None),
+            frozenset({3, 7}): (1, None),
+            frozenset({0, 3}): (1, None),
+            frozenset({4, 5}): (1, None),
+            frozenset({0, 1}): (1, None),
+            frozenset({0, 2}): (1, None),
+            frozenset({3, 6}): (1, None),
+            frozenset({4, 8}): (1, None),
+            frozenset({5, 10}): (1, None),
+            frozenset({5, 9}): (1, None),
+        },
+    )
+    print(automol.graph.radical_atom_keys(tsg))
+    assert automol.graph.radical_atom_keys(tsg) == frozenset({0})
+
+
+def test__geometry():
+    """test graph.geometry"""
+    # C#C + [CH2] => [CH]=C[CH2]
+    ts_gra = (
+        {
+            0: ("C", 0, None),
+            1: ("H", 0, None),
+            2: ("H", 0, None),
+            3: ("C", 0, None),
+            4: ("C", 0, None),
+            5: ("H", 0, None),
+            6: ("H", 0, None),
+        },
+        {
+            frozenset({3, 4}): (1, True),
+            frozenset({4, 6}): (1, None),
+            frozenset({3, 5}): (1, None),
+            frozenset({0, 1}): (1, None),
+            frozenset({0, 2}): (1, None),
+            frozenset({0, 4}): (0.1, None),
+        },
+    )
+    rct_geos = (
+        (
+            ("C", (0.0, 0.0, 0.20515244763195276)),
+            ("H", (0.0, 1.8754738110196252, -0.6154554531697327)),
+            ("H", (-0.0, -1.8754738110196252, -0.6154554531697327)),
+        ),
+        (
+            ("C", (0.0, 0.0, 1.1364019233530684)),
+            ("C", (0.0, 0.0, -1.1364019233530684)),
+            ("H", (0.0, 0.0, 3.152539388247273)),
+            ("H", (0.0, 0.0, -3.152539388247273)),
+        ),
+    )
+    geo_idx_dct = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}
+    ts_geo = graph.ts_geometry_from_reactants(
+        ts_gra, rct_geos, geo_idx_dct=geo_idx_dct, check=True
+    )
+    print(automol.geom.round_(ts_geo))
+
+    # [CH2]CC=C[CH2] => C=CC=C[CH2] + [H]
+    ts_gra = (
+        {
+            0: ("C", 0, None),
+            1: ("C", 0, False),
+            2: ("H", 0, None),
+            3: ("H", 0, None),
+            4: ("C", 0, None),
+            5: ("H", 0, None),
+            6: ("C", 0, None),
+            7: ("H", 0, None),
+            8: ("C", 0, None),
+            9: ("H", 0, None),
+            10: ("H", 0, None),
+            11: ("H", 0, None),
+            12: ("H", 0, None),
+        },
+        {
+            frozenset({9, 6}): (1, None),
+            frozenset({1, 4}): (1, True),
+            frozenset({4, 6}): (1, True),
+            frozenset({8, 11}): (1, None),
+            frozenset({0, 3}): (1, None),
+            frozenset({0, 1}): (1, None),
+            frozenset({0, 2}): (1, None),
+            frozenset({8, 10}): (1, None),
+            frozenset({1, 12}): (0.9, None),
+            frozenset({1, 5}): (1, None),
+            frozenset({8, 6}): (1, None),
+            frozenset({4, 7}): (1, None),
+        },
+    )
+    rct_geos = (
+        (
+            ("C", (-4.672291, -0.457455, -0.152981)),
+            ("C", (-2.307244, 0.626363, -0.386708)),
+            ("H", (-4.95983, -2.139761, 0.988667)),
+            ("H", (-6.310429, 0.3332, -1.096682)),
+            ("C", (-0.126763, -0.273254, 0.751996)),
+            ("H", (-2.136558, 2.316753, -1.554504)),
+            ("C", (2.427578, 0.917615, 0.483968)),
+            ("H", (-0.245351, -1.969796, 1.913306)),
+            ("C", (4.36715, -0.817943, -0.625343)),
+            ("H", (2.260094, 2.642939, -0.678196)),
+            ("H", (3.103461, 1.582897, 2.340003)),
+            ("H", (6.355744, -0.318011, -0.564376)),
+            ("H", (3.802295, -2.420165, -1.773812)),
+        ),
+    )
+    geo_idx_dct = {
+        0: 8,
+        1: 6,
+        2: 11,
+        3: 12,
+        4: 4,
+        5: 10,
+        6: 1,
+        7: 7,
+        8: 0,
+        9: 5,
+        10: 2,
+        11: 3,
+        12: 9,
+    }
+    ts_geo = graph.ts_geometry_from_reactants(
+        ts_gra, rct_geos, geo_idx_dct=geo_idx_dct, check=True
+    )
+    print(automol.geom.round_(ts_geo))
+
+
+def test__zmatrix():
+    """test z-matrix generation"""
+    # C[C]1O[C@H]1COO >> C/C([O])=C\COO
+    ts_gra = (
+        {
+            0: ("C", 0, None),
+            1: ("C", 0, False),
+            2: ("C", 0, None),
+            3: ("C", 0, None),
+            4: ("O", 0, None),
+            5: ("O", 0, None),
+            6: ("O", 0, None),
+            7: ("H", 0, None),
+            8: ("H", 0, None),
+            9: ("H", 0, None),
+            10: ("H", 0, None),
+            11: ("H", 0, None),
+            12: ("H", 0, None),
+            13: ("H", 0, None),
+        },
+        {
+            frozenset({3, 4}): (1, None),
+            frozenset({1, 4}): (0.9, None),
+            frozenset({1, 2}): (1, None),
+            frozenset({0, 3}): (1, None),
+            frozenset({2, 6}): (1, None),
+            frozenset({2, 12}): (1, None),
+            frozenset({5, 6}): (1, None),
+            frozenset({1, 3}): (1, True),
+            frozenset({13, 5}): (1, None),
+            frozenset({2, 11}): (1, None),
+            frozenset({0, 7}): (1, None),
+            frozenset({1, 10}): (1, None),
+            frozenset({0, 8}): (1, None),
+            frozenset({0, 9}): (1, None),
+        },
+    )
+
+    ts_geo = automol.graph.geometry(ts_gra)
+    ts_zma, ts_zc = automol.geom.zmatrix_with_conversion_info(ts_geo, gra=ts_gra)
+    ts_zgra = automol.graph.apply_zmatrix_conversion(ts_gra, ts_zc)
+
+    automol.graph.zmatrix_matches(ts_zgra, ts_zma)
+
+
 if __name__ == "__main__":
     # test__set_stereo_from_geometry()
     # test__to_local_stereo()
     # test__from_local_stereo()
-    test__ts__reagents_graph()
+    # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
-    # test__amchi()
+    test__amchi("CH4CLFNO", CH4CLFNO_TSG)
     # test__ts__fleeting_stereocenter_keys()
     # test__linear_atom_keys()
+    # test__radical_atom_keys()
+    # test__geometry()
+    # test__ts__expand_reaction_stereo("C5H6O", C5H6O_TSG, [1, 1])
+    # test__zmatrix()

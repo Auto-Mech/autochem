@@ -1,7 +1,7 @@
 """ Level 4 functions depending on amchi, inchi, graph, geom
 """
-from automol import amchi, geom, graph, inchi
-from automol.chi.base import reflect, split
+from .. import amchi, geom, graph, inchi
+from .base import reflect, split
 
 
 # # conversions
@@ -41,7 +41,7 @@ def is_bad(chi, gra=None):
     ret = False
     if pfx == "InChI":
         gra = inchi.graph(chi) if gra is None else gra
-        ret = graph.base.inchi_is_bad(gra, chi)
+        ret = graph.inchi_is_bad(gra, chi)
 
     return ret
 
@@ -70,7 +70,7 @@ def without_stereo(chi, reassess_amchi=True):
     if pfx == "AMChI":
         ret = amchi.without_stereo(chi)
     elif pfx == "InChI":
-        ret = inchi.base.without_stereo(chi)
+        ret = inchi.without_stereo(chi)
     else:
         raise ValueError(f"ChI string '{chi}' has unknown prefix '{pfx}'.")
 
@@ -96,7 +96,7 @@ def join(chis):
         chis = [inchi.amchi(c) if amchi.prefix(c) == "InChI" else c for c in chis]
         ret = amchi.join(chis)
     elif set(pfxs) == {"InChI"}:
-        ret = inchi.base.join(chis)
+        ret = inchi.join(chis)
     else:
         raise ValueError(f"One of these has an unknown prefix: {chis}.")
     return ret
@@ -225,9 +225,8 @@ def canonical_enantiomer_reaction(rct_chi, prd_chi):
 
 
 # # InCHI string converters
-def inchi_to_amchi(ich, printlog=True, convert=True):
-    """ For an InChI string with stereo convert to an AMChI
-
+def inchi_to_amchi(ich, convert=True, printlog=True):
+    """For an InChI string with stereo convert to an AMChI
         Since stereo conversions are expensive, function checks
         if input string is an InChI, w/ stereo, for species
         with resonance stabilization. Then it attempts the
@@ -253,5 +252,8 @@ def inchi_to_amchi(ich, printlog=True, convert=True):
                             "Check accuracy of InChI -> AMChI conversion:"
                             f"{ich} -> {chi}"
                         )
+    elif convert and amchi.prefix(chi) == "AMChI":
+        gra = amchi.graph(chi)
+        chi = graph.chi(gra)
 
     return chi

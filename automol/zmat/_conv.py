@@ -1,14 +1,16 @@
 """ Level 4 Z-Matrix functions
 """
+
 import itertools
 
 import numpy
 
-from automol import geom, util
-from automol.graph import base as graph_base
-from automol.util import ZmatConv
-from automol.zmat.base import (
+from .. import geom, util
+from ..graph import base as graph_base
+from ..util import ZmatConv
+from .base import (
     conversion_info,
+    distance_coordinates,
     key_matrix,
     name_matrix,
     string,
@@ -145,20 +147,24 @@ def py3dmol_view(zma, gra=None, view=None, image_size=400):
     return geom.py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
 
 
-def display(zma, gra=None, view=None, image_size=400):
+def display(zma, gra=None, vis_dists: bool = False, image_size: int = 400, view=None):
     """Display molecule to IPython using the RDKit visualizer
 
     :param zma: molecular z-matrix
     :type zma: automol z-matrix data structure
     :param gra: A molecular graph, describing the connectivity
     :type gra: automol graph data structure
+    :param vis_dists: Visualize the distance coordinates, setting these as the "bonds"
+        in the visualization
     :param image_size: The image size, if creating a new view, defaults to 400
-    :type image_size: int, optional
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
     """
     geo = geometry(zma, dummy=True)
-    return geom.display(geo, gra=gra, view=view, image_size=image_size)
+    vis_bkeys = list(distance_coordinates(zma).values()) if vis_dists else None
+    return geom.display(
+        geo, gra=gra, view=view, image_size=image_size, vis_bkeys=vis_bkeys
+    )
 
 
 # # derived properties

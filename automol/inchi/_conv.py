@@ -1,9 +1,11 @@
 """ Level 4 functions depending on other basic types (graph, geom)
 """
 
-from automol import amchi as amchi_, geom, graph as graph_
-from automol.extern import rdkit_
-from automol.inchi.base import equivalent, has_stereo, standard_form
+from .. import amchi as amchi_
+from .. import geom
+from .. import graph as graph_
+from ..extern import rdkit_
+from .base import equivalent, has_stereo, standard_form
 
 
 # # conversions
@@ -33,20 +35,6 @@ def geometry(ich, check=True):
     """
     geo = amchi_.geometry(ich, check=check)
     return geo
-
-
-def conformers(ich, nconfs=1):
-    """Generate a list of molecular geometries for various conformers
-    of a species from an InChI string.
-
-    :param ich: InChI string
-    :type ich: str
-    :param nconfs: number of conformer structures to generate
-    :type: int
-    :rtype: automol molecular geometry data structure
-    """
-    geos = amchi_.conformers(ich, nconfs=nconfs)
-    return geos
 
 
 def zmatrix(ich, check=True):
@@ -161,12 +149,13 @@ def is_complete(ich):
     :type ich: str
     :rtype: bool
     """
-    gra = graph(ich, stereo=False)
-    is_missing_stereo = bool(graph_.unassigned_stereocenter_keys(gra))
+    gra0 = graph(ich, stereo=False)
 
-    return equivalent(ich, standard_form(ich)) and not (
-        has_stereo(ich) ^ is_missing_stereo
-    )
+    needs_stereo = False
+    if bool(graph_.unassigned_stereocenter_keys(gra0)):
+        needs_stereo = not has_stereo(ich)
+
+    return equivalent(ich, standard_form(ich)) and not needs_stereo
 
 
 def is_bad(ich, gra=None):

@@ -8,13 +8,16 @@ import functools
 import itertools
 import numbers
 import operator
-from typing import List, Dict
+from collections import defaultdict
+from typing import Any, Dict, List, Tuple
 
-import networkx
 import more_itertools as mit
-from automol import util
-from automol.graph.base import _01networkx
-from automol.graph.base._00core import (
+import networkx
+
+from ... import util
+from . import _01networkx
+from ._00core import (
+    AtomKeys,
     add_bonds,
     atom_bond_keys,
     atom_count,
@@ -25,12 +28,12 @@ from automol.graph.base._00core import (
     atoms_neighbor_atom_keys,
     bond_induced_subgraph,
     bond_keys,
+    bond_orders,
     frozen,
     implicit,
     remove_bonds,
     set_atom_symbols,
     string,
-    subgraph as subgraph_,
     ts_breaking_bond_keys,
     ts_forming_bond_keys,
     ts_reactants_graph_without_stereo,
@@ -39,6 +42,9 @@ from automol.graph.base._00core import (
     union_from_sequence,
     without_dummy_atoms,
     without_stereo,
+)
+from ._00core import (
+    subgraph as subgraph_,
 )
 
 
@@ -430,26 +436,84 @@ def is_connected(gra):
     return len(connected_components(gra)) == 1
 
 
-def dfs_children(gra, key) -> Dict[int, List[int]]:
-    """Get the dictionary of children in a depth-first search
+def dfs_(gra, key) -> list[tuple[int, int]]:
+    """Get the result of a depth-first search.
 
     :param gra: A graph
     :param key: The starting atom key
-    :return: The dictionary of children
+    :return: The depth-first search, encoded as edge tuples in visitation order
     """
     nxg = _01networkx.from_graph(gra)
-    return networkx.dfs_successors(nxg, source=key)
+    dfs = list(networkx.dfs_edges(nxg, source=key, sort_neighbors=sorted))
+    return dfs
 
 
-def dfs_parents(gra, key) -> Dict[int, int]:
-    """Get the dictionary of predecessors in a depth-first search
+def dfs_atom_keys(dfs: list[tuple[int, int]]) -> list[int]:
+    """Get the atom keys in order from a depth-first search.
+
+    :param dfs: The depth-first search, encoded as edge tuples in visitation order
+    :return: The atom keys in visitation order
+    """
+    return list(mit.unique_justseen(itertools.chain(*dfs)))
+
+
+def dfs_bond_keys(dfs: list[tuple[int, int]]) -> list[frozenset[int]]:
+    """Get the bond keys in order from a depth-first search.
+
+    :param dfs: The depth-first search, encoded as edge tuples in visitation order
+    :return: The bond keys in visitation order
+    """
+    return list(map(frozenset, dfs))
+
+
+def dfs_children(dfs: list[tuple[int, int]]) -> dict[int, list[int]]:
+    """Get a dictionary of children from a depth-first search.
+
+    :param dfs: The edges visited by the DFS search
+    :return: A dictionary mapping parents onto their children, in order
+    """
+    child_dct = defaultdict(list)
+    for pkey, ckey in dfs:
+        child_dct[pkey].append(ckey)
+    return dict(child_dct)
+
+
+def dfs_parents(dfs: list[tuple[int, int]]) -> dict[int, list[int]]:
+    """Get a dictionary of parents from a depth-first search.
+
+    :param dfs: The edges visited by the DFS search
+    :return: A dictionary mapping children onto their parents, in order
+    """
+    return {c: p for p, c in dfs}
+
+
+def dfs_missing_bond_keys(gra, dfs: list[tuple[int, int]]) -> frozenset[frozenset[int]]:
+    """Get the (ring) bond keys missed by a depth-first search.
 
     :param gra: A graph
-    :param key: The starting atom key
-    :return: The dictionary of parents
+    :param dfs: The depth-first search, encoded as edge tuples in visitation order
+    :return: The bond keys missed by the search
     """
-    nxg = _01networkx.from_graph(gra)
-    return networkx.dfs_predecessors(nxg, source=key)
+    return bond_keys(gra) - frozenset(dfs_bond_keys(dfs))
+
+
+def dfs_missing_children(gra, dfs: list[tuple[int, int]]) -> dict[int, list[int]]:
+    """Get a dictionary of children which are missing from a depth-first search.
+
+    These are the children that are necessary to reconnect missing ring bonds.
+
+    :param gra: A graph
+    :param dfs: The depth-first search, encoded as edge tuples in visitation order
+    :return: A dictionary mapping parents onto their missing children, in order
+    """
+    dfs_keys = dfs_atom_keys(dfs)
+    miss_bkeys = dfs_missing_bond_keys(gra, dfs)
+    miss_child_dct = defaultdict(list)
+    for bkey in miss_bkeys:
+        pkey, ckey = sorted(bkey, key=dfs_keys.index)
+        miss_child_dct[ckey].append(pkey)
+    miss_child_dct = util.dict_.transform_values(miss_child_dct, sorted)
+    return miss_child_dct
 
 
 def atom_shortest_paths(gra):
@@ -465,6 +529,15 @@ def atom_shortest_paths(gra):
 def shortest_path_between_atoms(gra, key1, key2):
     """shortest path between a pair of atoms"""
     return shortest_path_between_groups(gra, [key1], [key2])
+
+
+def simple_paths_between_atoms(gra, key1, key2):
+    """shortest paths between any two atoms in the graph
+
+    :returns: a 2d dictionary keyed by pairs of atoms
+    """
+    nxg = _01networkx.from_graph(gra)
+    return _01networkx.simple_paths(nxg, key1, key2)
 
 
 def shortest_path_between_groups(gra, keys1, keys2):
@@ -717,11 +790,17 @@ def rings_atom_keys(gra, ts_=True):
     :type ts_: bool
     :returns: A set of tuples of atom keys for each ring.
     """
-    rng_bnd_keys_lst = rings_bond_keys(gra, ts_=ts_)
-    rng_atm_keys_lst = frozenset(
-        map(sorted_ring_atom_keys_from_bond_keys, rng_bnd_keys_lst)
+    gra = gra if ts_ else ts_reactants_graph_without_stereo(gra)
+
+    # Define weights, giving the breaking and forming bonds a higher value so that they
+    # are only included if necessary
+    ord_dct = bond_orders(gra)
+    wgt_dct = util.dict_.transform_values(
+        ord_dct, lambda o: int(o * 10000 if o < 1 else o)
     )
-    return rng_atm_keys_lst
+
+    nxg = _01networkx.from_graph(gra, edge_attrib_dct={"weight": wgt_dct})
+    return frozenset(_01networkx.minimum_cycle_basis(nxg, weight="weight"))
 
 
 def rings_bond_keys(gra, ts_=True):
@@ -733,17 +812,10 @@ def rings_bond_keys(gra, ts_=True):
     :type ts_: bool
     :returns: A set of sets of bond keys for each ring.
     """
-    gra = gra if ts_ else ts_reactants_graph_without_stereo(gra)
-
-    bnd_keys = bond_keys(gra)
-
-    def _ring_bond_keys(rng_atm_keys):
-        return frozenset(filter(lambda x: x <= rng_atm_keys, bnd_keys))
-
-    nxg = _01networkx.from_graph(gra)
-    rng_atm_keys_lst = _01networkx.minimum_cycle_basis(nxg)
-    rng_bnd_keys_lst = frozenset(map(_ring_bond_keys, rng_atm_keys_lst))
-    return rng_bnd_keys_lst
+    rng_atm_keys_lst = rings_atom_keys(gra, ts_=ts_)
+    return frozenset(
+        frozenset(map(frozenset, util.ring.edges(ks))) for ks in rng_atm_keys_lst
+    )
 
 
 def sorted_ring_atom_keys(rng):
@@ -871,24 +943,26 @@ def ring_systems_bond_keys(gra, lump_spiro=True):
     return rsy_bnd_keys_lst
 
 
-def spiro_atoms_grouped_neighbor_keys(gra):
-    """Identify spiro atoms in the graph
-
-    Spiro atoms are the only atoms shared by one or more ring systems
+def spiros(gra: Any, repeat_end: bool = False) -> Dict[int, Tuple[AtomKeys, AtomKeys]]:
+    """Identify spiro-joined rings in the graph
 
     :param gra: Molecular graph
-    :type gra: automol graph data structure
+    :param repeat_end: Repeat the spiro atom at the end of the ring keys?
+    :returns: A dictionary of pairs of spiro-joined rings, by joining spiro atom
     """
-    rsy_keys_lst = ring_systems_atom_keys(gra, lump_spiro=False)
-    spi_ngb_dct = {}
-    for rsy_keys1, rsy_keys2 in itertools.combinations(rsy_keys_lst, r=2):
-        shared_keys = rsy_keys1 & rsy_keys2
+    rkeys_lst = rings_atom_keys(gra)
+    spi_dct = {}
+    for rkeys1, rkeys2 in itertools.combinations(rkeys_lst, r=2):
+        shared_keys = set(rkeys1) & set(rkeys2)
         if len(shared_keys) == 1:
             (spi_key,) = shared_keys
-            nkeys = atom_neighbor_atom_keys(gra, spi_key)
-            groups = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
-            spi_ngb_dct[spi_key] = frozenset(groups)
-    return spi_ngb_dct
+            rkeys1 = list(util.ring.cycle_item_to_front(rkeys1, spi_key))
+            rkeys2 = list(util.ring.cycle_item_to_front(rkeys2, spi_key))
+            if repeat_end:
+                rkeys1.append(spi_key)
+                rkeys2.append(spi_key)
+            spi_dct[spi_key] = (tuple(rkeys1), tuple(rkeys2))
+    return spi_dct
 
 
 def spiro_atom_keys(gra):
@@ -899,7 +973,7 @@ def spiro_atom_keys(gra):
     :param gra: Molecular graph
     :type gra: automol graph data structure
     """
-    return frozenset(spiro_atoms_grouped_neighbor_keys(gra))
+    return frozenset(spiros(gra))
 
 
 def is_ring_system(gra):
@@ -939,24 +1013,56 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
 
     bnd_keys = list(mit.windowed(rng_keys + rng_keys[:1], 2))
 
+    # Save some information to handle spiros
+    spi_dct = spiros(rsy, repeat_end=True)
+
     # Remove bonds for the ring
     rsy = remove_bonds(rsy, bnd_keys)
     keys_lst = [rng_keys]
     done_keys = set(rng_keys)
 
     while bond_keys(rsy):
-        # Determine shortest paths for the graph with one more ring/arc deleted
         sp_dct = atom_shortest_paths(rsy)
+        arc_pool = [
+            sp_dct[i][j]
+            for i, j in itertools.combinations(done_keys, 2)
+            if j in sp_dct[i]
+        ]
 
-        # The shortest path will be the next shortest arc in the system
-        arc_keys = min(
-            (
-                sp_dct[i][j]
-                for i, j in itertools.combinations(done_keys, 2)
-                if j in sp_dct[i]
-            ),
-            key=len,
+        # Include spiro rings as arcs
+        rng_keys_pool = list(map(set, rings_atom_keys(rsy)))
+        arc_pool.extend(
+            rk
+            for k, rks in spi_dct.items()
+            for rk in rks
+            if k in done_keys and set(rk) in rng_keys_pool
         )
+
+        # Identify the next shortest arc
+        arc_keys = min(arc_pool, key=len)
+        # # Determine shortest paths for the graph with one more ring/arc deleted
+        # sp_dct = atom_shortest_paths(rsy)
+
+        # # The shortest path will be the next shortest arc in the system
+        # # fused
+        # all_arcs = list(
+        #     sp_dct[i][j] for i, j in itertools.combinations(done_keys, 2)
+        #     if j in sp_dct[i])
+        # # spiro
+        # spiro_key = None
+        # if not all_arcs:
+        #     for bnd_key in bond_keys(rsy):
+        #         keya, keyb = bnd_key
+        #         if keya in done_keys:
+        #             spiro_key = keya
+        #         elif keyb in done_keys:
+        #             spiro_key = keyb
+        #             keyb = keya
+        #         if spiro_key is not None:
+        #             sp_dct = atom_shortest_paths(remove_bonds(rsy, (bnd_key,)))
+        #             all_arcs = (sp_dct[spiro_key][keyb],)
+        #             break
+        # arc_keys = min(all_arcs, key=len)
 
         # Add this arc to the list
         keys_lst.append(arc_keys)
@@ -964,10 +1070,11 @@ def ring_system_decomposed_atom_keys(rsy, rng_keys=None, check=True):
         # Add these keys to the list of done keys
         done_keys |= set(arc_keys)
 
-        # Delete tbond keys for the new arc and continue to the next iteration
+        # Delete the bond keys for the new arc and continue to the next iteration
         bnd_keys = list(map(frozenset, mit.windowed(arc_keys, 2)))
+        # if spiro_key is not None:
+        #     bnd_keys += (bnd_key,)
         rsy = remove_bonds(rsy, bnd_keys)
-
     keys_lst = tuple(map(tuple, keys_lst))
     return keys_lst
 

@@ -7,7 +7,11 @@ from typing import List, Optional
 
 import more_itertools as mit
 import numpy
-from automol.graph.base._00core import (
+
+from phydat import phycon
+
+from ...util import heuristic
+from ._00core import (
     atom_implicit_hydrogens,
     atom_neighbor_atom_keys,
     atom_symbols,
@@ -24,8 +28,8 @@ from automol.graph.base._00core import (
     without_dummy_atoms,
     without_reacting_bonds,
 )
-from automol.graph.base._02algo import branch_atom_keys, rings_bond_keys
-from automol.graph.base._03kekule import (
+from ._02algo import branch_atom_keys, rings_bond_keys
+from ._03kekule import (
     atom_hybridizations,
     kekules_bond_orders_collated,
     linear_segments_atom_keys,
@@ -33,8 +37,6 @@ from automol.graph.base._03kekule import (
     sigma_radical_atom_bond_keys,
     vinyl_radical_atom_bond_keys,
 )
-from automol.util import heuristic
-from phydat import phycon
 
 # bond angles
 TET_ANG = 109.4712  # degrees
@@ -164,6 +166,7 @@ def rotational_bond_keys(
     lin_keys: Optional[List[int]] = None,
     with_h_rotors: bool = True,
     with_ch_rotors: bool = True,
+    with_rings_rotors: bool = False,
 ):
     """Get all rotational bonds for a graph
 
@@ -185,6 +188,8 @@ def rotational_bond_keys(
         lin_keys=lin_keys,
         with_h_rotors=with_h_rotors,
         with_ch_rotors=with_ch_rotors,
+        with_rings_rotors=with_rings_rotors,
+        extend_lin_seg=True,
     )
     rot_bkeys = [frozenset(ks[-2:]) for ks in rot_skeys_lst]
     rot_bkeys = frozenset(sorted(rot_bkeys, key=sorted))
@@ -196,6 +201,8 @@ def rotational_segment_keys(
     lin_keys: Optional[List[int]] = None,
     with_h_rotors: bool = True,
     with_ch_rotors: bool = True,
+    with_rings_rotors: bool = False,
+    extend_lin_seg: bool = True,
 ):
     """Get the keys for all rotational segments (bonds or linear segments)
 
@@ -209,6 +216,8 @@ def rotational_segment_keys(
     :type with_h_rotors: bool
     :param with_ch_rotors: Include CH rotors?
     :type with_ch_rotors: bool
+    :param with_rings_rotors: Include atoms in a ring?
+    :type with_rings_rotors: bool
     :returns: The rotational bond keys
     :rtype: frozenset[frozenset[{int, int}]]
     """
@@ -218,7 +227,7 @@ def rotational_segment_keys(
     bord_dct = kekules_bond_orders_collated(gra)
     rng_bkeys = list(itertools.chain(*rings_bond_keys(gra)))
 
-    def _is_rotational_bond(bkey):
+    def _is_rotational_bond(bkey,):
         """Not guaranteed to have out-of-line neighbors
 
         This is taken care of below by subtracting bonds in linear segments
@@ -237,7 +246,7 @@ def rotational_segment_keys(
         return (
             is_single
             and has_neighbors
-            and not_in_ring
+            and (not_in_ring or with_rings_rotors)
             and (not is_h_rotor or with_h_rotors)
             and (not is_chx_rotor or with_ch_rotors)
         )
@@ -246,7 +255,8 @@ def rotational_segment_keys(
     rot_bkeys = frozenset(filter(_is_rotational_bond, bond_keys(gra)))
 
     # 2. Find the linear segments, extended to include in-line neighbors
-    lin_seg_keys_lst = linear_segments_atom_keys(gra, lin_keys=lin_keys, extend=True)
+    lin_seg_keys_lst = linear_segments_atom_keys(
+        gra, lin_keys=lin_keys, extend=extend_lin_seg)
 
     # 3. Start the rotational segment key list with linear segments that can rotate
     keys_lst = []
@@ -272,6 +282,7 @@ def rotational_coordinates(
     lin_keys: Optional[List[int]] = None,
     with_h_rotors: bool = True,
     with_ch_rotors: bool = True,
+    extend_lin_seg: bool = True
 ):
     """Get torsion coordinates for rotational segments
 
@@ -300,6 +311,7 @@ def rotational_coordinates(
         lin_keys=lin_keys,
         with_h_rotors=with_h_rotors,
         with_ch_rotors=with_ch_rotors,
+        extend_lin_seg=extend_lin_seg
     )
 
     coo_keys = []

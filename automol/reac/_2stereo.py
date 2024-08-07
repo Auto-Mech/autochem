@@ -1,10 +1,10 @@
 """ stereo functionality for reaction objects
 """
-from typing import List
 
 import yaml
-from automol import graph
-from automol.reac._0core import (
+
+from .. import graph
+from ._0core import (
     Reaction,
     from_forward_reverse,
     from_string,
@@ -20,23 +20,20 @@ from automol.reac._0core import (
 
 
 def expand_stereo(
-    rxn: Reaction, symeq: bool = False, enant: bool = True
-) -> List[Reaction]:
+    rxn: Reaction, symeq: bool = False, enant: bool = True, strained: bool = False
+) -> tuple[Reaction, ...]:
     """Expand all possible stereo assignments for the reactants and products of
     this reaction. Only includes possibilities that are mutually consistent
     with each other.
 
     :param rxn: a reaction object
-    :type rxn: Reaction
     :param symeq: Include symmetrically equivalent TS stereoisomers?
-    :type symeq: bool
     :param enant: Include all TS enantiomers, or only canonical ones?
-    :type enant: bool
+    :param strained: Include stereoisomers which are highly strained?
     :returns: a sequence of reaction objects with stereo assignments
-    :rtype: List[Reaction]
     """
     tsg = graph.without_stereo(ts_graph(rxn))
-    stsgs = graph.expand_stereo(tsg, symeq=symeq, enant=enant)
+    stsgs = graph.expand_stereo(tsg, symeq=symeq, enant=enant, strained=strained)
     srxns = tuple(set_ts_graph(rxn, stsg) for stsg in stsgs)
     return srxns
 
@@ -63,7 +60,7 @@ def expand_stereo_to_match_reagents(
 
     if stereo:
         srxns = []
-        for srxn in expand_stereo(rxn, symeq=True, enant=True):
+        for srxn in expand_stereo(rxn, symeq=True, enant=True, strained=True):
             rct_gras_ = reactant_graphs(srxn, shift_keys=shift_keys)
             prd_gras_ = product_graphs(srxn, shift_keys=shift_keys)
             if rct_gras_ == rct_gras and prd_gras_ == prd_gras:

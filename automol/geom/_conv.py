@@ -1,23 +1,31 @@
 """ Level 4 geometry functions
 """
 
+import functools
 import itertools
 from typing import Dict, Optional
 
 import numpy
 import pyparsing as pp
+from numpy.typing import ArrayLike
 from pyparsing import pyparsing_common as ppc
+
 from phydat import phycon
 
-from automol import vmat
-from automol.extern import molfile, py3dmol_, rdkit_
-from automol.geom import _molsym
-from automol.geom.base import (
+from .. import vmat
+from ..extern import molfile, py3dmol_, rdkit_
+from ..geom import _molsym
+from ..graph import base as graph_base
+from ..inchi import base as inchi_base
+from ..util import ZmatConv, dict_, heuristic, vector, zmat_conv
+from ..zmat import base as zmat_base
+from .base import (
     central_angle,
     coordinates,
     count,
     dihedral_angle,
     distance,
+    from_data,
     insert,
     is_atom,
     reorder,
@@ -26,15 +34,13 @@ from automol.geom.base import (
     subgeom,
     symbols,
     translate,
+    without_dummy_atoms,
+    xyz_string,
 )
-from automol.graph import base as graph_base
-from automol.inchi import base as inchi_base
-from automol.util import ZmatConv, dict_, heuristic, vector, zmat_conv
-from automol.zmat import base as zmat_base
 
 
 # # conversions
-def graph(geo, stereo=True, local_stereo=False):
+def graph(geo, stereo=True, local_stereo=False, fix_hyper: bool = True):
     """Generate a molecular graph from the molecular geometry that has
     connectivity information and, if requested, stereochemistry.
 
@@ -44,16 +50,17 @@ def graph(geo, stereo=True, local_stereo=False):
     :type stereo: bool, optional
     :param local_stereo: Return local stereo assignments? defaults to False
     :type local_stereo: bool, optional
+    :param fix_hyper: Correct hypervalencies by removing the most distant neighbors?
     :rtype: automol molecular graph data structure
     """
-    gra = graph_without_stereo(geo)
+    gra = graph_without_stereo(geo, fix_hyper=fix_hyper)
     if stereo:
         gra = graph_base.set_stereo_from_geometry(gra, geo, local_stereo=local_stereo)
 
     return gra
 
 
-def graph_without_stereo(geo, dist_factor=None):
+def graph_without_stereo(geo, dist_factor=None, fix_hyper: bool = True):
     """Generate a molecular graph from the molecular geometry that has
     connectivity information, but not stereochemistry
 
@@ -65,6 +72,7 @@ def graph_without_stereo(geo, dist_factor=None):
     :type geo: automol geometry data structure
     :param dist_factor: The multiplier on the distance limit, defaults to None
     :type dist_factor: float, optional
+    :param fix_hyper: Correct hypervalencies by removing the most distant neighbors?
     """
     symb_dct = dict(enumerate(symbols(geo)))
     keys = sorted(symb_dct.keys())
@@ -98,6 +106,20 @@ def graph_without_stereo(geo, dist_factor=None):
             bad_dnkeys = dnkeys - {best_dnkey}
             bad_bkeys = [(dkey, k) for k in bad_dnkeys]
             gra = graph_base.remove_bonds(gra, bad_bkeys)
+
+    # Remove hypervalencies, if requested
+    if fix_hyper:
+        nhyp_dct = dict_.by_value(graph_base.atom_hypervalencies(gra))
+        nkeys_dct = graph_base.atoms_neighbor_atom_keys(
+            graph_base.without_dummy_atoms(gra)
+        )
+
+        for key, nhyp in nhyp_dct.items():
+            # Get the neighboring keys sorted by distance
+            nkeys = sorted(nkeys_dct[key], key=functools.partial(distance, geo, key))
+            # Remove the `nhyp` longest hypervalent bonds
+            hyp_bkeys = {(key, k) for k in nkeys[-nhyp:]}
+            gra = graph_base.remove_bonds(gra, hyp_bkeys)
 
     return gra
 
@@ -417,7 +439,9 @@ def _parse_sort_order_from_aux_info(aux_info):
     return nums_lst
 
 
-def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
+def molfile_with_atom_mapping(
+    gra, geo=None, dummy: bool = False, bond_order: bool = True
+):
     """Generate an MOLFile from a molecular graph.
     If coordinates are passed in, they are used to determine stereo.
 
@@ -425,38 +449,32 @@ def molfile_with_atom_mapping(gra, geo=None, geo_idx_dct=None):
     :type gra: automol graph data structure
     :param geo: molecular geometry
     :type geo: automol geometry data structure
-    :param geo_idx_dct:
-    :type geo_idx_dct: dict[:]
+    :param dummy: Include dummy atoms?
+    :param bond_order: Include bond orders?
     :returns: the MOLFile string, followed by a mapping from MOLFile atoms
         to atoms in the graph
     :rtype: (str, dict)
     """
-    gra = graph_base.without_dummy_atoms(gra)
-    gra = graph_base.kekule(gra)
+    gra = graph_base.without_bonds_by_orders(gra, ords=[0], skip_dummies=False)
+    if not dummy:
+        gra = graph_base.without_dummy_atoms(gra)
+        geo = None if geo is None else without_dummy_atoms(geo)
+
+    if bond_order:
+        gra = graph_base.kekule(gra)
+
     atm_keys = sorted(graph_base.atom_keys(gra))
     bnd_keys = list(graph_base.bond_keys(gra))
-    atm_syms = dict_.values_by_key(graph_base.atom_symbols(gra), atm_keys)
+    atm_syms = dict_.values_by_key(
+        graph_base.atom_symbols(gra, dummy_symbol="He"), atm_keys
+    )
     atm_bnd_vlcs = dict_.values_by_key(graph_base.atom_bond_counts(gra), atm_keys)
     atm_rad_vlcs = dict_.values_by_key(
         graph_base.atom_unpaired_electrons(gra), atm_keys
     )
     bnd_ords = dict_.values_by_key(graph_base.bond_orders(gra), bnd_keys)
 
-    if geo is not None:
-        geo_idx_dct = (
-            dict(enumerate(range(count(geo)))) if geo_idx_dct is None else geo_idx_dct
-        )
-        atm_xyzs = coordinates(geo)
-        atm_xyzs = [
-            (
-                atm_xyzs[geo_idx_dct[atm_key]]
-                if atm_key in geo_idx_dct
-                else (0.0, 0.0, 0.0)
-            )
-            for atm_key in atm_keys
-        ]
-    else:
-        atm_xyzs = None
+    atm_xyzs = None if geo is None else coordinates(geo, angstrom=True)
 
     mlf, key_map_inv = molfile.from_data(
         atm_keys,
@@ -545,48 +563,76 @@ def rdkit_molecule(geo, gra=None, stereo=True):
     return rdkit_.from_geometry_with_graph(geo, gra)
 
 
-def py3dmol_view(geo, gra=None, view=None, image_size=400):
+def py3dmol_view(
+    geo, gra=None, view=None, image_size: int = 400, mode: Optional[ArrayLike] = None
+):
     """Get a py3DMol view of this molecular geometry
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param gra: A molecular graph, describing the connectivity, defaults to None
     :type gra: automol graph data structure, optional
-    :param image_size: The image size, if creating a new view, defaults to 400
-    :type image_size: int, optional
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
+    :param image_size: The image size, if creating a new view, defaults to 400
+    :param mode: A vibrational mode or molecular motion to visualize
     :return: A 3D view containing the molecule
     :rtype: py3Dmol.view
     """
-    rdm = rdkit_molecule(geo, gra=gra, stereo=False)
-    mlf = rdkit_.to_molfile(rdm)
-    return py3dmol_.view_molecule_from_molfile(mlf, view=view, image_size=image_size)
+    if gra is not None and graph_base.is_ts_graph(gra):
+        gra = graph_base.ts.reactants_graph(gra, stereo=False, dummy=True)
+
+    if mode is not None:
+        xyz_str = xyz_string(geo, mode=mode)
+        return py3dmol_.view_molecule_from_xyz(
+            xyz_str, view=view, image_size=image_size, vib=True
+        )
+
+    gra = graph(geo, stereo=False) if gra is None else gra
+    mlf_str, _ = molfile_with_atom_mapping(gra, geo, dummy=True, bond_order=False)
+    return py3dmol_.view_molecule_from_molfile(
+        mlf_str, view=view, image_size=image_size
+    )
 
 
-def display(geo, gra=None, view=None, image_size=400):
+def display(
+    geo,
+    gra=None,
+    view=None,
+    image_size=400,
+    vis_bkeys: Optional[tuple[tuple[int, int]]] = None,
+    mode: Optional[ArrayLike] = None,
+):
     """Display molecule to IPython using the RDKit visualizer
 
     :param geo: molecular geometry
     :type geo: automol geometry data structure
     :param gra: A molecular graph, describing the connectivity
     :type gra: automol graph data structure
-    :param image_size: The image size, if creating a new view, defaults to 400
-    :type image_size: int, optional
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
+    :param image_size: The image size, if creating a new view, defaults to 400
+    :param vis_bkeys: Only visualize these bonds, by key
+    :param mode: A vibrational mode or molecular motion to visualize
     """
     ts_ = gra is not None and graph_base.is_ts_graph(gra)
     if ts_:
         tsg = gra
         gra = graph_base.ts.reactants_graph(gra, stereo=False, dummy=True)
 
-    view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size)
+    gra = graph(geo, stereo=False) if gra is None else gra
+
+    # If requested, visualize only a subset of the bonds by removing others
+    if vis_bkeys is not None:
+        excl_bkeys = graph_base.bond_keys(gra) - set(map(frozenset, vis_bkeys))
+        gra = graph_base.remove_bonds(gra, excl_bkeys, stereo=False, check=False)
+
+    view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size, mode=mode)
 
     if ts_:
         for frm_bkey in graph_base.ts.forming_bond_keys(tsg):
             fidx1, fidx2 = frm_bkey
-            fxyz1, fxyz2 = coordinates(geo, idxs=(fidx1, fidx2))
+            fxyz1, fxyz2 = coordinates(geo, idxs=(fidx1, fidx2), angstrom=True)
             rvec1 = ts_reacting_electron_direction(geo, tsg, fidx1)
             rvec2 = ts_reacting_electron_direction(geo, tsg, fidx2)
             view = py3dmol_.view_vector(rvec1, orig_xyz=fxyz1, view=view)
@@ -672,7 +718,7 @@ def closest_unbonded_atom_distances(
     :rtype: Dict[int, float]
     """
     gra = graph_without_stereo(geo) if gra is None else gra
-    idxs = graph_base.atom_keys(gra)
+    idxs = graph_base.atom_keys(gra, excl_symbs=["X"])
     idxs -= graph_base.atom_neighbor_atom_keys(
         gra, idx, include_self=True, second_degree=excl_second_degree
     )
@@ -901,6 +947,15 @@ def set_distance(
     assert len(dist_idxs) == 2
     idx1, idx2 = dist_idxs
     gra = gra if gra is not None else graph_without_stereo(geo)
+
+    # For TS graphs, cut the branch of a reacting ring at the appropriate place
+    # (It would be better to have a more systematic approach to this to handle all rings
+    # in the graph...)
+    ts_rng_keys = graph_base.vmat.ts_zmatrix_starting_ring_keys(gra)
+    if ts_rng_keys is not None:
+        drop_bkey = (ts_rng_keys[0], ts_rng_keys[-1])
+        gra = graph_base.remove_bonds(gra, [drop_bkey])
+
     dist_val = dist_val if not angstrom else dist_val * phycon.ANG2BOHR
     idxs = graph_base.branch_atom_keys(gra, idx1, idx2)
 
@@ -1010,3 +1065,26 @@ def set_dihedral_angle(
     geo = rotate(geo, axis, ddih, orig_xyz=xyzs[idx3], idxs=idxs)
 
     return geo
+
+
+# interfaces
+def ase_atoms(geo):
+    """Get an ASE Atoms object from a molecular geometry
+
+    :param geo: A molecular geometry
+    :return: The ASE Atoms object
+    """
+    from ase import Atoms
+
+    return Atoms(symbols=symbols(geo), positions=coordinates(geo, angstrom=True))
+
+
+def from_ase_atoms(atms_obj):
+    """Read a molecular geometry from an ASE Atoms object
+
+    :param atms_obj: An ASE Atoms object
+    :return: The molecular geometry
+    """
+    symbs = atms_obj.get_chemical_symbols()
+    xyzs = atms_obj.get_positions()
+    return from_data(symbs, xyzs, angstrom=True)

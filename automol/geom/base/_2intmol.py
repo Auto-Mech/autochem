@@ -4,8 +4,8 @@ import itertools
 
 import numpy
 
-from automol.geom.base._0core import count, distance, symbols
-from automol.util import dict_
+from ...util import dict_
+from ._0core import count, distance, symbols
 
 
 def has_low_relative_repulsion_energy(

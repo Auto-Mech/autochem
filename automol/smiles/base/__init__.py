@@ -1,22 +1,23 @@
-""" Level 2 RSMILES functions
+""" Level 2 SMILES functions
 """
 
 # # conversions
-from automol.smiles.base._core import without_resonance_stereo
-from automol.smiles.base._core import without_stereo
-from automol.smiles.base._core import reflect
+from ._core import without_resonance_stereo
+from ._core import without_stereo
+from ._core import reflect
 # # split/join
-from automol.smiles.base._core import split
-from automol.smiles.base._core import join
-from automol.smiles.base._core import reaction
-from automol.smiles.base._core import is_reaction
-from automol.smiles.base._core import reaction_reagents
-from automol.smiles.base._core import reaction_reactant
-from automol.smiles.base._core import reaction_product
-from automol.smiles.base._core import reaction_reactants
-from automol.smiles.base._core import reaction_products
+from ._core import split
+from ._core import join
+from ._core import reaction
+from ._core import is_reaction
+from ._core import reaction_reagents
+from ._core import reaction_reactant
+from ._core import reaction_product
+from ._core import reaction_reactants
+from ._core import reaction_products
+from ._core import reaction_reactants_and_products
 # # properties
-from automol.smiles.base._core import parse_connected_molecule_properties
+from ._core import parse_connected_molecule_properties
 
 __all__ = [
     # # conversions
@@ -33,6 +34,7 @@ __all__ = [
     'reaction_product',
     'reaction_reactants',
     'reaction_products',
+    'reaction_reactants_and_products',
     # # properties
     'parse_connected_molecule_properties',
 ]

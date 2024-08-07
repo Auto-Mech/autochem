@@ -1,7 +1,16 @@
 """ symmetry functions
 """
+import os
+import pytest
+import json
 
-from automol import symm, geom
+from automol import symm, geom, reac
+
+PATH = os.path.dirname(os.path.realpath(__file__))
+DAT_PATH = os.path.join(PATH, "data")
+
+with open(os.path.join(DAT_PATH, "sym_geos.json"), "r") as json_file:
+    GEO_DCT = json.load(json_file)
 
 C2H2CLF_GEO = (
     ("F", (2.994881276150, -1.414434615111, -0.807144415388)),
@@ -88,20 +97,20 @@ ALLYL_GEO = (
     ("H", (0.21236260133668847, 2.749287542778781, -1.1273122072385706)),
 )
 TS_GEO = (
-    ("H", (4.2225665711697, 0.5285809637301855, -0.000115273293652927)),
-    ("H", (5.671967612134, 1.5263110045449078, -0.000107714389151096)),
-    ("C", (2.0564925663033, -0.8418843272482152, 1.88972612545783e-05)),
-    ("C", (-0.10486279242778, 1.0206637570732786, 2.6456165756409e-05)),
-    ("H", (2.2406936203823, -1.9817198829712406, -1.7116099895028005)),
-    ("H", (2.2408051142237, -1.981638624747846, 1.7116912477261954)),
-    ("C", (-2.687481568224, -0.29460263378049906, -2.0786987380036e-05)),
-    ("H", (0.0414001199565, 2.250420040750089, -1.661449099228648)),
-    ("H", (0.041366104886271, 2.250372797596953, 1.6615398060826698)),
-    ("H", (-2.90949793179, -1.4943387282282867, -1.6725720272030926)),
-    ("H", (-2.909531946870, -1.4944029789165523, 1.6724813203490707)),
-    ("H", (-4.22464715963, 1.091354631974405, -9.448630627289141e-06)),
+    ('C', (-2.413119482427781, -0.06610519287806621, -0.10264958272220817)),
+    ('C', (0.2456011587398691, -1.1447577722278461, 0.0024619274805836333)),
+    ('C', (2.227773789661767, 0.9300090243465704, 0.10079135324989329)),
+    ('H', (-2.811107460987221, 1.089094151703368, 1.566696258053535)),
+    ('H', (-3.804568857499126, -1.5947664756553157, -0.17217341032597203)),
+    ('H', (-2.6692334934295667, 1.1123238966976803, -1.7835145178284126)),
+    ('H', (0.5735904268692151, -2.3331326788737963, -1.660946070672103)),
+    ('H', (0.4324870185713748, -2.356238255157586, 1.6710319263033315)),
+    ('H', (1.9764670280365864, 2.1166886144646284, 1.776569621618864)),
+    ('H', (2.1183411179464744, 2.139924506549694, -1.5736415870369729)),
+    ('H', (4.123768754518338, 0.10696018103069375, 0.17537408187949463)),
+    ('H', (1.6848074073934185, 3.4939158599258366, 3.721431156079016))
 )
-
+ZRXN = reac.from_smiles(('CCC', '[H]'),('CC[CH2]', '[H][H]'))[0]
 
 def test__external_symmetry_factor():
     """test geom.external_symmety_factor"""
@@ -111,18 +120,183 @@ def test__external_symmetry_factor():
     assert geom.external_symmetry_factor(C2H2CLF_GEO) == 1
 
 
-def test__hco_symm_num():
+def test__hco_symm_num_ts():
     """test internal symmetry number"""
     assert symm.oxygenated_hydrocarbon_symm_num(METHANE_GEO) == (1.0, 12)
     assert symm.oxygenated_hydrocarbon_symm_num(ETHANE_GEO) == (3.0, 6)
-    print(symm.oxygenated_hydrocarbon_symm_num(PROPENE_GEO))
     assert symm.oxygenated_hydrocarbon_symm_num(PROPENE_GEO) == (3.0, 1)
     assert symm.oxygenated_hydrocarbon_symm_num(PROPYL_GEO) == (6.0, 1)
     assert symm.oxygenated_hydrocarbon_symm_num(ALLYL_GEO) == (1.0, 1)
+    assert symm.oxygenated_hydrocarbon_symm_num(TS_GEO, ZRXN) == (3.0, 1)
 
-    print(symm.oxygenated_hydrocarbon_symm_num(TS_GEO))
-    assert symm.oxygenated_hydrocarbon_symm_num(TS_GEO) == (3.0, 1)
+
+@pytest.mark.parametrize("species_name, sym_numbs", [
+    ("H", (1.0, 1.0)),
+    ("O", (1.0, 1.0)),
+    ("OH", (1.0, 1)),
+    ("O2", (1.0, 2)),
+    ("H2", (1.0, 2)),
+    ("CHO", (1.0, 1)),
+    ("H2O", (1.0, 2)),
+    ("HO2", (1.0, 1)),
+    ("H2O2", (1.0, 2)),
+    ("CH3", (1.0, 6)),
+    ("CH2O", (1.0, 2)),
+    ("CH4", (1.0, 12)),
+    ("C2H2O2-uO9pAY", (1.0, 2)),
+    ("C2H3O-UPQcwB", (3.0, 1)),
+    ("C2H4-S58kzk", (1.0, 4)),
+    ("C2H3O-UPQQF7", (1.0, 1)),
+    ("C2H5-S58eMK", (6.0, 1)),
+    ("C2H4O-UPQWKw", (3.0, 1)),
+    ("C3KET-Wv9qJr", (3.0, 1)),
+    ("C3KALD-2cwWKw", (3.0, 1)),
+    ("C3ALOX-gDNeMK", (3.0, 1)),
+    ("C3DALD-8bQFbZ", (1.0, 2)),
+    ("C3ALK-2LTLsA", (3.0, 1)),
+    ("C3ALD-Wv9uaE", (2.0, 1)),
+    ("C3ALD-Wv96xF", (3.0, 1)),
+    ("C4DALD-RbBVHz", (1.0, 2)),
+    ("C4ALK-808sWvE", (9.0, 2)),
+    ("C4ALK-808sWvZ", (9.0, 2)),
+    ("C4ALK-808adU", (3.0, 1)),
+    ("C4KALD-q3b6xF", (3.0, 1)),
+    ("C4KALD-RyF6xF", (3.0, 1)),
+    ("C4DKET-mZN0v8", (9.0, 2)),
+    ("C4KEOH-RyFn3YA1", (3.0, 0.5)),
+    ("C4KEOH-RyFBqF", (2.0, 1)),
+    ("C4KEOH-RyFn3YA0", (3.0, 0.5)),
+    ("C4AAOH-mZNXbmE", (9.0, 1)),
+    ("C4AAOH-Jm2BlaZ", (3.0, 1)),
+    ("C4AAOH-Jm2BlaE", (3.0, 1)),
+    ("C4AAOH-uz1BlaZ", (3.0, 1)),
+    ("C4AAOH-mZNXbmZ", (9.0, 1)),
+    ("C4CETH-2LKyxlA0", (3.0, 0.5)),
+    ("C4KEOH-mZNdwkA0", (3.0, 0.5)),
+    ("C4AAOH-mZNXqBA1", (3.0, 0.5)),
+    ("C4AAOH-mZNXqBA0", (3.0, 0.5)),
+    ("C4AAOH-uz1BlaE", (3.0, 1)),
+    ("C4KEOH-mZN96JA1", (6.0, 0.5)),
+    ("C4KEOH-mZN96JA0", (6.0, 0.5)),
+    ("C4AAOH-RbB4szE", (1.0, 1)),
+    ("C4AAOH-RbB4szZ", (1.0, 1)),
+    ("C4AAOH-vMtdXFE", (1.0, 1)),
+    ("C4AAOH-vMtdXFZ", (1.0, 1)),
+    ("C4CETH-RvEsWvAB", (9.0, 1)),
+    ("C4ADOH-RbBPs7", (1.0, 1)),
+    ("C4ADOH-RbBj9P", (1.0, 1)),
+    ("C4CETH-RvEsWvAA1", (9.0, 1)),
+    ("C4KEOH-mZNdwkA1", (3.0, 0.5)),
+    ("C4AAOH-RyFBlaZ", (3.0, 1)),
+    ("C4ADOH-RyFFNeA0", (2.0, 0.5)),
+    ("C4-808nWE", (9.0, 1)),
+    ("C4-808cUn", (6.0, 1)),
+    ("C4AAOH-q3bN0EEA1", (3.0, 0.5)),
+    ("C4AAOH-q3bN0EZA1", (3.0, 0.5)),
+    ("C4AAOH-q3bN0EEA0", (3.0, 0.5)),
+    ("C4AAOH-q3bN0EZA0", (3.0, 0.5)),
+    ("C4CETH-SqnyxlA0", (3.0, 0.5)),
+    ("C4AAOH-q3bKk6EA1", (3.0, 0.5)),
+    ("C4AAOH-q3bKk6ZA1", (3.0, 0.5)),
+    ("C4CETH-SqnyxlA1", (3.0, 0.5)),
+    ("C4AAOH-q3bKk6EA0", (3.0, 0.5)),
+    ("C4AAOH-q3bKk6ZA0", (3.0, 0.5)),
+    ("C4KEOH-q3bn3YA1", (3.0, 0.5)),
+    ("C4KEOH-q3bn3YA0", (3.0, 0.5)),
+    ("C4ADOH-RyFFNeA1", (2.0, 0.5)),
+    ("C4AAOH-q3bBlaE", (3.0, 1)),
+    ("C4ADOH-q3bFNeA1", (2.0, 0.5)),
+    ("C4ADOH-q3bFNeA0", (2.0, 0.5)),
+    ("C4AAOH-nN4BlaE", (3.0, 1)),
+    ("C4AAOH-nN4BlaZ", (3.0, 1)),
+    ("C4ADOH-q3bYSe", (3.0, 1)),
+    ("C4KEOH-q3bBqF", (1.0, 1)),
+    ("C4AAOH-q3bsEZ", (1.0, 1)),
+    ("C4ADOH-RyFKk6A0", (3.0, 0.5)),
+    ("C4ADOH-RyFKk6A1", (3.0, 0.5)),
+    ("C4AAOH-ZnVBlaE", (3.0, 1)),
+    ("C4AAOH-ZnVBlaZ", (3.0, 1)),
+    ("C4AAOH-RyFBlaE", (3.0, 1)),
+    ("C4CETH-2LKyxlA1", (3.0, 0.5)),
+    ("C4CETH-FCWSI1", (1.0, 2)),
+    ("C4AAOH-q3bBlaZ", (3.0, 1)),
+    ("C4KEOH-q3bHhi", (3.0, 1)),
+    ("C4KEOH-RbBBqF", (1.0, 1)),
+    ("C4AKOX-RbByrZ", (1.0, 1)),
+    ("C4AKOX-RyF8pfA1", (3.0, 0.5)),
+    ("C4KKOX-mZN0BQA1", (9.0, 0.5)),
+    ("C4KKOX-mZN0BQA0", (9.0, 0.5)),
+    ("C4KKOX-q3b40k", (3.0, 1)),
+    ("C4AKOX-RyF8pfA0", (3.0, 0.5)),
+    ("C4AKOX-q3b8pfA0", (3.0, 0.5)),
+    ("C4AKOX-q3b8pfA1", (3.0, 0.5)),
+    ("C4KKOX-RyF40k", (3.0, 1)),
+    ("C4ANHY-ZUsgvGZ", (3.0, 1)),
+    ("C4ANHY-ZUsjatZ", (3.0, 1)),
+    ("C4ANHY-ZUsjatE", (3.0, 1)),
+    ("C4ANHY-OAz3cEZ", (9.0, 1)),
+    ("C4ANHY-ZUsgvGE", (3.0, 1)),
+    ("C4ANHY-OAz3cEE", (9.0, 1)),
+    ("C4ANHY-ZUsBOc", (1.0, 1)),
+    ("C4ANHY-OAztob", (3.0, 1)),
+    ("C4ANHY-OAzeCUA0", (3.0, 0.5)),
+    ("C4-808zqE", (9.0, 1)),
+    ("C4ANHY-OAzeCUA1", (3.0, 0.5)),
+    ("C4QOOH-ZUsHCf", (3.0, 1)),
+    ("C4CEHY-0vRjatAA0", (3.0, 0.5)),
+    ("C4QOOH-OAz243A1", (6.0, 0.5)),
+    ("C4CEHY-0vRjatAB0", (3.0, 0.5)),
+    ("C4CEHY-yW2WwKA1", (1.0, 0.5)),
+    ("C4CEHY-yW2WwKA0", (1.0, 0.5)),
+    ("C4QOOH-OAz243A0", (6.0, 0.5)),
+    ("C4CEHY-0vRjatAA1", (3.0, 0.5)),
+    ("C4CEHY-0vRjatAB1", (3.0, 0.5)),
+    ("C4AHP-cKXdD3A1", (3.0, 0.5)),
+    ("C4CEHY-2m1jatAA0", (3.0, 0.5)),
+    ("C4AHP-9Jv1V8", (1.0, 1)),
+    ("C4RO2-ZUssfD", (3.0, 1)),
+    ("C4QOOH-ZUsHMd", (3.0, 1)),
+    ("C4KHP-LKXOOsA1", (9.0, 0.5)),
+    ("C4KHP-LKXOOsA0", (9.0, 0.5)),
+    ("C4RO2-OAzhmnA0", (9.0, 0.5)),
+    ("C4QOOH-OAzHO1", (9.0, 1)),
+    ("C4RO2-OAzhmnA1", (9.0, 0.5)),
+    ("C4KHP-aiQAr5", (3.0, 1)),
+    ("C4KHP-rtmAr5", (3.0, 1)),
+    ("C4AHP-j42dD3A1", (3.0, 0.5)),
+    ("C4AHP-cKXdD3A0", (3.0, 0.5)),
+    ("C4CEHY-2m1jatAB0", (3.0, 0.5)),
+    ("C4AHP-j42dD3A0", (3.0, 0.5)),
+    ("instabspc", (9.0, 1)),
+    ("instabspcb", (3.0, 1))
+])
+def test__hco_symm_num(species_name, sym_numbs):
+    """test internal symmetry number"""
+    assert symm.oxygenated_hydrocarbon_symm_num(
+        GEO_DCT[species_name]) == sym_numbs
+
+
+@pytest.mark.parametrize("species_name, sym_numbs", [
+    ("C4KEOH-RyFn3YA1", (3.0, 1)),
+    ("C4KEOH-RyFBqF", (2.0, 1)),
+    ("C4KEOH-RyFn3YA0", (3.0, 1)),
+    ("C4CETH-2LKyxlA0", (3.0, 1)),
+    ("C4KEOH-mZNdwkA0", (3.0, 1)),
+    ("C4AAOH-mZNXqBA1", (3.0, 1)),
+    ("C4AAOH-mZNXqBA0", (3.0, 1)),
+    ("C4AAOH-uz1BlaE", (3.0, 1)),
+    ("C4KEOH-mZN96JA1", (6.0, 1)),
+    ("C4KEOH-mZN96JA0", (6.0, 1)),
+    ("C4AAOH-RbB4szE", (1.0, 1))
+])
+def test__hco_symm_num_nonracemic(species_name, sym_numbs):
+    """test internal symmetry number"""
+    assert symm.oxygenated_hydrocarbon_symm_num(
+        GEO_DCT[species_name], account_for_enantiomer=False) == sym_numbs
 
 
 if __name__ == "__main__":
+    test__external_symmetry_factor()
+    test__hco_symm_num_ts()
     test__hco_symm_num()
+    test__hco_symm_num_nonracemic()

@@ -5,6 +5,7 @@ import itertools
 
 import automol
 import numpy
+import pytest
 from automol import graph
 
 # Vinyl radical with E/Z stereo
@@ -1503,6 +1504,35 @@ def test__kekule():
     assert graph.kekule(C3H3_CGR) in C3H3_RGRS
 
 
+@pytest.mark.parametrize(
+    "smi,res",
+    [
+        ("CCC", frozenset({})),
+        ("C=CC", frozenset({0, 1})),
+        ("C=C[CH2]", frozenset({0, 2})),
+        ("C=CCC[CH2]", frozenset({4})),
+        ("O=O", frozenset({0, 1})),
+    ],
+)
+def test__addition_atom_keys(smi, res):
+    """test graph.addition_atom_keys"""
+    gra = automol.smiles.graph(smi)
+    assert automol.graph.addition_atom_keys(gra) == res
+
+
+@pytest.mark.parametrize(
+    "smi,res",
+    [
+        ("COC", frozenset({})),
+        ("[CH2]OC", frozenset({frozenset({3, 4})})),
+    ],
+)
+def test__beta_scission_bond_keys(smi, res):
+    """test graph.beta_scission_bond_keys"""
+    gra = automol.smiles.graph(smi)
+    assert automol.graph.beta_scission_bond_keys(gra) == res
+
+
 def test__rotational_bond_keys():
     """test graph.rotational_bond_keys"""
     cgr = (
@@ -1591,6 +1621,36 @@ def test__rotational_coordinates():
     # Make sure the segment version runs
     coo_key_lst = graph.rotational_coordinates(zgra)
     print(coo_key_lst)
+
+
+def test__align_with_geometry():
+    """test graph.align_with_geometry"""
+    gra = automol.smiles.graph("C#CC1CCC1C#C")
+    geo = graph.geometry(gra)
+    zma, zc_ = automol.geom.zmatrix_with_conversion_info(geo, gra=gra)
+    zgra = graph.apply_zmatrix_conversion(gra, zc_)
+    geo_idx_dct = automol.util.zmat_conv.relabel_dict(zc_, "zmat")
+    args = sorted(graph.atom_keys(zgra))
+
+    # Check the alignment
+    gra1, geo1, args1, key_dct, idx_dct = graph.align_with_geometry(zgra, geo, args, geo_idx_dct)
+    assert graph.geometry_matches(gra1, geo1)
+    assert args1.count(None) == 4
+    assert [k for k in args1 if k is not None] == list(range(16))
+    gra0 = automol.graph.relabel(gra1, key_dct)
+    assert automol.graph.without_dummy_atoms(zgra) == gra0
+    geo0 = automol.geom.reorder(geo1, idx_dct)
+    assert automol.geom.almost_equal(geo, geo0)
+
+    # Check that the alignment works with dummy atoms included
+    zgeo = automol.zmat.geometry(zma, dummy=True)
+    zgra1, zgeo1, zargs1, zkey_dct, zidx_dct = graph.align_with_geometry(zgra, zgeo, args)
+    assert graph.geometry_matches(zgra1, zgeo1)
+    assert zargs1 == list(range(20))
+    zgra0 = automol.graph.relabel(zgra1, zkey_dct)
+    assert zgra == zgra0
+    zgeo0 = automol.geom.reorder(zgeo1, zidx_dct)
+    assert automol.geom.almost_equal(zgeo, zgeo0)
 
 
 def test__species__graph_conversion():
@@ -1808,6 +1868,7 @@ def test__stereogenic_keys():
 
 def test__expand_stereo():
     """test graph.expand_stereo"""
+    print(graph.smiles(C2H2CL2F2_CGR))
     assert graph.expand_stereo(C2H2CL2F2_CGR) == C2H2CL2F2_SGRS
     assert graph.expand_stereo(C3H3CL2F3_CGR) == C3H3CL2F3_SGRS
     # When symmetry equivalents are filtered out, we can't guarantee that the
@@ -1891,6 +1952,34 @@ def test__expand_stereo():
     )
     assert len(graph.expand_stereo(gra, enant=True, symeq=True)) == 4
     assert len(graph.expand_stereo(gra, enant=False, symeq=True)) == 2
+
+
+@pytest.mark.parametrize(
+    "smi,npars1,npars2,par_dct",
+    [
+        ("C1C2OC2CC1", 3, 1, {1: False, 3: True}),
+        ("C1(O2)CC2CC1", 3, 1, {0: False, 3: True}),
+        ("C=1C2CC(C=1)O2", 3, 1, {1: False, 3: True}),
+    ]
+)
+def test__expand_stereo__strained(smi, npars1, npars2, par_dct):
+    """test removal of strained stereoisomers from stereoexpansion"""
+    print(f"smi = {smi}")
+    gra = automol.smiles.graph(smi)
+
+    # Without removing strained stereoisomers, there are three distinct possibilities
+    sgras = graph.expand_stereo(gra, strained=True)
+    assert len(sgras) == npars1, f"{len(sgras)} != {npars1}"
+
+    # With removing strained stereoisomers, there is only one distinct possibility
+    sgras = graph.expand_stereo(gra, strained=False)
+    assert len(sgras) == npars2, f"{len(sgras)} != {npars2}"
+
+    (sgra,) = sgras
+    par_dct_ = automol.util.dict_.filter_by_value(
+        automol.graph.stereo_parities(sgra), lambda x: x is not None
+    )
+    assert par_dct_ == par_dct, f"{par_dct_} != {par_dct}"
 
 
 def test__ring_systems():
@@ -2456,12 +2545,32 @@ def test__embed__clean_geometry():
     assert automol.geom.almost_equal(geo1, geo2)
 
 
+def test__atom_hypervalencies():
+    """also tests geometry conversion for this case"""
+    geo = (
+        ("C", (0.1604, -0.2027, 0.0202)),
+        ("H", (-1.3399, 1.6931, -0.169)),
+        ("H", (-0.7776, -1.5753, -1.1172)),
+        ("H", (0.1415, -0.5361, 2.0067)),
+        ("H", (1.8671, 0.556, -0.7342)),
+        ("O", (-2.8677, 3.6235, -0.3617)),
+        ("H", (-4.0545, 2.5878, -1.3276)),
+    )
+    gra1 = automol.geom.graph(geo, fix_hyper=False)
+    nhyp_dct1 = automol.graph.atom_hypervalencies(gra1)
+    assert automol.util.dict_.by_value(nhyp_dct1) == {1: 1}
+
+    gra2 = automol.geom.graph(geo, fix_hyper=True)
+    nhyp_dct2 = automol.graph.atom_hypervalencies(gra2)
+    assert automol.util.dict_.by_value(nhyp_dct2) == {}
+
+
 if __name__ == "__main__":
     # test__to_local_stereo()
 
     # test__has_resonance_bond_stereo()
     # test__amchi_with_indices()
-    test__stereogenic_keys()
+    # test__stereogenic_keys()
     # test__kekules_bond_orders_collated()
     # test__inchi_is_bad()
     # test__expand_stereo()
@@ -2485,4 +2594,9 @@ if __name__ == "__main__":
     # test__stereo_corrected_geometry()
     # test__embed__clean_geometry()
     # test__rotational_coordinates()
-    test__stereo_corrected_geometry()
+    # test__stereo_corrected_geometry()
+    # test__atom_hypervalencies()
+    # test__align_with_geometry()
+    # test__embed__clean_geometry()
+    # test__expand_stereo__strained("C=1C2CC(C=1)O2", 3, 1, {1: False, 3: True})
+    test__expand_stereo()

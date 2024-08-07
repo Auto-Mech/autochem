@@ -6,7 +6,9 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import operator
 
 import networkx
-from automol.graph.base._00core import (
+
+from ... import util
+from ._00core import (
     atom_implicit_hydrogens,
     atom_keys,
     atom_stereo_parities,
@@ -41,10 +43,20 @@ def from_graph(gra, node_attrib_dct=None, edge_attrib_dct=None):
     return nxg
 
 
-def minimum_cycle_basis(nxg):
-    """minimum cycle basis for the graph"""
-    rng_atm_keys_lst = networkx.algorithms.cycles.minimum_cycle_basis(nxg)
-    return frozenset(map(frozenset, rng_atm_keys_lst))
+def minimum_cycle_basis(nxg: networkx.Graph, weight: str | None = None):
+    """Cycle basis for the graph."""
+
+    def _order_and_normalize(rkeys):
+        """Order and normalize the ring keys."""
+        cyc_iter = list(networkx.simple_cycles(nxg.subgraph(rkeys)))
+        rkeys = next((ks for ks in cyc_iter if set(ks) == set(rkeys)), None)
+        assert rkeys is not None, f"Failed to identify cycle for {rkeys} in\n{nxg}"
+        return util.ring.normalize(rkeys)
+
+    rkeys_lst = networkx.algorithms.cycles.minimum_cycle_basis(nxg, weight=weight)
+    # Ensure that the ordering is correct (not guaranteed by minimum cycle basis)
+    rkeys_lst = tuple(sorted(map(_order_and_normalize, rkeys_lst)))
+    return rkeys_lst
 
 
 def connected_component_atom_keys(nxg):
@@ -55,6 +67,11 @@ def connected_component_atom_keys(nxg):
 def all_pairs_shortest_path(nxg):
     """shortest path between any two vertices in the graph"""
     return networkx.all_pairs_shortest_path(nxg)
+
+
+def simple_paths(nxg, key1, key2):
+    """simple paths between any two vertices in the graph"""
+    return tuple(map(tuple, networkx.all_simple_paths(nxg, source=key1, target=key2)))
 
 
 def all_isomorphisms(nxg1, nxg2):

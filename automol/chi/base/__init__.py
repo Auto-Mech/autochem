@@ -8,47 +8,47 @@ Currently only redirecting for resonance double bond stereo.
 """
 
 # # "constructor"
-from automol.chi.base._core import from_data
+from ._core import from_data
 # # recalculate/standardize
-from automol.chi.base._core import recalculate
-from automol.chi.base._core import standard_form
+from ._core import recalculate
+from ._core import standard_form
 # # getters
-from automol.amchi.base import version
-# from automol.chi.base._core import formula_sublayer  # defined below
-from automol.amchi.base import formula_layer
-from automol.amchi.base import main_layers as main_sublayers
-from automol.amchi.base import charge_layers as charge_sublayers
-from automol.amchi.base import stereo_layers as stereo_sublayers
-from automol.amchi.base import isotope_layers as isotope_sublayers
-# from automol.chi.base._core import stereo_atoms               # excluded
-# from automol.chi.base._core import stereo_bonds               # excluded
-# from automol.chi.base._core import unassigned_stereo_bonds    # excluded
-from automol.chi.base._core import are_enantiomers
-from automol.chi.base._core import are_diastereomers
-from automol.chi.base._core import reflect
-from automol.chi.base._core import racemic
+from ...amchi.base import version
+# from ._core import formula_sublayer  # defined below
+from ...amchi.base import formula_layer
+from ...amchi.base import main_layers as main_sublayers
+from ...amchi.base import charge_layers as charge_sublayers
+from ...amchi.base import stereo_layers as stereo_sublayers
+from ...amchi.base import isotope_layers as isotope_sublayers
+# from ._core import stereo_atoms               # excluded
+# from ._core import stereo_bonds               # excluded
+# from ._core import unassigned_stereo_bonds    # excluded
+from ._core import are_enantiomers
+from ._core import are_diastereomers
+from ._core import reflect
+from ._core import racemic
 # # setters
-from automol.amchi.base._core import with_inchi_prefix
+from ...amchi.base._core import with_inchi_prefix
 # # conversions
-# from automol.chi.base._core import inchi_key  # goes in L4
-# from automol.chi.base._core import smiles     # goes in L4
-from automol.amchi.base import formula
-from automol.amchi.base import formula_string
+# from ._core import inchi_key  # goes in L4
+# from ._core import smiles     # goes in L4
+from ...amchi.base import formula
+from ...amchi.base import formula_string
 # # # properties
-from automol.chi.base._core import is_standard_form
-from automol.amchi.base import has_multiple_components
-from automol.amchi.base import is_enantiomer
-from automol.amchi.base import has_stereo
-from automol.amchi.base import has_mobile_hydrogens
-# from automol.amchi.base import low_spin_multiplicity          # excluded
+from ._core import is_standard_form
+from ...amchi.base import has_multiple_components
+from ...amchi.base import is_enantiomer
+from ...amchi.base import has_stereo
+from ...amchi.base import has_mobile_hydrogens
+# from ...amchi.base import low_spin_multiplicity          # excluded
 # # comparisons
-from automol.amchi.base import same_connectivity
-from automol.amchi.base import equivalent
+from ...amchi.base import same_connectivity
+from ...amchi.base import equivalent
 # # split/join
-from automol.chi.base._core import split
+from ._core import split
 # # sort
-from automol.chi.base._core import sorted_
-from automol.chi.base._core import argsort
+from ._core import sorted_
+from ._core import argsort
 
 
 def formula_sublayer(*args, **kwargs):

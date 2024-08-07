@@ -6,28 +6,27 @@ BEFORE ADDING ANYTHING, SEE IMPORT HIERARCHY IN __init__.py!!!!
 import itertools
 import numbers
 
-import more_itertools as mit
 import numpy
-from automol import util
-from automol.geom import base as geom_base
-from automol.graph.base._00core import (
-    atom_keys,
-    atom_neighbor_atom_keys,
+
+from phydat import phycon
+
+from ... import util
+from ...geom import base as geom_base
+from ._00core import (
+    align_with_geometry,
     atoms_neighbor_atom_keys,
     backbone_bond_keys,
-    relabel,
     ts_reactants_graph_without_stereo,
-    ts_reacting_atom_keys,
-    vinyl_radical_bond_candidates,
 )
-from automol.graph.base._02algo import (
+from ._02algo import (
     branch_atom_keys,
-    ring_systems_atom_keys,
     rings_bond_keys,
 )
-from automol.graph.base._03kekule import rigid_planar_bonds
-from automol.graph.base._05stereo import geometry_atom_parity, geometry_bond_parity
-from phydat import phycon
+from ._03kekule import (
+    rigid_planar_bonds,
+    vinyl_radical_atom_bond_keys,
+)
+from ._05stereo import geometry_atom_parity, geometry_bond_parity
 
 
 def geometry_local_parity(gra, geo, key, geo_idx_dct=None):
@@ -80,7 +79,11 @@ def geometries_parity_mismatches(gra, geo1, geo2, keys, geo_idx_dct=None):
 
 # corrections
 def geometry_correct_nonplanar_pi_bonds(
-    gra, geo, geo_idx_dct=None, pert=5.0 * phycon.DEG2RAD
+    gra,
+    geo,
+    geo_idx_dct=None,
+    pert: float = 5.0 * phycon.DEG2RAD,
+    excl_keys: frozenset[int] = frozenset(),
 ):
     """correct a geometry for non-planar pi-bonds
 
@@ -92,15 +95,14 @@ def geometry_correct_nonplanar_pi_bonds(
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
     :param pert: Perturbation angle, in radians, to prevent perfect planarity
-    :type pert: float
+    :param excl_keys: Atom keys whose bonds should be excluded (for linear atoms)
     """
-    akeys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
+    # Align the graph and the geometry keys/indices
+    gra, geo, excl_keys, _, idx_dct = align_with_geometry(
+        gra, geo, excl_keys, geo_idx_dct
     )
-    gra = relabel(gra, geo_idx_dct)
 
-    rp_dct = rigid_planar_bonds(gra, min_ring_size=numpy.inf)
+    rp_dct = rigid_planar_bonds(gra, min_ring_size=numpy.inf, excl_keys=excl_keys)
 
     for bkey, bnkeys in rp_dct.items():
         key1, key2 = sorted(bkey)
@@ -116,11 +118,16 @@ def geometry_correct_nonplanar_pi_bonds(
 
         geo = geometry_rotate_bond(gra, geo, [key1, key2], ang)
 
-    return geo
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
 
 
 def geometry_correct_linear_vinyls(
-    gra, geo, geo_idx_dct=None, tol=2.0 * phycon.DEG2RAD
+    gra,
+    geo,
+    geo_idx_dct=None,
+    tol: float = 2.0 * phycon.DEG2RAD,
+    excl_keys: frozenset[int] = frozenset(),
 ):
     """correct a geometry for linear vinyl groups
 
@@ -132,132 +139,50 @@ def geometry_correct_linear_vinyls(
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
     :param tol: tolerance of bond angle(s) for determing linearity
-    :type tol: float
+    :param excl_keys: Atom keys whose bonds should be excluded (linear atoms)
     """
-    keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
+    if geo is None:
+        return None
+
+    # Align the graph and the geometry keys/indices
+    gra, geo, excl_keys, _, idx_dct = align_with_geometry(
+        gra, geo, excl_keys, geo_idx_dct
     )
 
     gra = ts_reactants_graph_without_stereo(gra)
     rng_bkeys = set(itertools.chain(*rings_bond_keys(gra)))
     nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=False)
 
-    vin_dct = vinyl_radical_bond_candidates(gra, min_ncount=0)
+    vin_dct = vinyl_radical_atom_bond_keys(gra)
 
-    for bkey, key in vin_dct.items():
-        if bkey not in rng_bkeys:
+    for key, bkey in vin_dct.items():
+        if bkey not in rng_bkeys and not bkey & excl_keys:
             key2 = key
             (key1,) = bkey - {key}
             key3s = nkeys_dct[key] - {key, key1}
             if key3s:
                 (key3,) = key3s
-                idx1, idx2, idx3 = tuple(map(geo_idx_dct.get, (key1, key2, key3)))
 
-                ang = geom_base.central_angle(geo, idx1, idx2, idx3)
+                ang = geom_base.central_angle(geo, key1, key2, key3)
 
                 if numpy.abs(ang - numpy.pi) < tol:
                     key0 = next(iter(nkeys_dct[key1] - {key2}), None)
                     key0 = key3 if key0 is None else key0
-                    idx0 = geo_idx_dct[key0]
 
                     xyz0, xyz1, xyz2 = geom_base.coordinates(
-                        geo, idxs=(idx0, idx1, idx2)
+                        geo, idxs=(key0, key1, key2)
                     )
 
                     rot_axis = util.vector.unit_perpendicular(xyz0, xyz1, orig_xyz=xyz2)
 
                     rot_keys = branch_atom_keys(gra, key2, key3)
-                    rot_idxs = list(map(geo_idx_dct.get, rot_keys))
 
                     geo = geom_base.rotate(
-                        geo, rot_axis, numpy.pi / 3, orig_xyz=xyz2, idxs=rot_idxs
+                        geo, rot_axis, numpy.pi / 3, orig_xyz=xyz2, idxs=rot_keys
                     )
 
-    return geo
-
-
-def geometry_pseudorotate_atom(
-    gra, geo, key, ang=numpy.pi, degree=False, geo_idx_dct=None
-):
-    r"""Pseudorotate an atom in a molecular geometry by a certain amount
-
-    'Pseudorotate' here means to rotate all but two of the atom's neighbors, which can
-    be used to invert/correct stereochemistry at an atom:
-
-        1   2                                     1   2
-         \ /                                       \ /
-          C--3   = 1,4 pseudorotation by pi =>   3--C
-          |                                         |
-          4                                         4
-
-    The two fixed atoms will be chosen to prevent the structural 'damage' from the
-    rotation as much as possible. For example, atoms in rings will be favored to be
-    fixed.
-
-    If such a choice is not possible -- for example, if three or more neighbors are
-    locked into connected rings -- then no geometry will be returned.
-
-    :param gra: molecular graph
-    :type gra: automol graph data structure
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param key: The graph key of the atom to be rotated
-    :type key: frozenset[int]
-    :param ang: The angle of rotation (in radians, unless `degree = True`)
-    :type ang: float
-    :param degree: Is the angle of rotation in degrees?, default False
-    :type degree: bool
-    :param geo_idx_dct: If they don't already match, specify which graph
-        keys correspond to which geometry indices.
-    :type geo_idx_dct: dict[int: int]
-    """
-    ang = ang * phycon.DEG2RAD if degree else ang
-    atm_keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-
-    # For simplicity, relabel the graph to match the geometry
-    gra = relabel(gra, geo_idx_dct)
-
-    rxn_keys = ts_reacting_atom_keys(gra)
-    rsy_keys_lst = ring_systems_atom_keys(gra, lump_spiro=False)
-    nkeys = atom_neighbor_atom_keys(gra, key)
-    # Group together neighbors connected in a ring system
-    nkey_sets = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
-    # Add the other neighbors as singletons
-    nkey_sets.extend({k} for k in nkeys if not any(k in ks for ks in nkey_sets))
-    # Put the biggest groups first
-    nkey_sets = sorted(nkey_sets, key=len, reverse=True)
-    # Move groups containing reacting atom keys last
-    nkey_sets = sorted(nkey_sets, key=lambda g: bool(g & rxn_keys))
-
-    # Now, find a pair of atoms to keep fixed
-    found_pair = False
-    for nkeys1, nkeys2 in mit.pairwise(nkey_sets + [set()]):
-        if len(nkeys1) == 2 or len(nkeys1 | nkeys2) == 2:
-            found_pair = True
-            nkey1, nkey2, *_ = list(nkeys1) + list(nkeys2)
-            break
-
-    if found_pair:
-        # Determine the rotational axis as the unit bisector between the fixed pair
-        xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
-        rot_axis = util.vector.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
-
-        # Identify the remaining keys to be rotated
-        rot_nkeys = nkeys - {nkey1, nkey2}
-        rot_keys = set(
-            itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys))
-        )
-
-        geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
-    else:
-        geo = None
-
-    return geo
-
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
 
 def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
     """Rotate a bond in a molecular geometry by a certain amount
@@ -279,11 +204,8 @@ def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
     :type geo_idx_dct: dict[int: int]
     """
     ang = ang * phycon.DEG2RAD if degree else ang
-    akeys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(akeys)} if geo_idx_dct is None else geo_idx_dct
-    )
-    gra = relabel(gra, geo_idx_dct)
+    # Align the graph and the geometry keys/indices
+    gra, geo, (key,), _, idx_dct = align_with_geometry(gra, geo, (key,), geo_idx_dct)
 
     key1, key2 = key
     xyzs = geom_base.coordinates(geo)
@@ -294,7 +216,9 @@ def geometry_rotate_bond(gra, geo, key, ang, degree=False, geo_idx_dct=None):
     rot_keys = branch_atom_keys(gra, key1, key2)
 
     geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz1, idxs=rot_keys)
-    return geo
+
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
 
 
 def geometry_dihedrals_near_value(
@@ -326,17 +250,14 @@ def geometry_dihedrals_near_value(
     :rtype: frozenset[tuple[int]]
     """
     ref_ang = ang * phycon.DEG2RAD if degree else ang
-    if abs_:
-        ref_ang = numpy.abs(ref_ang)
+    ref_ang = numpy.abs(ref_ang) if abs_ else ref_ang
     tol = (
         5.0 * phycon.DEG2RAD
         if tol is None
         else (tol * phycon.DEG2RAD if degree else tol)
     )
-    atm_keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
-    )
+    # Align the graph and the geometry keys/indices
+    gra, geo, _, key_dct, _ = align_with_geometry(gra, geo, (), geo_idx_dct)
 
     nkeys_dct = atoms_neighbor_atom_keys(gra)
     bnd_keys = backbone_bond_keys(gra)
@@ -349,15 +270,12 @@ def geometry_dihedrals_near_value(
         atm4_keys = nkeys_dct[atm3_key] - {atm2_key}
         for atm1_key, atm4_key in itertools.product(atm1_keys, atm4_keys):
             if atm1_key != atm4_key:
-                atm1_idx = geo_idx_dct[atm1_key]
-                atm2_idx = geo_idx_dct[atm2_key]
-                atm3_idx = geo_idx_dct[atm3_key]
-                atm4_idx = geo_idx_dct[atm4_key]
                 ang = geom_base.dihedral_angle(
-                    geo, atm1_idx, atm2_idx, atm3_idx, atm4_idx
+                    geo, atm1_key, atm2_key, atm3_key, atm4_key
                 )
                 if abs_:
                     ang = numpy.abs(ang)
                 if numpy.abs(ang - ref_ang) < tol:
                     dih_keys.append((atm1_key, atm2_key, atm3_key, atm4_key))
-    return frozenset(dih_keys)
+
+    return frozenset(util.translate(dih_keys, key_dct))

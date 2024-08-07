@@ -2,9 +2,9 @@
   Libraries for handling molecular property calculations
 """
 
-from automol.prop._wfn import total_dipole_moment
-from automol.prop._wfn import total_polarizability
-from automol.prop import freq
+from ._wfn import total_dipole_moment
+from ._wfn import total_polarizability
+from . import freq
 
 
 __all__ = [

@@ -3,12 +3,15 @@
 The parsing functions apply equally well to SMILES or RSMILES strings, so the
 documentation simply refers to SMILES strings.
 """
-from typing import List
 import string
-import pyparsing as pp
+from typing import List
+
 import numpy
+import pyparsing as pp
+
 from phydat import ptab
-from automol import util
+
+from ... import util
 
 # Not currently dealing with aromatics
 # organic atoms
@@ -231,6 +234,18 @@ def reaction_products(smi: str) -> List[str]:
     """
     rsmi = reaction_product(smi)
     return None if rsmi is None else rsmi.split('.')
+
+
+def reaction_reactants_and_products(smi: str) -> tuple[list[str], list[str]]:
+    """ Get the reactants and products from a reaction SMILES string
+
+    Multiple reactants will be returned as one combined SMILES string
+    Returns `None` if it isn't a reaction
+
+    :param smi: A reaction SMILES string
+    :returns: The SMILES strings for the reactants and products
+    """
+    return reaction_reactants(smi), reaction_products(smi)
 
 
 # # properties

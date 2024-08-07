@@ -1,7 +1,7 @@
 """ Draw 2D images
 """
 
-from automol.extern import rdkit_
+from ..extern import rdkit_
 
 
 def draw(ich, save_path=None, highlight_radicals=False):

@@ -9,7 +9,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy
 
-from automol.graph.base._00core import (
+from ...util import dict_
+from ._00core import (
     AtomKey,
     AtomKeys,
     BondKey,
@@ -40,17 +41,17 @@ from automol.graph.base._00core import (
     ts_reactants_graph_without_stereo,
     ts_reagents_graphs_without_stereo,
     ts_transferring_atoms,
+    vinyl_radical_bond_candidates,
     without_dummy_atoms,
     without_pi_bonds,
 )
-from automol.graph.base._02algo import (
+from ._02algo import (
     branches,
     connected_components,
     connected_components_atom_keys,
     rings_atom_keys,
     shortest_path_between_atoms,
 )
-from automol.util import dict_
 
 
 # # core functions
@@ -482,6 +483,45 @@ def radical_atom_keys(gra, sing_res=False, min_valence=1.0):
     graph. If the `sing_res` flag is set, a single low-spin resonance
     structure will be chosen when there are multiple such structures.
 
+    For TS graphs, this will only return radical atoms that are not involved in the
+    reaction.
+
+    If you wish to identify radical atom keys based on the bond orders already
+    in `gra`, this can be done by using the `radical_atom_keys_from_kekule`
+    function.
+
+    :param gra: the molecular graph
+    :param sing_res: only include radical keys for a single (arbitrary)
+        resonance structure, or include all atoms that are radicals in any of
+        the low-spin resonance structures?
+    :type sing_res: bool
+    :param min_valence: optionally, specify that only sites with at least a
+        certain number of radical electrons be included
+    :type min_valence: int
+    :returns: the radical atom keys
+    :rtype: frozenset[int]
+    """
+    # If this is not a TS graph, call the main function directly
+    if not is_ts_graph(gra):
+        return _radical_atom_keys(gra, sing_res=sing_res, min_valence=min_valence)
+
+    # Otherwise, determine the non-reacting radical atoms
+    rgra, pgra = ts_reagents_graphs_without_stereo(gra)
+    rkeys = _radical_atom_keys(rgra)
+    pkeys = _radical_atom_keys(pgra)
+    return frozenset(rkeys & pkeys)
+
+
+def _radical_atom_keys(gra, sing_res=False, min_valence=1.0):
+    """Radical atom keys for this molecular graph
+
+    Radical atoms are based on the lowest-spin resonance structures for this
+    graph. If the `sing_res` flag is set, a single low-spin resonance
+    structure will be chosen when there are multiple such structures.
+
+    For TS graphs, this will only return radical atoms that are not involved in the
+    reaction.
+
     If you wish to identify radical atom keys based on the bond orders already
     in `gra`, this can be done by using the `radical_atom_keys_from_kekule`
     function.
@@ -561,25 +601,15 @@ def nonresonant_radical_atom_keys(gra):
 
 
 def vinyl_radical_atom_bond_keys(gra):
-    """Vinyl radical atom keys for this molecular graph
+    """Get a mapping of vinyl radical bonds onto their radical atoms
 
-    Does not use resonance, to save on cost
-
-    :param gra: the molecular graph
-    :returns: The vinyl radical bond keys, by atom key
+    :param gra: A graph
+    :return: A mappping of vinyl radical bond keys onto vinyl atom keys
     :rtype: Dict[int, frozenset[int]]
     """
-    assert not is_ts_graph(gra), f"This doesn't work for TS graphs:\n{gra}"
-
-    atm_rad_keys = nonresonant_radical_atom_keys(gra)
-    bnd_ords_dct = kekules_bond_orders_collated(gra)
-    atm_bnd_keys_dct = atoms_bond_keys(gra)
-    vin_dct = {}
-    for atm_key in atm_rad_keys:
-        for bnd_key in atm_bnd_keys_dct[atm_key]:
-            if 2 in bnd_ords_dct[bnd_key]:
-                vin_dct[atm_key] = bnd_key
-                break
+    cand_dct = vinyl_radical_bond_candidates(gra)
+    hyb_dct = atom_hybridizations(gra)
+    vin_dct = {k: bk for bk, k in cand_dct.items() if hyb_dct[k] == 2}
     return vin_dct
 
 
@@ -638,6 +668,57 @@ def has_separated_radical_sites(gra):
     """
     rad_atm_keys = radical_atom_keys(gra, sing_res=True)
     return len(rad_atm_keys) > 1
+
+
+def addition_atom_keys(gra):
+    """Determine the atoms where addition is likely to occur
+
+    Radical sites, if available, otherwise pi-bonds.
+
+    :param gra: a molecular graph
+    """
+    # 1. First, check for radical sites
+    add_keys = radical_atom_keys(gra, sing_res=False)
+    # 2. If none are found, check for other unsaturated sites (pi bonds)
+    if not add_keys:
+        unp_dct = atom_unpaired_electrons(gra, bond_order=False)
+        add_keys = dict_.keys_by_value(unp_dct)
+    return frozenset(add_keys)
+
+
+def beta_scission_bond_keys(gra):
+    """Determine the bonds where beta scissions can occur
+
+    :param gra: a molecular graph
+    :returns: the beta scission bond keys
+    """
+    kgrs = kekules(gra)
+    bkeys = frozenset(itertools.chain(*map(beta_scission_bond_keys_from_kekule, kgrs)))
+    return bkeys
+
+
+def beta_scission_bond_keys_from_kekule(gra):
+    """Determine beta scission bonds for a particular kekule graph
+
+    Assumes the graph already has assigned bond orders
+
+    :param gra: a resonance-structure molecular graph
+    :returns: the beta scission bond keys
+    """
+    nkeys_dct = atoms_neighbor_atom_keys(gra)
+
+    # Determine radical sites and their neighboring atoms
+    rad_keys = radical_atom_keys_from_kekule(gra)
+    rad_nkeys = set(itertools.chain(*map(nkeys_dct.get, rad_keys)))
+
+    # Grab all single bonds
+    bkeys = dict_.keys_by_value(bond_orders(gra), lambda x: x == 1)
+    # Remove bonds with radicals
+    bkeys = {bk for bk in bkeys if not bk & rad_keys}
+    # Require bonds to be adjacent to radicals
+    bkeys = {bk for bk in bkeys if bk & rad_nkeys}
+
+    return bkeys
 
 
 def resonance_bond_stereo_keys(gra):
@@ -785,7 +866,11 @@ def possible_rigid_planar_bond_keys(gra) -> frozenset[BondKey]:
 
 
 def rigid_planar_bonds(
-    gra, min_ncount: int = 1, min_ring_size: int = 8, strict: bool = True
+    gra,
+    min_ncount: int = 1,
+    min_ring_size: int = 8,
+    strict: bool = True,
+    excl_keys: frozenset[int] = frozenset(),
 ) -> Dict[BondKey, Tuple[AtomKeys, AtomKeys]]:
     """Get a mapping of rigid, planary bond keys onto their neighbor keys
 
@@ -795,15 +880,16 @@ def rigid_planar_bonds(
     :type gra: automol graph data structure
     :param min_ncount: Minimum # neighbors on either side for inclusion, defaults to 1
         (If min_ncount = 0, this will still require at least one neighbor on one side)
-    :type min_ncount: int, optional
     :param min_ring_size: Minimum ring size for inclusion, defaults to 8
-    :type min_ring_size: int, optional
     :param strict: Only include bonds that are guaranteed to be rigid?
-    :type strict: bool, optional
+    :param excl_keys: Atom keys whose bonds should be excluded (for linear atoms)
     :returns: A mapping of rigid, planar bond keys onto their neighbor keys; The pair of
         neighbor key lists is sorted by the atom key that they are neighbors to
     :rtype: Dict[BondKey, Tuple[AtomKeys, AtomKeys]]
     """
+    gra = without_dummy_atoms(gra)  # remove dummy atoms
+    excl_keys = frozenset(excl_keys)
+
     gras = ts_reagents_graphs_without_stereo(gra) if is_ts_graph(gra) else [gra]
     nhyd_dct = atom_implicit_hydrogens(gra)
     pri_dct = local_stereo_priorities(gra, with_none=True)
@@ -817,6 +903,8 @@ def rigid_planar_bonds(
             if strict
             else possible_rigid_planar_bond_keys(gra_)
         )
+
+        rp_bkeys = {bk for bk in rp_bkeys if not bk & excl_keys}
 
         for bkey in rp_bkeys:
             key1, key2 = sorted(bkey)

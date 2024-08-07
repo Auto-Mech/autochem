@@ -3,12 +3,12 @@
 
 import math
 
-from automol.graph import base as graph_base
-from automol.zmat._conv import (
+from ..graph import base as graph_base
+from ._conv import (
     distance,
     graph,
 )
-from automol.zmat.base import (
+from .base import (
     coordinates,
     dihedral_angle_names,
     value_dictionary,
@@ -25,10 +25,8 @@ def all_rings_atoms(zma, tsg=None):
     :type rng_atoms: list
     """
 
-    if tsg is None:
-        rings_atoms = graph_base.rings_atom_keys(graph(zma))
-    else:
-        rings_atoms = []
+    rings_atoms = graph_base.rings_atom_keys(graph(zma, dummy=True))
+    if tsg is not None:
         for ring in graph_base.ts.forming_rings_bond_keys(tsg):
             # Determine number of atoms in the ring
             all_atoms = set()
@@ -50,8 +48,22 @@ def all_rings_atoms(zma, tsg=None):
                     elif atmb == ring_atoms[-1] and atma not in ring_atoms:
                         ring_atoms.append(atma)
 
+            # Check that ring is not already present in rings_atoms
+            do_not_add_ring = 0
+            for rng in rings_atoms:
+                if not set(rng).difference(set(ring_atoms)):
+                    do_not_add_ring = 1
+            if do_not_add_ring:
+                continue
+
             # Add to overall list
-            rings_atoms.append(ring_atoms)
+            rings_atoms = list(rings_atoms)
+            # Added sort as I expect that connectivity is defined in "usual" way
+            ring_atoms = sorted(ring_atoms)
+            # Connectivity should still be preserved,
+            # If it is not COME BACK HERE AND FIX
+            rings_atoms.append(tuple(ring_atoms))
+            rings_atoms = frozenset(rings_atoms)
 
     return rings_atoms
 
@@ -129,7 +141,7 @@ def ring_distances(zma, rng_atoms):
     return dist_value_dct
 
 
-def ring_distances_reasonable(zma, rng_atoms, dist_value_dct):
+def ring_distances_reasonable(zma, rng_atoms, dist_value_dct, thresh=0.3):
     """Are the distances between ring atoms reasonable?
 
     :param zma: Z-Matrix
@@ -141,7 +153,7 @@ def ring_distances_reasonable(zma, rng_atoms, dist_value_dct):
     condition = True
     for i, rng_atom in enumerate(rng_atoms):
         chk_dist = dist_value_dct[i] - distance(zma, rng_atoms[i - 1], rng_atom)
-        if abs(chk_dist) > 0.3:
+        if abs(chk_dist) > thresh:
             condition = False
 
     return condition

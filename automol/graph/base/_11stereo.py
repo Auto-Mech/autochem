@@ -7,11 +7,19 @@ import itertools
 import numbers
 from typing import Dict, Optional, Tuple
 
+import more_itertools as mit
 import numpy
 
-from automol.graph.base._00core import (
-    atom_keys,
+from phydat import phycon
+
+from ... import util
+from ...geom import base as geom_base
+from ...util import dict_
+from ._00core import (
+    align_with_geometry,
+    atom_neighbor_atom_keys,
     atom_stereo_keys,
+    atomic_numbers,
     bond_stereo_keys,
     frozen,
     has_atom_stereo,
@@ -21,26 +29,34 @@ from automol.graph.base._00core import (
     set_stereo_parities,
     stereo_keys,
     stereo_parities,
+    ts_reacting_atom_keys,
     ts_reagents_graph_without_stereo,
     ts_reverse,
     without_dummy_atoms,
     without_stereo,
 )
-from automol.graph.base._05stereo import (
+from ._02algo import (
+    branch_atom_keys,
+    branch_dict,
+    ring_systems_atom_keys,
+)
+from ._03kekule import linear_atom_keys
+from ._05stereo import (
     geometry_atom_parity,
     geometry_bond_parity,
     parity_evaluator_measure_from_geometry_,
     parity_evaluator_reactants_from_local_ts_graph_,
+    stereoatom_bridgehead_pairs,
     stereocenter_candidates,
+    stereocenter_candidates_grouped,
     unassigned_stereocenter_keys_from_candidates,
 )
-from automol.graph.base._07geom import (
+from ._07geom import (
     geometry_correct_linear_vinyls,
     geometry_correct_nonplanar_pi_bonds,
-    geometry_pseudorotate_atom,
     geometry_rotate_bond,
 )
-from automol.graph.base._08canon import (
+from ._08canon import (
     calculate_stereo,
     canonical_priorities,
     from_local_stereo,
@@ -53,19 +69,24 @@ from automol.graph.base._08canon import (
 
 
 # # core functions
-def expand_stereo(gra, symeq=False, enant=True):
+def expand_stereo(gra, symeq: bool = False, enant: bool = True, strained: bool = False):
     """Obtain all possible stereoisomers of a graph, ignoring its assignments
 
     :param gra: molecular graph
     :type gra: automol graph data structure
     :param symeq: Include symmetrically equivalent stereoisomers?
-    :type symeq: bool
     :param enant: Include all enantiomers, or only canonical ones?
-    :type enant: bool
+    :param strained: Include stereoisomers which are too strained to exist?
     :returns: a series of molecular graphs for the stereoisomers
     """
+    cand_dct = stereocenter_candidates(gra)
+
     # 1. Run the core stereo expansion algorithm
-    gps = _expand_stereo_core(gra)
+    gps = _expand_stereo_core(gra, cand_dct)
+
+    # 2. If requested, filter out strained stereoisomers
+    if not strained:
+        gps = _remove_strained_stereoisomers_from_expansion(gps, cand_dct)
 
     # 3. If requested, filter out non-canonical enantiomers
     if not enant:
@@ -80,18 +101,14 @@ def expand_stereo(gra, symeq=False, enant=True):
     return sgras
 
 
-def _expand_stereo_core(gra):
+def _expand_stereo_core(gra, cand_dct):
     """Obtain all possible stereoisomers of a graph, ignoring its assignments
 
     :param gra: molecular graph
     :type gra: automol graph data structure
-    :param dir: If this is a TS graph, get priorities for the canonical direction?
-    :type dir: bool, optional
     :returns: a series of molecular graphs for the stereoisomers
     """
     ts_ = is_ts_graph(gra)
-
-    cand_dct = stereocenter_candidates(gra)
 
     bools = (False, True)
 
@@ -134,6 +151,40 @@ def _select_ts_canonical_direction_priorities(gprs):
         ts_rgra = ts_reverse(ts_gra)
         is_can_dir = is_canonical_direction(ts_gra, pri_dct, ts_rgra, rpri_dct)
         gps.append((ts_gra, pri_dct if is_can_dir else rpri_dct))
+    return gps
+
+
+def _remove_strained_stereoisomers_from_expansion(gps, cand_dct):
+    """Remove strained stereoisomers from an expansion"""
+    gps0 = list(gps)
+    gra = without_stereo(gps0[0][0])
+    bhp_dct = stereoatom_bridgehead_pairs(gra, cand_dct)
+
+    gps = gps0.copy()
+    for gra, pri_dct in gps0:
+        par_dct = stereo_parities(gra)
+        can_nkeys_dct, _ = stereocenter_candidates_grouped(cand_dct, pri_dct=pri_dct)
+        for (key1, key2), (conn_nkeys1, conn_nkeys2) in bhp_dct.items():
+            free_nkeys1 = tuple(k for k in cand_dct[key1] if k not in conn_nkeys1)
+            free_nkeys2 = tuple(k for k in cand_dct[key2] if k not in conn_nkeys2)
+
+            srt_nkeys1 = free_nkeys1 + conn_nkeys1
+            srt_nkeys2 = free_nkeys2 + conn_nkeys2
+            can_nkeys1 = can_nkeys_dct[key1]
+            can_nkeys2 = can_nkeys_dct[key2]
+
+            par1, par2 = map(par_dct.get, (key1, key2))
+
+            # If the parities relative to the above ordering are not opposite, then the
+            # configuration of the bridgehead pair is strained
+            # Exception: Adjacent bridgehead pairs will have groups on the same side
+            if par1 is not None and par2 is not None:
+                sgn1 = util.is_odd_permutation(srt_nkeys1, can_nkeys1)
+                sgn2 = util.is_odd_permutation(srt_nkeys2, can_nkeys2)
+                is_strained = not par1 ^ par2 ^ sgn1 ^ sgn2
+                if is_strained:
+                    gps.remove((gra, pri_dct))
+
     return gps
 
 
@@ -322,7 +373,9 @@ def has_fleeting_atom_or_bond_stereo(tsg, strict: bool = True) -> Tuple[bool, bo
 
 
 # # stereo correction
-def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
+def stereo_corrected_geometry(
+    gra, geo, geo_idx_dct=None, local_stereo: bool = False, lin_ts_bonds: bool = False
+):
     """Obtain a geometry corrected for stereo parities based on a graph
 
     :param gra: molecular graph with stereo parities
@@ -332,25 +385,32 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
     :param geo_idx_dct: If they don't already match, specify which graph
         keys correspond to which geometry indices.
     :type geo_idx_dct: dict[int: int]
-    :param local_stereo: is this graph using local instead of canonical
-        stereo?
-    :type local_stereo: bool
+    :param local_stereo: is this graph using local instead of canonical stereo?
+    :param lin_ts_bonds: For TS graphs, apply stereo correction bonds that are linear
+        for the reactants or products?
     :returns: a molecular geometry with corrected stereo
     """
-    sgr = gra if local_stereo else to_local_stereo(gra)
-    atm_keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(atm_keys)} if geo_idx_dct is None else geo_idx_dct
-    )
-    gra = relabel(gra, geo_idx_dct)
+    if geo is None:
+        return None
 
-    par_dct = stereo_parities(sgr)
-    bnd_keys = bond_stereo_keys(sgr)
-    atm_keys = atom_stereo_keys(sgr)
+    # Align the graph and the geometry keys/indices
+    gra, geo, *_, idx_dct = align_with_geometry(gra, geo, (), geo_idx_dct)
+
+    # Note: The alignment preserves graph atom ordering, so the local stereo does not
+    # change, i.e. this could be done before or after
+    gra = gra if local_stereo else to_local_stereo(gra)
+
+    # Determine atoms expected to be linear for the TS, if requested
+    excl_keys = set() if lin_ts_bonds else linear_atom_keys(gra)
+
+    par_dct = stereo_parities(gra)
+    atm_keys = atom_stereo_keys(gra)
+    bnd_keys = bond_stereo_keys(gra)
+    bnd_keys = {bk for bk in bnd_keys if not bk & excl_keys}
 
     # 1. Correct linear vinyl groups
-    geo = geometry_correct_linear_vinyls(gra, geo)
-    geo = geometry_correct_nonplanar_pi_bonds(gra, geo)
+    geo = geometry_correct_linear_vinyls(gra, geo, excl_keys=excl_keys)
+    geo = geometry_correct_nonplanar_pi_bonds(gra, geo, excl_keys=excl_keys)
 
     # 3. Loop over stereo-sites making corrections where needed
     for bnd_key in bnd_keys:
@@ -368,7 +428,8 @@ def stereo_corrected_geometry(gra, geo, geo_idx_dct=None, local_stereo=False):
                 f"\ngeo:\n{geo}\ngra:\n{gra}"
             )
 
-    return geo
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)
 
 
 def set_stereo_from_geometry(gra, geo, local_stereo=False, geo_idx_dct=None):
@@ -387,25 +448,20 @@ def set_stereo_from_geometry(gra, geo, local_stereo=False, geo_idx_dct=None):
         parities already present will be wiped out
     :rtype: automol graph data structure
     """
-    keys = sorted(atom_keys(gra))
-    geo_idx_dct = (
-        {k: i for i, k in enumerate(keys)} if geo_idx_dct is None else geo_idx_dct
-    )
+    # Align the graph and the geometry keys/indices
+    gra, geo, _, key_dct, _ = align_with_geometry(gra, geo, (), geo_idx_dct)
 
-    par_eval_ = parity_evaluator_measure_from_geometry_(
-        geo, local_stereo=local_stereo, geo_idx_dct=geo_idx_dct
-    )
+    par_eval_ = parity_evaluator_measure_from_geometry_(geo, local_stereo=local_stereo)
     can_par_eval_ = None
 
     if local_stereo:
         # If requesting local stereo, we need an auxiliary canonical parity evaluator
-        can_par_eval_ = parity_evaluator_measure_from_geometry_(
-            geo, geo_idx_dct=geo_idx_dct
-        )
+        can_par_eval_ = parity_evaluator_measure_from_geometry_(geo)
 
     gra, *_ = calculate_stereo(gra, par_eval_=par_eval_, can_par_eval_=can_par_eval_)
 
-    return gra
+    # Restore the original atom keys of the graph
+    return relabel(gra, key_dct)
 
 
 def reflect(gra):
@@ -448,3 +504,91 @@ def unassigned_stereocenter_keys(
     cand_dct = stereocenter_candidates(gra, atom=atom, bond=bond)
     ste_keys = unassigned_stereocenter_keys_from_candidates(gra, cand_dct, pri_dct)
     return ste_keys
+
+
+def geometry_pseudorotate_atom(
+    gra, geo, key, ang=numpy.pi, degree=False, geo_idx_dct=None
+):
+    r"""Pseudorotate an atom in a molecular geometry by a certain amount
+
+    'Pseudorotate' here means to rotate all but two of the atom's neighbors, which can
+    be used to invert/correct stereochemistry at an atom:
+
+        1   2                                     1   2
+         \ /                                       \ /
+          C--3   = 1,4 pseudorotation by pi =>   3--C
+          |                                         |
+          4                                         4
+
+    The two fixed atoms will be chosen to prevent the structural 'damage' from the
+    rotation as much as possible. For example, atoms in rings will be favored to be
+    fixed.
+
+    If such a choice is not possible -- for example, if three or more neighbors are
+    locked into connected rings -- then no geometry will be returned.
+
+    :param gra: molecular graph
+    :type gra: automol graph data structure
+    :param geo: molecular geometry
+    :type geo: automol geometry data structure
+    :param key: The graph key of the atom to be rotated
+    :type key: frozenset[int]
+    :param ang: The angle of rotation (in radians, unless `degree = True`)
+    :type ang: float
+    :param degree: Is the angle of rotation in degrees?, default False
+    :type degree: bool
+    :param geo_idx_dct: If they don't already match, specify which graph
+        keys correspond to which geometry indices.
+    :type geo_idx_dct: dict[int: int]
+    """
+    ang = ang * phycon.DEG2RAD if degree else ang
+    # Align the graph and the geometry keys/indices
+    gra, geo, (key,), _, idx_dct = align_with_geometry(gra, geo, (key,), geo_idx_dct)
+
+    gra_reac = ts_reactants_graph(gra)
+    gra_prod = ts_products_graph(gra)
+
+    rxn_keys = ts_reacting_atom_keys(gra)
+    rsy_keys_lst = []
+    for rgra in (gra_reac, gra_prod):
+        rsy_keys_lst.extend(ring_systems_atom_keys(rgra, lump_spiro=False))
+    rsy_keys_lst = list(set(rsy_keys_lst))
+    nkeys = atom_neighbor_atom_keys(gra, key)
+    # Gather neighbors connected in a ring system
+    ring_nkey_sets = [nkeys & ks for ks in rsy_keys_lst if nkeys & ks]
+    ring_nkey_sets = sorted(ring_nkey_sets, key=len, reverse=True)
+    # Gather the remaining neighbors
+    rem_nkeys = [k for k in nkeys if not any(k in ks for ks in ring_nkey_sets)]
+    # Sort the remaining neighbors by branch size and atomic number
+    anum_dct = atomic_numbers(gra)
+    size_dct = dict_.transform_values(branch_dict(gra, key), len)
+    sort_dct = {k: (k in rxn_keys, -size_dct[k], -anum_dct[k]) for k in rem_nkeys}
+    rem_nkeys = sorted(rem_nkeys, key=sort_dct.get)
+
+    # Now, put the two lists together
+    nkey_sets = ring_nkey_sets + [{k} for k in rem_nkeys]
+
+    # Now, find a pair of atoms to keep fixed
+    found_pair = False
+    for nkeys1, nkeys2 in mit.pairwise(nkey_sets + [set()]):
+        print(nkeys1, nkeys2)
+        if len(nkeys1) == 2 or len(nkeys1 | nkeys2) == 2:
+            found_pair = True
+            nkey1, nkey2, *_ = list(nkeys1) + list(nkeys2)
+            break
+
+    if not found_pair:
+        return None
+
+    # Determine the rotational axis as the unit bisector between the fixed pair
+    xyz, nxyz1, nxyz2 = geom_base.coordinates(geo, idxs=(key, nkey1, nkey2))
+    rot_axis = util.vector.unit_bisector(nxyz1, nxyz2, orig_xyz=xyz)
+
+    # Identify the remaining keys to be rotated
+    rot_nkeys = nkeys - {nkey1, nkey2}
+    rot_keys = set(itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys)))
+
+    geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
+
+    # Restore the original atom ordering of the geometry
+    return geom_base.reorder(geo, idx_dct)

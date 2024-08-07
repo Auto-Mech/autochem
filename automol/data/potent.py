@@ -76,7 +76,7 @@ def from_dict(
         val_arr = numpy.empty(shape_, dtype=dtype)
         for idxs, _ in numpy.ndenumerate(val_arr):
             coords = tuple(c[i] for i, c in zip(idxs, coo_vals_lst))
-            val_arr[idxs] = val_dct[coords]
+            val_arr[idxs] = val_dct.get(coords, numpy.nan)
         return val_arr
 
     ene_arr = array_from_dict_(ene_dct, float)
@@ -147,7 +147,7 @@ def dict_(
     key: str = "energy",
     index: bool = False,
     zero_start_coord: bool = False,
-    drop_null: bool = False,
+    drop_null: bool = True,
 ) -> Dict[tuple, float]:
     """Convert a potential to a dictionary
 
@@ -422,8 +422,7 @@ def clean(
     """
     ene_arr = values(pot, copy=not in_place)
 
-    if log:
-        orig_ene_arr = ene_arr.copy()
+    orig_ene_arr = ene_arr.copy()
 
     # 1. Zero the start energy, if below threshold
     start_ene = ene_arr.flat[0]
@@ -513,4 +512,4 @@ def has_defined_values(pot: Potential) -> bool:
     :return: `True` if it does, `False` if it doesn't
     :rtype: bool
     """
-    return bool(pot.energy.notnull().any())
+    return pot is not None and bool(pot.energy.notnull().any())

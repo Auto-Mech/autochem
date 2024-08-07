@@ -8,11 +8,11 @@ from typing import Dict, List, Optional, Union
 
 from phydat import phycon
 
-from automol import graph, zmat
-from automol.data import potent, tors
-from automol.data.potent import Potential
-from automol.data.tors import Axis, DihCoord, Grid, Groups, Torsion
-from automol.util import ZmatConv
+from .. import graph, zmat
+from ..util import ZmatConv
+from . import potent, tors
+from .potent import Potential
+from .tors import Axis, DihCoord, Grid, Groups, Torsion
 
 
 @dataclasses.dataclass
@@ -313,7 +313,7 @@ def rotors_from_data(
         tor_names = list(map(tors.name, tor_lst))
         tor_names_lst = [tor_names] if multi else [[n] for n in tor_names]
 
-    tor_dct = {tors.name(t): tors.update_zmatrix_coordinate(t, zma) for t in tor_lst}
+    tor_dct = {tors.name(t): tors.update_against_zmatrix(t, zma) for t in tor_lst}
 
     rotors = []
     for names in tor_names_lst:
@@ -460,6 +460,15 @@ def rotors_potentials(rotors: List[Rotor]) -> List[Optional[Potential]]:
     :rtype: List[Optional[Potential]]
     """
     return tuple(map(potential, rotors))
+
+
+def rotors_have_potentials(rotors: List[Rotor]) -> bool:
+    """Do these rotors have potentials?
+
+    :param rotors: A list of rotor objects
+    :return: `True` if they do, `False` if they don't
+    """
+    return all(map(potent.has_defined_values, rotors_potentials(rotors)))
 
 
 def rotors_dimensions(rotors: List[Rotor]) -> List[int]:

@@ -1,23 +1,29 @@
 """
     Core functions defining the geometry data type
 """
+
+import functools
 import itertools
-from typing import List
+from typing import List, Optional
 
 import more_itertools as mit
 import numpy
 import pyparsing as pp
+from numpy.typing import ArrayLike
 from pyparsing import pyparsing_common as ppc
+
 from phydat import phycon, ptab
 
-from automol import form, util
+from ... import form, util
 
 AXIS_DCT = {"x": 0, "y": 1, "z": 2}
 
 CHAR = pp.Char(pp.alphas)
 SYMBOL = pp.Combine(CHAR + pp.Opt(CHAR))
-XYZ_LINE = pp.Group(SYMBOL + pp.Group(ppc.fnumber * 3))
-XYZ_LINES = pp.delimitedList(XYZ_LINE, delim=pp.lineEnd())
+XYZ_LINE = pp.Group(
+    SYMBOL + pp.Group(ppc.fnumber * 3) + pp.Suppress(... + pp.LineEnd())
+)
+XYZ_LINES = pp.delimitedList(XYZ_LINE, delim=pp.LineStart())
 
 
 # # constructors
@@ -144,7 +150,7 @@ def set_coordinates(geo, xyz_dct, angstrom=False):
 
 
 # # I/O
-def string(geo, angstrom=True):
+def string(geo, angstrom: bool = True, mode: Optional[ArrayLike] = None):
     """Write a molecular geometry to a string:
        symb1  xyz1 xyz2 xyz3
        symbn  xyzn xyzn xyzn
@@ -152,7 +158,7 @@ def string(geo, angstrom=True):
     :param geo: molecular geometry
     :type geo: automol molecular geometry data structure
     :param angstrom: parameter to control coordinate conversion to Angstrom
-    :type angstrom: bool
+    :param mode: A vibrational mode or molecular motion to visualize
     :rtype: str
     """
 
@@ -160,17 +166,23 @@ def string(geo, angstrom=True):
     xyzs = coordinates(geo, angstrom=angstrom)
 
     natms = len(symbs)
-    assert len(xyzs) == natms
 
-    geo_str = "\n".join(
-        f"{symb:2s} {xyz[0]:10.6f} {xyz[1]:10.6f} {xyz[2]:10.6f}"
-        for symb, xyz in zip(symbs, xyzs)
-    )
+    symb_strs = [f"{s:2s}" for s in symbs]
+    xyz_strs = [f"{x[0]:10.6f} {x[1]:10.6f} {x[2]:10.6f}" for x in xyzs]
+    lines = [" ".join([s, x]) for s, x in zip(symb_strs, xyz_strs)]
+
+    # If requested, include the mode in the string
+    if mode is not None:
+        assert len(lines) == natms, f"Invalid mode for geometry:\n{mode}\n{geo}"
+        mode_strs = [f"{m[0]:10.6f} {m[1]:10.6f} {m[2]:10.6f}" for m in mode]
+        lines = ["  ".join([s, x]) for s, x in zip(lines, mode_strs)]
+
+    geo_str = "\n".join(lines)
 
     return geo_str
 
 
-def xyz_string(geo, comment=""):
+def xyz_string(geo, comment="", mode: Optional[ArrayLike] = None) -> str:
     """Write a molecular geometry to a string:
        natom
        comment
@@ -178,12 +190,11 @@ def xyz_string(geo, comment=""):
        symbn  xyzn xyzn xyzn
 
     :param geo: molecular geometry
-    :type geo: automol molecular geometry data structure
     :param comment: string to place in the comment line of string
-    :type comment: str
+    :param mode: A vibrational mode or molecular motion to visualize
     :rtype: str
     """
-    geo_str = string(geo, angstrom=True)
+    geo_str = string(geo, angstrom=True, mode=mode)
     xyz_str = f" {count(geo):d}\n{comment:s}\n{geo_str:s}"
     return xyz_str
 
@@ -432,6 +443,15 @@ def atom_count(geo, symb, match=True):
     :rtype: tuple(int)
     """
     return len(atom_indices(geo, symb, match=match))
+
+
+def electron_count(geo) -> int:
+    """Count the number of electrons in the geometry
+
+    :param geo: A molecular geometry
+    :return: The number of electrons
+    """
+    return form.electron_count(formula(geo))
 
 
 def atom_indices(geo, symb, match=True):
@@ -706,6 +726,28 @@ def dihedral_angle(geo, idx1, idx2, idx3, idx4, degree=False):
     return dih
 
 
+def measure(geo, coo, angstrom=False, degree=False):
+    """Measure a coordinate value for distance, central angle, or dihedral angle
+
+    :param geo: A molecular geometry
+    :param coo: The indices defining the coordinate
+        2 for distance, 3 for central angle, 4 for dihedral angle
+    :param angstrom: Give distances in angstrom?, defaults to False
+    :param degree: Give angles in degrees?, defaults to False
+    :return: The measured value
+    """
+    assert 2 <= len(coo) <= 4, f"Invalid coordinate: {coo}"
+
+    if len(coo) == 2:
+        return distance(geo, *coo, angstrom=angstrom)
+    if len(coo) == 3:
+        return central_angle(geo, *coo, degree=degree)
+    if len(coo) == 4:
+        return dihedral_angle(geo, *coo, degree=degree)
+
+    return None
+
+
 def zmatrix_row_values(
     geo, idx, idx1=None, idx2=None, idx3=None, angstrom=True, degree=True
 ):
@@ -748,17 +790,17 @@ def join(geo1, geo2, dist_cutoff=3.0 * phycon.ANG2BOHR, theta=0.0, phi=0.0):
     """Join two molecular geometries together where the intermolecular
     separation and orientation can be specified.
 
-    :param geo1: molecular geometry 1
+    :param geo1: Molecular geometry 1
     :type geo1: automol molecular geometry data structure
-    :param geo2: molecular geometry 2
+    :param geo2: Molecular geometry 2
     :type geo2: automol molecular geometry data structure
-    :param dist_cutoff: threshhold for center-of-mass distance
+    :param dist_cutoff: The closest allowable intermolecular separation
     :type: dist_cutoff: float
     :param theta: theta angle for intermolecular orientation
     :type theta: float
     :param phi: phi angle for intermolecular orientation
     :type phi: float
-    :rtype: automol molecular geometry data structure
+    :return: The combined geometry
     """
 
     if not geo1:
@@ -798,6 +840,15 @@ def join(geo1, geo2, dist_cutoff=3.0 * phycon.ANG2BOHR, theta=0.0, phi=0.0):
         xyzs = coordinates(geo1) + coordinates(geo2)
 
     return from_data(symbs, xyzs)
+
+
+def join_sequence(geos):
+    """Join a sequence of molecular geometries
+
+    :param geos: A sequence of molecular geometries
+    :return: The combined geometry
+    """
+    return functools.reduce(join, geos)
 
 
 def minimum_distance(geo1, geo2):
@@ -1049,7 +1100,7 @@ def perturb(geo, atm_idx, pert_xyz):
     return pert_geo
 
 
-def rotate(geo, axis, angle, orig_xyz=None, idxs=None, degree=False):
+def rotate(geo, axis, angle, orig_xyz=(0., 0., 0.), idxs=None, degree=False):
     """Rotate the coordinates of a molecular geometry about
     an axis by a specified angle. A set of `idxs` can be supplied
     to transform a subset of coordinates.
