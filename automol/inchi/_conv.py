@@ -1,5 +1,4 @@
-""" Level 4 functions depending on other basic types (graph, geom)
-"""
+"""Level 4 functions depending on other basic types (graph, geom)."""
 
 from .. import amchi as amchi_
 from .. import geom
@@ -9,13 +8,11 @@ from .base import equivalent, has_stereo, standard_form
 
 
 # # conversions
-def graph(ich, stereo=True):
+def graph(ich: str, stereo: bool = True):
     """Generate a molecular graph from an InChI string.
 
     :param ich: InChI string
-    :type ich: str
     :param stereo: parameter to include stereochemistry information
-    :type stereo: bool
     :rtype: automol molecular graph
     """
     gra = amchi_.graph(ich, stereo=stereo)
@@ -51,7 +48,7 @@ def zmatrix(ich, check=True):
 
 
 def amchi(ich, stereo=True):
-    """Convert an InChI to an AMChI string
+    """Convert an InChI to an AMChI string.
 
     Only for good InChIs, where this can be done validly.
 
@@ -114,7 +111,7 @@ def rdkit_reaction(richs, pichs, stereo=True, res_stereo=False):
 
 
 def display(ich, stereo=True):
-    """Display graph to IPython using the RDKit visualizer
+    """Display graph to IPython using the RDKit visualizer.
 
     :param ich: InChI string
     :type ich: str
@@ -127,7 +124,7 @@ def display(ich, stereo=True):
 
 
 def display_reaction(richs, pichs, stereo=True):
-    """Display reaction to IPython using the RDKit visualizer
+    """Display reaction to IPython using the RDKit visualizer.
 
     :param richs: InChI strings for the reactants
     :param pichs: InChI strings for the products

@@ -2,6 +2,7 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 FILES=(
     "automol/inchi_key.py"
+    "automol/inchi/_conv.py"
     "automol/error.py"
     "automol/util/_util.py"
     "automol/util/__init__.py"
@@ -15,6 +16,7 @@ FILES=(
     "automol/util/dict_/multi.py"
     "automol/form/_form.py"
     "automol/form/reac.py"
+    
 )
 
 (

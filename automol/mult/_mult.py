@@ -2,7 +2,7 @@
 """
 
 
-def spin(mult):
+def spin(mult:int)->int:
     """ Calculate the spin (2Ms) from using the spin multiplicity
         which is equivalent to the number of unpaired electrons.
 

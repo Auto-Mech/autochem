@@ -10,15 +10,15 @@ vmat are not considered basic types because they cannot be converted
 
 Level 1: No dependencies; no interdependencies
 
- - const
+ -  const
  - util
- - error
- - mult
+ -   error
+ -  mult
  - form
  - inchi_key
- - vmat
- - prop
- - embed
+ -  vmat
+ -  prop
+ -  embed
 
 Level 2: L1 dependencies; hierarchical interdependency (descending)
 
