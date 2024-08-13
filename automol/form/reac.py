@@ -1,10 +1,12 @@
 """reaction formulae."""
 import itertools
 
-from ._form import add_element, join_sequence
+from _collections_abc import Sequence
+
+from ._form import Formul, add_element, join_sequence
 
 
-def is_valid_reaction(rct_fmls: list[str], prd_fmls: list[str]) -> bool:
+def is_valid_reaction(rct_fmls: Sequence[Formul], prd_fmls: Sequence[Formul]) -> bool:
     """Use the formula to see if a reaction preserves stoichiometry.
 
     :param rct_fmls: stoichiometries of the reactants
@@ -14,14 +16,16 @@ def is_valid_reaction(rct_fmls: list[str], prd_fmls: list[str]) -> bool:
     return join_sequence(rct_fmls) == join_sequence(prd_fmls)
 
 
-def argsort_hydrogen_abstraction(rct_fmls: list[str], prd_fmls: list[str]) -> bool:
-    """Generates the indices which allows the reactants and products of
+def argsort_hydrogen_abstraction(
+    rct_fmls: Sequence[Formul], prd_fmls: Sequence[Formul]
+) -> tuple[tuple[int, int], tuple[int, int]] | None:
+    """Generate the indices which allows the reactants and products of
     a hydrogen abstraction reaction can be sorted as RH + Q => R + QH.
 
     :param rct_fmls: stoichiometries of the reactants
     :param prd_fmls: stoichiometries of the products
     :return: Indices to sort reaction to R + QH
-    """  # noqa: D401
+    """
     rxn_idxs = None
     if len(rct_fmls) == len(prd_fmls) == 2:
         for idxs1, idxs2 in itertools.product(
