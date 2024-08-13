@@ -151,6 +151,7 @@
 <li class="toctree-l1"><a class="reference internal" href="inchi_key.html">automol.inchi_key</a></li>
 <li class="toctree-l1"><a class="reference internal" href="util.html">automol.util</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">automol.form</a></li>
+
 </ul>
 
     </div>
@@ -299,6 +300,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">automol.form</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.add_element"><code class="docutils literal notranslate"><span class="pre">add_element()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.argsort_symbols"><code class="docutils literal notranslate"><span class="pre">argsort_symbols()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.atom_count"><code class="docutils literal notranslate"><span class="pre">atom_count()</span></code></a></li>
@@ -316,6 +318,14 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.string2"><code class="docutils literal notranslate"><span class="pre">string2()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.without"><code class="docutils literal notranslate"><span class="pre">without()</span></code></a></li>
 </ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#automol-reac">automol.reac</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.reac.argsort_hydrogen_abstraction"><code class="docutils literal notranslate"><span class="pre">argsort_hydrogen_abstraction()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.reac.is_valid_reaction"><code class="docutils literal notranslate"><span class="pre">is_valid_reaction()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
             </nav>
         </div>
     </div>
@@ -637,6 +647,52 @@ there is only one atom.</p>
 </dd></dl>
 
 </section>
+<section id="automol-reac">
+<h1>automol.reac<a class="headerlink" href="#automol-reac" title="Link to this heading">#</a></h1>
+<p>some words</p>
+<p id="module-automol.form.reac">reaction formulae.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.form.reac.argsort_hydrogen_abstraction">
+<span class="sig-prename descclassname"><span class="pre">automol.form.reac.</span></span><span class="sig-name descname"><span class="pre">argsort_hydrogen_abstraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rct_fmls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prd_fmls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.form.reac.argsort_hydrogen_abstraction" title="Link to this definition">#</a></dt>
+<dd><p>Generates the indices which allows the reactants and products of
+a hydrogen abstraction reaction can be sorted as RH + Q =&gt; R + QH.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rct_fmls</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – stoichiometries of the reactants</p></li>
+<li><p><strong>prd_fmls</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – stoichiometries of the products</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Indices to sort reaction to R + QH</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.form.reac.is_valid_reaction">
+<span class="sig-prename descclassname"><span class="pre">automol.form.reac.</span></span><span class="sig-name descname"><span class="pre">is_valid_reaction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rct_fmls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prd_fmls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.form.reac.is_valid_reaction" title="Link to this definition">#</a></dt>
+<dd><p>Use the formula to see if a reaction preserves stoichiometry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rct_fmls</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – stoichiometries of the reactants</p></li>
+<li><p><strong>prd_fmls</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – stoichiometries of the products</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/functions.html#bool" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the reaction is valid, False if not</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 
 
                 </article>
@@ -674,6 +730,7 @@ there is only one atom.</p>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">automol.form</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.add_element"><code class="docutils literal notranslate"><span class="pre">add_element()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.argsort_symbols"><code class="docutils literal notranslate"><span class="pre">argsort_symbols()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.atom_count"><code class="docutils literal notranslate"><span class="pre">atom_count()</span></code></a></li>
@@ -691,6 +748,14 @@ there is only one atom.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.string2"><code class="docutils literal notranslate"><span class="pre">string2()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.without"><code class="docutils literal notranslate"><span class="pre">without()</span></code></a></li>
 </ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#automol-reac">automol.reac</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.reac.argsort_hydrogen_abstraction"><code class="docutils literal notranslate"><span class="pre">argsort_hydrogen_abstraction()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.reac.is_valid_reaction"><code class="docutils literal notranslate"><span class="pre">is_valid_reaction()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
   </nav></div>
 
 </div></div>
