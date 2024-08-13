@@ -1,13 +1,11 @@
-""" Calculate spins (2S) from spin multiplicities.
-"""
+"""Calculate spins (2S) from spin multiplicities."""
 
 
-def spin(mult:int)->int:
-    """ Calculate the spin (2Ms) from using the spin multiplicity
-        which is equivalent to the number of unpaired electrons.
+def spin(mult: int) -> int:
+    """Calculate the spin (2Ms) from using the spin multiplicity
+    which is equivalent to the number of unpaired electrons.
 
-        :param mult: multiplicity
-        :type mult: int
-        :rtype: int
+    :param mult: Multiplicity
+    :return: Number of unpaired electrons
     """
     return mult - 1
