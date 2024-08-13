@@ -3,7 +3,7 @@ some words
 ```{eval-rst}
 .. automodule:: automol.form
 ```
-## automol.reac
+## automol.form.reac
 some words
 ```{eval-rst}
 .. automodule:: automol.form.reac

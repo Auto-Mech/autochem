@@ -17,6 +17,7 @@ FILES=(
     "automol/form/reac.py"
     "automol/mult/_mult.py"
     "automol/mult/ts.py"
+    "automol/const.py"
     
 )
 

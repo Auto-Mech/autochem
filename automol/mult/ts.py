@@ -3,11 +3,12 @@
 import itertools
 
 import numpy
+from _collections_abc import Sequence
 
 from ._mult import spin as _spin
 
 
-def high(rct_mults: tuple[float], prd_mults: tuple[float]) -> int:
+def high(rct_mults: Sequence[float], prd_mults: Sequence[float]) -> int:
     """Calculate high-spin multiplicity for a transition state
     from the multiplicities of the reactants and products.
 
@@ -18,7 +19,7 @@ def high(rct_mults: tuple[float], prd_mults: tuple[float]) -> int:
     return min(_high(rct_mults), _high(prd_mults))
 
 
-def low(rct_mults: tuple[float], prd_mults: tuple[float]) -> int:
+def low(rct_mults: Sequence[float], prd_mults: Sequence[float]) -> int:
     """Calculate low-spin multiplicity for a transition state
     from the multiplicities of the reactants and products.
 
@@ -29,7 +30,7 @@ def low(rct_mults: tuple[float], prd_mults: tuple[float]) -> int:
     return max(_low(rct_mults), _low(prd_mults))
 
 
-def _high(mults: tuple[float]) -> int:
+def _high(mults: Sequence[float]) -> int:
     """Obtain the highest spin multiplicity state that can be obtained
     from a set of multiplciities.
 
@@ -41,7 +42,7 @@ def _high(mults: tuple[float]) -> int:
     return int(hi_spn + 1)
 
 
-def _low(mults: tuple[float]) -> int:
+def _low(mults: Sequence[float]) -> int:
     """Obtain the lowest spin multiplicity state that can be obtained
     from a set of multiplciities.
 
