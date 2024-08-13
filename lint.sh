@@ -14,6 +14,10 @@ FILES=(
     "automol/util/dict_/_dict_.py"
     "automol/util/dict_/multi.py"
     "automol/form/_form.py"
+    "automol/form/reac.py"
+    "automol/mult/_mult.py"
+    "automol/mult/ts.py"
+    
 )
 
 (
