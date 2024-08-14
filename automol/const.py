@@ -24,17 +24,16 @@ class ReactionClass(str, enum.Enum):
     SUBSTITUTION = "substitution"
 
     def __str__(self):
-        """Construct a string from Reaction Class.
+        """Convert Reaction Class object into a string.
 
         :return: String from self
         """
         return self.value
 
     def __repr__(self):
-        """_summary_.
+        """Get a string representation of the Reaction Class object.
 
         :return: _description_
-        :rtype: _type_
         """
         return repr(self.value)
 

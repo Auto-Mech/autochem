@@ -18,10 +18,10 @@ SYMBOL = pp.Word(pp.alphas.upper(), pp.alphas.lower())
 STOICH = pp.Opt(pp.Literal("*") | ppc.integer).setParseAction(lambda x: x if x else [1])
 ATOM_COUNT = pp.Group(SYMBOL + STOICH)
 FORMULA = pp.OneOrMore(ATOM_COUNT)
-Formul = dict[str, int]
+Formula = dict[str, int]
 
 
-def electron_count(fml: Formul) -> int:
+def electron_count(fml: Formula) -> int:
     """Count the number of electrons for the atoms in a molecular formula.
 
     :param fml: Stochiometric chemical formula
@@ -37,7 +37,7 @@ def electron_count(fml: Formul) -> int:
     return elec_count
 
 
-def atom_count(fml: Formul) -> int:
+def atom_count(fml: Formula) -> int:
     """Count the number of atoms in this molecular formula.
 
     :param fml: Stochiometric chemical formula
@@ -48,7 +48,7 @@ def atom_count(fml: Formul) -> int:
     return sum(fml.values())
 
 
-def heavy_atom_count(fml: Formul) -> int:
+def heavy_atom_count(fml: Formula) -> int:
     """Count the number of heavy atoms in this molecular formula.
 
     :param fml: Stochiometric chemical formula
@@ -59,7 +59,7 @@ def heavy_atom_count(fml: Formul) -> int:
     return sum(fml.values())
 
 
-def element_count(fml: Formul, symb: str) -> int:
+def element_count(fml: Formula, symb: str) -> int:
     """Count the number of a given element in this molecular formula.
 
     :param fml: Stochiometric chemical formula
@@ -99,7 +99,7 @@ def match(fml1: dict[str, int], fml2: dict[str, int]) -> bool:
     return fml1 == fml2
 
 
-def add_element(fml: Formul, symb: str, num: int = 1) -> Formul:
+def add_element(fml: Formula, symb: str, num: int = 1) -> Formula:
     """Add or subtract (if num < 0) this element from the molecular formula.
 
     :param fml: Stochiometric chemical formula
@@ -122,7 +122,7 @@ def add_element(fml: Formul, symb: str, num: int = 1) -> Formul:
     return fml
 
 
-def join(fml1: Formul, fml2: Formul) -> int:
+def join(fml1: Formula, fml2: Formula) -> int:
     """Join two formulas together.
 
     :param fml1: Stochiometric chemical formula 1
@@ -136,7 +136,7 @@ def join(fml1: Formul, fml2: Formul) -> int:
     return fml
 
 
-def join_sequence(fmls: Formul) -> int:
+def join_sequence(fmls: Formula) -> int:
     """Join a sequence of formulas together.
 
     :param fml: Stochiometric chemical formula
@@ -155,7 +155,7 @@ def sorted_symbols_in_sequence(fmls: list[dict]) -> list[dict]:
 
 
 # Str<->Dict Converters
-def string(fml: Formul, hyd: bool = True) -> str:
+def string(fml: Formula, hyd: bool = True) -> str:
     """Convert formula dictionary to formula string in the Hill convention.
     Resultant string is identical to InChI formula string.
 
@@ -174,7 +174,7 @@ def string(fml: Formul, hyd: bool = True) -> str:
     return fml_str
 
 
-def string2(fml: Formul) -> str:
+def string2(fml: Formula) -> str:
     """Convert formula dictionary to formula string that includes 1s in when
     there is only one atom.
 
@@ -282,7 +282,7 @@ def sort_vector(fml: str, symbs: list[str] | None = None):
     return vec
 
 
-def _is_standard(fml: Formul) -> bool:
+def _is_standard(fml: Formula) -> bool:
     """Assess if the formula conforms to the standard form.
 
     :param fml: stochiometric chemical formula
