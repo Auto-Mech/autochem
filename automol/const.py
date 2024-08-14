@@ -24,16 +24,16 @@ class ReactionClass(str, enum.Enum):
     SUBSTITUTION = "substitution"
 
     def __str__(self):
-        """Convert Reaction Class object into a string.
+        """Convert a reaction class object to a string.
 
-        :return: String from self
+        :return: The reaction class string
         """
         return self.value
 
     def __repr__(self):
-        """Get a string representation of the Reaction Class object.
+        """Get a string literal describing the reaction class object.
 
-        :return: _description_
+        :return: The reaction class string literal
         """
         return repr(self.value)
 
@@ -64,7 +64,7 @@ class ReactionClass(str, enum.Enum):
 
     @classmethod
     def is_reversible(cls, value: str) -> bool:
-        """Is this reaction class reversible?.
+        """Whether this reaction class is reversible.
 
         :param value: A reaction class
         :return: `True` if it is, `False` if it isn't
@@ -73,7 +73,7 @@ class ReactionClass(str, enum.Enum):
 
     @classmethod
     def is_bimolecular(cls, value: str) -> bool:
-        """Is this reaction class bimolecular?.
+        """Whether this reaction class is bimolecular.
 
         :param value: The reaction class
         :return: `True` if it is, `False` if it isn't
@@ -89,7 +89,7 @@ class ReactionClass(str, enum.Enum):
 
     @classmethod
     def requires_spin_designation(cls, value: str) -> bool:
-        """Is this a reaction class that requires a spin designation?.
+        """Whether this is a reaction class that requires a spin designation.
 
         :param value: The reaction class
         :return: `True` if it is, `False` if it isn't
@@ -102,7 +102,7 @@ class ReactionClass(str, enum.Enum):
 
     @classmethod
     def is_defined(cls, value: str) -> bool:
-        """Is this reaction class defined?.
+        """Whether this reaction class is defined.
 
         :param value: The reaction class
         :return: `True` if it is, `False` if it isn't
@@ -111,25 +111,23 @@ class ReactionClass(str, enum.Enum):
 
 
 class ReactionSpin(str, enum.Enum):
-    """reaction spin types."""
+    """Reaction spin types."""
 
     LOW = "low-spin"
     HIGH = "high-spin"
     NONE = "unspecified spin"
 
     def __str__(self):
-        """_summary_.
+        """Convert a reaction class object to a string.
 
-        :return: _description_
-        :rtype: _type_
+        :return: The reaction class string
         """
         return self.value
 
     def __repr__(self):
-        """_summary_.
+        """Get a string literal describing the reaction class object.
 
-        :return: _description_
-        :rtype: _type_
+        :return: The reaction class string literal
         """
         return repr(self.value)
 
@@ -191,31 +189,31 @@ class ReactionInfo:
         return ReactionSpin(self.spin)
 
     def is_radical_radical(self) -> bool:
-        """Is this a radical radical reaction?."""
+        """Whether this is a radical radical reaction."""
         return self.is_rad_rad
 
     def is_intersystem_crossing(self) -> bool:
-        """Is this an intersystem crossing?."""
+        """Whether this is an intersystem crossing."""
         return self.is_isc
 
     def is_barrierless(self) -> bool:
-        """Is this a barrierless reaction?."""
+        """Whether this is a barrierless reaction."""
         return self.is_radical_radical() and not self.is_high_spin()
 
     def is_low_spin(self) -> bool:
-        """Is this a low-spin reaction?."""
+        """WHether this is a low-spin reaction."""
         return self.reaction_spin() == ReactionSpin.LOW
 
     def is_high_spin(self) -> bool:
-        """Is this a high-spin reaction?."""
+        """Whether this is a high-spin reaction."""
         return self.reaction_spin() == ReactionSpin.HIGH
 
     def has_no_spin_designation(self) -> bool:
-        """Is this the only possible spin-state?."""
+        """Whether this is the only possible spin-state."""
         return self.reaction_spin() == ReactionSpin.NONE
 
     def requires_spin_designation(self) -> bool:
-        """Is a spin designation required for this reaction?."""
+        """Whether a spin designation is required for this reaction."""
         spin_req_classes = (
             ReactionClass.HYDROGEN_ABSTRACTION,  # AVC: Why is this in here??
             ReactionClass.ADDITION,

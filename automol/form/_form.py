@@ -188,7 +188,7 @@ def string2(fml: Formula) -> str:
     return fml_str
 
 
-def from_string(fml_str: str) -> dict[str, int]:
+def from_string(fml_str: str) -> Formula:
     """Convert formula string to formula dictionary.
 
     Wildcard values can be specified as, for example, 'O2H*', which will be interpreted
@@ -206,7 +206,7 @@ def sorted_symbols(
     seq: Sequence,
     symbs_first: Sequence[str] = ("C", "H"),
     symbs_last: Sequence[str] = (),
-) -> Sequence:
+) -> tuple[str, ...]:
     """Produce a sorted list of atomic symbols; some elements given priority.
     By default, C placed first, then H, then others in alphabetical order.
 
@@ -268,7 +268,7 @@ def argsort_symbols(
     )
 
 
-def sort_vector(fml: str, symbs: list[str] | None = None):
+def sort_vector(fml: Sequence[str], symbs: Sequence[str] | None = None)->tuple[int, ...]:
     """Generate a sort vector for sorting various formulas against each other.
 
     :param fml_str: stochiometric chemical formula string
