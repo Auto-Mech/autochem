@@ -49,7 +49,12 @@ VMAT_LINES = LINES0 ^ LINES1 ^ LINES2 ^ LINES3
 
 
 # # constructors
-def from_data(symbs: tuple[str, ...], key_mat:KeyMatrix, name_mat:NameMatrix=None, one_indexed:bool=None)->VMatrix:
+def from_data(
+    symbs: tuple[str, ...],
+    key_mat: KeyMatrix,
+    name_mat: NameMatrix = None,
+    one_indexed: bool | None = None,
+) -> VMatrix:
     """V-Matrix constructor (V-Matrix without numerical coordinate values).
 
     :param symbs: atomic symbols
@@ -71,7 +76,7 @@ def from_data(symbs: tuple[str, ...], key_mat:KeyMatrix, name_mat:NameMatrix=Non
 
 # # V-Matrix/V-Matrix common functions (document these as z-matrix functions)
 # # # getters
-def symbols(vma:VMatrix, idxs: list[int] | None = None) -> list[str]:
+def symbols(vma: VMatrix, idxs: list[int] | None = None) -> list[str]:
     """Obtain the atomic symbols for all atoms defined in the V-Matrix.
 
     :param vma: V-Matrix
@@ -79,14 +84,14 @@ def symbols(vma:VMatrix, idxs: list[int] | None = None) -> list[str]:
     :return: The list of atomic symbols
     """
     if vma:
-        symbs, *_ = tuple(zip(*vma))
+        symbs, *_ = tuple(zip(*vma, strict=False))
     else:
         symbs = ()
 
     return symbs if idxs is None else tuple(map(symbs.__getitem__, idxs))
 
 
-def key_matrix(vma:VMatrix, shift:int=0)->KeyMatrix:
+def key_matrix(vma: VMatrix, shift: int = 0) -> KeyMatrix:
     """Obtain the key matrix of the V-Matrix that contains the
     coordinate atom keys by row and column.
 
@@ -97,7 +102,7 @@ def key_matrix(vma:VMatrix, shift:int=0)->KeyMatrix:
     :return: Key matrix
     """
     if vma:
-        key_mat = tuple(zip(*vma))[1]
+        key_mat = tuple(zip(*vma, strict=False))[1]
 
         # post-processing for adding the shift
         key_mat = [list(row) + [None] * (3 - len(row)) for row in key_mat]
@@ -111,7 +116,7 @@ def key_matrix(vma:VMatrix, shift:int=0)->KeyMatrix:
     return tuple(map(tuple, key_mat))
 
 
-def name_matrix(vma:VMatrix)->NameMatrix:
+def name_matrix(vma: VMatrix) -> NameMatrix:
     """Obtain the name matrix of the V-Matrix that contains the
     coordinate names by row and column.
 
@@ -120,7 +125,7 @@ def name_matrix(vma:VMatrix)->NameMatrix:
     :return: Name matrix
     """
     if vma:
-        name_mat = tuple(zip(*vma))[2]
+        name_mat = tuple(zip(*vma, strict=False))[2]
     else:
         name_mat = ()
 
@@ -130,7 +135,7 @@ def name_matrix(vma:VMatrix)->NameMatrix:
 
 
 # # # properties
-def count(vma:VMatrix)->int:
+def count(vma: VMatrix) -> int:
     """Obtain the number of rows of the V-Matrix, which corresponds to
     the number of atoms defined in the V-Matrix. This includes all
     real and dummy atoms.
@@ -142,7 +147,7 @@ def count(vma:VMatrix)->int:
     return len(symbols(vma))
 
 
-def atom_indices(vma:VMatrix, symb:str, match:bool=True)->tuple[int]:
+def atom_indices(vma: VMatrix, symb: str, match: bool = True) -> tuple[int]:
     """Obtain the indices of a atoms of a particular type in the v-matrix.
 
     :param vma: V-Matrix
@@ -162,7 +167,7 @@ def atom_indices(vma:VMatrix, symb:str, match:bool=True)->tuple[int]:
     return idxs
 
 
-def coordinate_key_matrix(vma:VMatrix, shift:int=0)->key_matrix:
+def coordinate_key_matrix(vma: VMatrix, shift: int = 0) -> key_matrix:
     """Obtain the coordinate key matrix of the V-Matrix that contains the
     coordinate keys by row and column.
 
@@ -180,7 +185,7 @@ def coordinate_key_matrix(vma:VMatrix, shift:int=0)->key_matrix:
             (atm_key,) + key_row[: col + 1] if key_row[col] is not None else None
             for col in range(3)
         ]
-        for atm_key, key_row in zip(atm_keys, key_mat)
+        for atm_key, key_row in zip(atm_keys, key_mat, strict=False)
     ]
 
     return tuple(map(tuple, coo_key_mat))
@@ -203,10 +208,10 @@ def coordinates(vma, shift=0, multi=True):
     coo_keys = numpy.ravel(numpy.array(coordinate_key_matrix(vma, shift), dtype=object))
 
     if not multi:
-        coo_dct = dict(zip(_names, coo_keys))
+        coo_dct = dict(zip(_names, coo_keys, strict=False))
     else:
         coo_dct = {name: () for name in _names}
-        for name, coo_key in zip(_names, coo_keys):
+        for name, coo_key in zip(_names, coo_keys, strict=False):
             coo_dct[name] += (coo_key,)
 
     coo_dct.pop(None)
@@ -371,7 +376,7 @@ def standard_names(vma, shift=0):
 
 
 def standard_name_matrix(vma, shift=0):
-    """Builds a name matrix of the V-Matrix where all of the
+    """Build a name matrix of the V-Matrix where all of the
     coordinate names have been standardized:
         RN: (1<=N<=Ncoords)
         AN: (2<=N<=Ncoords)
@@ -698,7 +703,7 @@ def is_valid(vma):
     ret = True
     try:
         assert _is_sequence_of_triples(vma)
-        symbs, key_mat, name_mat = zip(*vma)
+        symbs, key_mat, name_mat = zip(*vma, strict=False)
         from_data(symbs, key_mat, name_mat)
     except AssertionError:
         ret = False
