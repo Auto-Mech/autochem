@@ -10,7 +10,7 @@ vmat are not considered basic types because they cannot be converted
 
 Level 1: No dependencies; no interdependencies
 
- -  const
+ - const
  - util
  - error
  - mult
