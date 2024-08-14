@@ -172,10 +172,8 @@ def coordinate_key_matrix(vma: VMatrix, shift: int = 0) -> key_matrix:
     coordinate keys by row and column.
 
     :param vma: V-Matrix
-    :type vma: automol V-Matrix data structure
     :param shift: value to shift the keys by when obtaining the key matrix
-    :type shift: int
-    :rtype: tuple(tuple(int))
+    :return: Coordinate key matrix
     """
     key_mat = key_matrix(vma, shift=shift)
     natms = len(key_mat)
@@ -191,7 +189,7 @@ def coordinate_key_matrix(vma: VMatrix, shift: int = 0) -> key_matrix:
     return tuple(map(tuple, coo_key_mat))
 
 
-def coordinates(vma, shift=0, multi=True):
+def coordinates(vma: VMatrix, shift=0, multi=True):
     """Obtain the coordinate keys associated with each coordinate name,
     as a dictionary. Values are sequences of coordinate keys,
     since there may be multiple.
