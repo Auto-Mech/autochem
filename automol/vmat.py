@@ -12,6 +12,15 @@ from phydat import ptab
 
 from .util import ZmatConv, dict_, zmat_conv
 
+Symbol = str
+Key = str | None
+Name = str | None
+KeyRow = tuple[Key, Key, Key]
+NameRow = tuple[Name, Name, Name]
+KeyMatrix = tuple[KeyRow, ...]
+NameMatrix = tuple[NameRow, ...]
+VMatrix = tuple[tuple[Symbol, KeyRow, NameRow], ...]
+
 # Build the v-xmatrix parser
 CHAR = pp.Char(pp.alphas)
 SYMBOL = pp.Combine(CHAR + pp.Opt(CHAR))
@@ -40,18 +49,14 @@ VMAT_LINES = LINES0 ^ LINES1 ^ LINES2 ^ LINES3
 
 
 # # constructors
-def from_data(symbs: tuple[str, ...], key_mat, name_mat=None, one_indexed=None):
+def from_data(symbs: tuple[str, ...], key_mat:KeyMatrix, name_mat:NameMatrix=None, one_indexed:bool=None)->VMatrix:
     """V-Matrix constructor (V-Matrix without numerical coordinate values).
 
     :param symbs: atomic symbols
-    :type symbs: tuple[str]
     :param key_mat: key/index columns of the v-matrix, zero-indexed
-    :type key_mat: tuple[tuple[float, float or None, float or None]]
     :param name_mat: coordinate name columns of the v-matrix
-    :type name_mat; tuple[tuple[str, str or None, str or None]]
     :param one_indexed: parameter to store keys in one-indexing
-    :type one_indexed: bool
-    :rtype: automol V-Matrix data structure
+    :return: automol V-Matrix data structure
     """
     symbs = list(map(ptab.to_symbol, symbs))
     natms = len(symbs)
@@ -66,15 +71,12 @@ def from_data(symbs: tuple[str, ...], key_mat, name_mat=None, one_indexed=None):
 
 # # V-Matrix/V-Matrix common functions (document these as z-matrix functions)
 # # # getters
-def symbols(vma, idxs: list[int] | None = None) -> list[str]:
+def symbols(vma:VMatrix, idxs: list[int] | None = None) -> list[str]:
     """Obtain the atomic symbols for all atoms defined in the V-Matrix.
 
     :param vma: V-Matrix
-    :type vma: automol V-Matrix data structure
     :param idxs: indices of atoms to obtain information for
-    :type idxs: List[int]
-    :returns: The list of atomic symbols
-    :rtype: List[str]
+    :return: The list of atomic symbols
     """
     if vma:
         symbs, *_ = tuple(zip(*vma))
@@ -84,7 +86,7 @@ def symbols(vma, idxs: list[int] | None = None) -> list[str]:
     return symbs if idxs is None else tuple(map(symbs.__getitem__, idxs))
 
 
-def key_matrix(vma, shift=0):
+def key_matrix(vma:VMatrix, shift:int=0)->KeyMatrix:
     """Obtain the key matrix of the V-Matrix that contains the
     coordinate atom keys by row and column.
 
@@ -92,7 +94,7 @@ def key_matrix(vma, shift=0):
     :type vma: automol V-Matrix data structure
     :param shift: value to shift the keys by when obtaining the key matrix
     :type shift: int
-    :rtype: tuple(tuple(int))
+    :return: Key matrix
     """
     if vma:
         key_mat = tuple(zip(*vma))[1]
@@ -109,13 +111,13 @@ def key_matrix(vma, shift=0):
     return tuple(map(tuple, key_mat))
 
 
-def name_matrix(vma):
+def name_matrix(vma:VMatrix)->NameMatrix:
     """Obtain the name matrix of the V-Matrix that contains the
     coordinate names by row and column.
 
     :param vma: V-Matrix
     :type vma: automol V-Matrix data structure
-    :rtype: tuple(tuple(str))
+    :return: Name matrix
     """
     if vma:
         name_mat = tuple(zip(*vma))[2]
@@ -128,29 +130,26 @@ def name_matrix(vma):
 
 
 # # # properties
-def count(vma):
+def count(vma:VMatrix)->int:
     """Obtain the number of rows of the V-Matrix, which corresponds to
     the number of atoms defined in the V-Matrix. This includes all
     real and dummy atoms.
 
     :param vma: V-Matrix
     :type vma: automol V-Matrix data structure
-    :rtype: int
+    :return: Number of rows
     """
     return len(symbols(vma))
 
 
-def atom_indices(vma, symb, match=True):
+def atom_indices(vma:VMatrix, symb:str, match:bool=True)->tuple[int]:
     """Obtain the indices of a atoms of a particular type in the v-matrix.
 
     :param vma: V-Matrix
-    :type vma: automol V-Matrix data structure
     :param match: grab idxs that match given atom type
     :param symb: atomic symbol
-    :type symb: str
     :param match: obtain indices of symbols that match the type?
-    :type match: bool
-    :rtype: tuple(int)
+    :return: Indices
     """
     symbs = symbols(vma)
     idxs = ()
@@ -163,7 +162,7 @@ def atom_indices(vma, symb, match=True):
     return idxs
 
 
-def coordinate_key_matrix(vma, shift=0):
+def coordinate_key_matrix(vma:VMatrix, shift:int=0)->key_matrix:
     """Obtain the coordinate key matrix of the V-Matrix that contains the
     coordinate keys by row and column.
 
