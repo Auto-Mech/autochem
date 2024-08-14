@@ -227,11 +227,11 @@ def canonical_enantiomer_reaction(rct_chi, prd_chi):
 # # InCHI string converters
 def inchi_to_amchi(ich, convert=True, printlog=True):
     """For an InChI string with stereo convert to an AMChI
-
-    Since stereo conversions are expensive, function checks
-    if input string is an InChI, w/ stereo, for species
-    with resonance stabilization. Then it attempts the
-    conversion.
+        Since stereo conversions are expensive, function checks
+        if input string is an InChI, w/ stereo, for species
+        with resonance stabilization. Then it attempts the
+        conversion.
+        If convert=True: converts bad inchis in any case
 
     Note that these results still depend on the InChI code
     algorithm not building an incorrect geometry, so this
@@ -240,7 +240,7 @@ def inchi_to_amchi(ich, convert=True, printlog=True):
 
     chi = ich
     if amchi.prefix(ich) == "InChI":
-        if amchi.stereo_layers(ich):
+        if amchi.stereo_layers(ich) or convert==True:
             if is_bad(ich):
                 geo = amchi.geometry(ich)
                 chi = geom.chi(geo)
