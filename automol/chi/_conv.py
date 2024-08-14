@@ -240,7 +240,7 @@ def inchi_to_amchi(ich, convert=True, printlog=True):
 
     chi = ich
     if amchi.prefix(ich) == "InChI":
-        if amchi.stereo_layers(ich) or convert==True:
+        if amchi.stereo_layers(ich) or convert:
             if is_bad(ich):
                 geo = amchi.geometry(ich)
                 chi = geom.chi(geo)
