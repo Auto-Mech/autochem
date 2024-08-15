@@ -269,7 +269,7 @@ def argsort_symbols(
 
 
 def sort_vector(
-    fml: Sequence[str], symbs: Sequence[str] | None = None
+    fml: Sequence[Formula], symbs: Sequence[str] | None = None
 ) -> tuple[int, ...]:
     """Generate a sort vector for sorting various formulas against each other.
 

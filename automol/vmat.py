@@ -20,6 +20,10 @@ KeyMatrix = tuple[KeyRow, ...]
 NameMatrix = tuple[NameRow, ...]
 VMatrixRow = tuple[Symbol, KeyRow, NameRow] | tuple[Symbol, KeyRow, NameRow, object]
 VMatrix = tuple[VMatrixRow, ...]
+CoordinateKey = tuple[int, ...] | None
+CoordinateKeyRow = tuple[CoordinateKey, CoordinateKey, CoordinateKey]
+CoordinateKeyMatrix = tuple[CoordinateKeyRow, ...]
+
 
 # Build the v-xmatrix parser
 CHAR = pp.Char(pp.alphas)
@@ -76,7 +80,7 @@ def from_data(
 
 # # V-Matrix/V-Matrix common functions (document these as z-matrix functions)
 # # # getters
-def symbols(vma: VMatrix, idxs: list[int] | None = None) -> list[str]:
+def symbols(vma: VMatrix, idxs: list[int] | None = None) -> tuple[Symbol, ...]:
     """Obtain the atomic symbols for all atoms defined in the V-Matrix.
 
     :param vma: V-Matrix
@@ -96,12 +100,11 @@ def key_matrix(vma: VMatrix, shift: int = 0) -> KeyMatrix:
     coordinate atom keys by row and column.
 
     :param vma: V-Matrix
-    :type vma: Automol V-Matrix data structure
     :param shift: Value to shift the keys by when obtaining the key matrix
     :return: Key matrix
     """
     if vma:
-        key_mat = tuple(zip(*vma, strict=False))[1]
+        key_mat = tuple(zip(*vma, strict=True))[1]
 
         # post-processing for adding the shift
         key_mat = [list(row) + [None] * (3 - len(row)) for row in key_mat]
@@ -124,7 +127,7 @@ def name_matrix(vma: VMatrix) -> NameMatrix:
     :return: Name matrix
     """
     if vma:
-        name_mat = tuple(zip(*vma, strict=False))[2]
+        name_mat = tuple(zip(*vma, strict=True))[2]
     else:
         name_mat = ()
 
@@ -166,7 +169,7 @@ def atom_indices(vma: VMatrix, symb: str, match: bool = True) -> tuple[int]:
     return idxs
 
 
-def coordinate_key_matrix(vma: VMatrix, shift: int = 0) -> key_matrix:
+def coordinate_key_matrix(vma: VMatrix, shift: int = 0) -> CoordinateKeyMatrix:
     """Obtain the coordinate key matrix of the V-Matrix that contains the
     coordinate keys by row and column.
 
@@ -182,7 +185,7 @@ def coordinate_key_matrix(vma: VMatrix, shift: int = 0) -> key_matrix:
             (atm_key,) + key_row[: col + 1] if key_row[col] is not None else None
             for col in range(3)
         ]
-        for atm_key, key_row in zip(atm_keys, key_mat, strict=False)
+        for atm_key, key_row in zip(atm_keys, key_mat, strict=True)
     ]
 
     return tuple(map(tuple, coo_key_mat))
@@ -190,7 +193,7 @@ def coordinate_key_matrix(vma: VMatrix, shift: int = 0) -> key_matrix:
 
 def coordinates(
     vma: VMatrix, shift: int = 0, multi: bool = True
-) -> dict[str : tuple(int)]:
+) -> dict[Name, CoordinateKey]:
     """Obtain the coordinate keys associated with each coordinate name,
     as a dictionary. Values are sequences of coordinate keys,
     since there may be multiple.
@@ -204,7 +207,7 @@ def coordinates(
     coo_keys = numpy.ravel(numpy.array(coordinate_key_matrix(vma, shift), dtype=object))
 
     if not multi:
-        coo_dct = dict(zip(_names, coo_keys, strict=False))
+        coo_dct = dict(zip(_names, coo_keys, strict=True))
     else:
         coo_dct = {name: () for name in _names}
         for name, coo_key in zip(_names, coo_keys, strict=False):
@@ -671,7 +674,7 @@ def is_valid(vma):
     ret = True
     try:
         assert _is_sequence_of_triples(vma)
-        symbs, key_mat, name_mat = zip(*vma, strict=False)
+        symbs, key_mat, name_mat = zip(*vma, strict=True)
         from_data(symbs, key_mat, name_mat)
     except AssertionError:
         ret = False
