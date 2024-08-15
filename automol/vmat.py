@@ -150,7 +150,7 @@ def count(vma: VMatrix) -> int:
     return len(symbols(vma))
 
 
-def atom_indices(vma: VMatrix, symb: str, match: bool = True) -> tuple[int]:
+def atom_indices(vma: VMatrix, symb: Symbol, match: bool = True) -> tuple[int]:
     """Obtain the indices of a atoms of a particular type in the v-matrix.
 
     :param vma: V-Matrix
@@ -487,7 +487,7 @@ def dummy_coordinate_names(vma: VMatrix) -> tuple[Name, ...]:
 
 def dummy_source_dict(
     zma: VMatrix, dir_: bool = True
-) -> dict[int, int] | tuple[int, int]:
+) -> dict[int, int| tuple[int, int]]:
     """Obtain keys to dummy atoms in the Z-Matrix, along with their
     parent atoms.
 
@@ -570,7 +570,7 @@ def set_name_matrix(vma: VMatrix, name_mat: NameMatrix) -> VMatrix:
 
 
 # # # names and naming
-def rename(vma: VMatrix, name_dct: dict[str, str]) -> VMatrix:
+def rename(vma: VMatrix, name_dct: dict[Name, Name]) -> VMatrix:
     """Rename a subset of the coordinates of a V-Matrix.
 
     :param vma: V-Matrix
