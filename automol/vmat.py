@@ -487,7 +487,7 @@ def dummy_coordinate_names(vma: VMatrix) -> tuple[Name, ...]:
 
 def dummy_source_dict(
     zma: VMatrix, dir_: bool = True
-) -> dict[int, int| tuple[int, int]]:
+) -> dict[int, int | tuple[int, int]]:
     """Obtain keys to dummy atoms in the Z-Matrix, along with their
     parent atoms.
 

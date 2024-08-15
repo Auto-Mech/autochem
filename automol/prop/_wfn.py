@@ -19,7 +19,7 @@ def total_dipole_moment(vec):
     return numpy.sqrt(vec[0] ** 2 + vec[1] ** 2 + vec[2] ** 2)
 
 
-def total_polarizability(tensor:tuple)->float:
+def total_polarizability(tensor: tuple) -> float:
     """Calculate the total static polarizability value from the tensor
     which is given in x,y,z coordinates (Bohr).
 
