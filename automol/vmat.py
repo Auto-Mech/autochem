@@ -12,7 +12,7 @@ from phydat import ptab
 from .util import ZmatConv, dict_, zmat_conv
 
 Symbol = str
-Key = str | None
+Key = int | None
 Name = str | None
 KeyRow = tuple[Key, Key, Key]
 NameRow = tuple[Name, Name, Name]
@@ -218,7 +218,7 @@ def coordinates(
     return coo_dct
 
 
-def distance_coordinates(vma: VMatrix) -> dict[str, tuple[int, ...]]:
+def distance_coordinates(vma: VMatrix) -> dict[Name, CoordinateKey]:
     """Get the distance coordinates by coordinate name.
 
     :param vma: V-Matrix
@@ -227,7 +227,7 @@ def distance_coordinates(vma: VMatrix) -> dict[str, tuple[int, ...]]:
     return dict_.by_key(coordinates(vma, multi=False), distance_names(vma))
 
 
-def central_angle_coordinates(vma: VMatrix) -> dict[str, tuple[int, ...]]:
+def central_angle_coordinates(vma: VMatrix) -> dict[Name, CoordinateKey]:
     """Get the central angle coordinates by coordinate name.
 
     :param vma: V-Matrix
@@ -236,7 +236,7 @@ def central_angle_coordinates(vma: VMatrix) -> dict[str, tuple[int, ...]]:
     return dict_.by_key(coordinates(vma, multi=False), central_angle_names(vma))
 
 
-def dihedral_angle_coordinates(vma: VMatrix) -> dict[str, tuple[int, ...]]:
+def dihedral_angle_coordinates(vma: VMatrix) -> dict[Name, CoordinateKey]:
     """Get the dihedral angle coordinates by coordinate name.
 
     :param vma: V-Matrix
@@ -293,7 +293,7 @@ def distance_names(vma: VMatrix) -> tuple[str]:
     return tuple(more_itertools.unique_everseen(name_mat[1:, 0]))
 
 
-def central_angle_names(vma: VMatrix) -> tuple[str]:
+def central_angle_names(vma: VMatrix) -> tuple[Name, ...]:
     """Obtain names of all central-angle coordinates defined in the V-Matrix.
 
     :param vma: V-Matrix
@@ -304,7 +304,7 @@ def central_angle_names(vma: VMatrix) -> tuple[str]:
     return tuple(more_itertools.unique_everseen(name_mat[2:, 1]))
 
 
-def dihedral_angle_names(vma: VMatrix) -> tuple[str]:
+def dihedral_angle_names(vma: VMatrix) -> tuple[Name, ...]:
     """Obtain names of all dihedral angle coordinates defined in the V-Matrix.
 
     :param vma: V-Matrix
@@ -315,7 +315,7 @@ def dihedral_angle_names(vma: VMatrix) -> tuple[str]:
     return tuple(more_itertools.unique_everseen(name_mat[3:, 2]))
 
 
-def angle_names(vma: VMatrix) -> tuple[str]:
+def angle_names(vma: VMatrix) -> tuple[Name, ...]:
     """Obtain names of all angle coordinates defined in the V-Matrix.
 
     :param vma: V-Matrix
@@ -358,7 +358,7 @@ def standard_names(vma: VMatrix, shift: int = 0) -> dict[Name, Name]:
     return name_dct
 
 
-def standard_name_matrix(vma: VMatrix, shift: int = 0) -> tuple[tuple[str]]:
+def standard_name_matrix(vma: VMatrix, shift: int = 0) -> NameMatrix:
     """Build a name matrix of the V-Matrix where all of the
     coordinate names have been standardized:
         RN: (1<=N<=Ncoords)
@@ -366,10 +366,8 @@ def standard_name_matrix(vma: VMatrix, shift: int = 0) -> tuple[tuple[str]]:
         DN: (1<=N<=Ncoords).
 
     :param vma: V-Matrix
-    :type vma: automol V-Matrix data structure
     :param shift: value to shift the keys by when obtaining the keys
-    :type shift: int
-    :rtype: tuple(tuple(str))
+    :return: Name matrix
     """
     natms = count(vma)
 
@@ -383,7 +381,7 @@ def standard_name_matrix(vma: VMatrix, shift: int = 0) -> tuple[tuple[str]]:
     return name_mat
 
 
-def distance_coordinate_name(zma: VMatrix, key1: int, key2: int) -> str:
+def distance_coordinate_name(zma: VMatrix, key1: int, key2: int) -> Name:
     """Get the name of a distance coordinate for a given bond.
 
     :param zma: the z-matrix
@@ -402,7 +400,7 @@ def distance_coordinate_name(zma: VMatrix, key1: int, key2: int) -> str:
     return name
 
 
-def central_angle_coordinate_name(zma: VMatrix, key1: int, key2: int, key3: int) -> str:
+def central_angle_coordinate_name(zma: VMatrix, key1: int, key2: int, key3: int) -> Name:
     """Get the name of angle coordinate for a set of 3 atoms.
 
     :param zma: The z-matrix
@@ -424,7 +422,7 @@ def central_angle_coordinate_name(zma: VMatrix, key1: int, key2: int, key3: int)
 
 def dihedral_angle_coordinate_name(
     zma: VMatrix, key1: int, key2: int, key3: int, key4: int
-):
+)-> Name:
     """Get the name of dihedral coordinate for a set of 4 atoms.
 
     :param zma: The z-matrix
@@ -451,7 +449,7 @@ def dihedral_angle_coordinate_name(
 
 
 # # dummy atom functions
-def dummy_keys(zma: VMatrix) -> tuple[int]:
+def dummy_keys(zma: VMatrix) -> tuple[Key, ...]:
     """Obtain keys to dummy atoms in the Z-Matrix.
 
     :param zma: Z-Matrix
@@ -461,7 +459,7 @@ def dummy_keys(zma: VMatrix) -> tuple[int]:
     return keys
 
 
-def dummy_coordinate_names(vma: VMatrix) -> tuple[str]:
+def dummy_coordinate_names(vma: VMatrix) -> tuple[Name, ...]:
     """Obtain names of all coordinates associated with dummy atoms
     defined in the V-Matrix.
 
