@@ -245,7 +245,7 @@ def dihedral_angle_coordinates(vma: VMatrix) -> dict[str, tuple[int, ...]]:
     return dict_.by_key(coordinates(vma, multi=False), dihedral_angle_names(vma))
 
 
-def coordinate(vma: VMatrix, name: str) -> list[int]:
+def coordinate(vma: VMatrix, name: Name) -> CoordinateKey:
     """Get the atom keys defining a coordinate by name.
 
     :param vma: A v-matrix or z-matrix
@@ -256,7 +256,7 @@ def coordinate(vma: VMatrix, name: str) -> list[int]:
     return coo
 
 
-def torsion_axis(vma: VMatrix, dih_name: str) -> tuple[int, int]:
+def torsion_axis(vma: VMatrix, dih_name: Name) -> tuple[int, int]:
     """Get the rotational axis of a torsion from the dihedral angle name.
 
     :param vma: A v-matrix or z-matrix
@@ -270,7 +270,7 @@ def torsion_axis(vma: VMatrix, dih_name: str) -> tuple[int, int]:
 
 
 # # # names and standard naming
-def names(vma: VMatrix) -> tuple[str]:
+def names(vma: VMatrix) -> tuple[Name, ...]:
     """Obtain names of all coordinates defined in the V-Matrix.
 
     :param vma: V-Matrix
@@ -324,7 +324,7 @@ def angle_names(vma: VMatrix) -> tuple[str]:
     return tuple(itertools.chain(central_angle_names(vma), dihedral_angle_names(vma)))
 
 
-def standard_names(vma: VMatrix, shift: int = 0) -> dict[str, str]:
+def standard_names(vma: VMatrix, shift: int = 0) -> dict[Name, Name]:
     """Build a dictionary that can mas the coordinate names
     of the input V-Matrix to their name in a standard-form V-Matrix:
         RN: (1<=N<=Ncoords)
