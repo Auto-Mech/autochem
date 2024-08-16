@@ -624,8 +624,10 @@ def display(
 
     # If requested, visualize only a subset of the bonds by removing others
     if vis_bkeys is not None:
-        excl_bkeys = graph_base.bond_keys(gra) - set(map(frozenset, vis_bkeys))
-        gra = graph_base.remove_bonds(gra, excl_bkeys, stereo=False, check=False)
+        all_bkeys = graph_base.bond_keys(gra)
+        vis_bkeys = set(map(frozenset, vis_bkeys))
+        gra = graph_base.remove_bonds(gra, all_bkeys - vis_bkeys, stereo=False)
+        gra = graph_base.add_bonds(gra, vis_bkeys - all_bkeys)
 
     view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size, mode=mode)
 

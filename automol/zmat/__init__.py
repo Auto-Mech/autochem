@@ -39,6 +39,7 @@ from ..vmat import dihedral_angle_coordinate_name
 from ..vmat import dummy_keys
 from ..vmat import dummy_source_dict
 from ..vmat import conversion_info
+from ..vmat import neighbor_keys
 # core functions
 # # constructors
 from .base._core import from_data
@@ -172,6 +173,7 @@ __all__ = [
     'dummy_keys',
     'dummy_source_dict',
     'conversion_info',
+    'neighbor_keys',
     # extra base functions
     'samples',
     'constraint_dict',

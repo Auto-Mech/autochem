@@ -1,6 +1,7 @@
 """V-Matrix: Variable V-Matrix (V-Matrix without coordinate values)."""
 
 import itertools
+from collections import defaultdict
 
 import more_itertools
 import numpy
@@ -522,6 +523,20 @@ def conversion_info(zma: VMatrix) -> ZmatConv:
     zcount = count(zma)
     src_zkeys_dct = dummy_source_dict(zma)
     return zmat_conv.from_zmat_data(zcount, src_zkeys_dct)
+
+
+def neighbor_keys(vma: VMatrix) -> dict[Key, frozenset[Key]]:
+    """Identify which atoms are explicit neighbors in the V-Matrix.
+
+    :param vma: V-Matrix
+    :return: A dictionary mapping atoms onto their neighbors
+    """
+    dist_coos = list(distance_coordinates(vma).values())
+    nkeys_dct = defaultdict(set)
+    for key1, key2 in dist_coos:
+        nkeys_dct[key1].add(key2)
+        nkeys_dct[key2].add(key1)
+    return dict_.transform_values(nkeys_dct, frozenset)
 
 
 # # V-Matrix-specific functions
