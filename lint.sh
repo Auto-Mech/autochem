@@ -19,6 +19,8 @@ FILES=(
     "automol/mult/ts.py"
     "automol/const.py"
     "automol/vmat.py"
+    "automol/prop/_wfn.py"
+    "automol/prop/freq.py"
 )
 
 (
