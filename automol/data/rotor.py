@@ -2,6 +2,7 @@
 
 Rotors contain of one or more Torsion data structures
 """
+
 import dataclasses
 import itertools
 from typing import Dict, List, Optional, Union
@@ -210,7 +211,7 @@ def torsion_symmetries(rotor: Rotor) -> List[int]:
     return tuple(map(tors.symmetry, torsions(rotor)))
 
 
-def torsion_grids(rotor: Rotor, increment: float=30 * phycon.DEG2RAD) -> List[Grid]:
+def torsion_grids(rotor: Rotor, increment: float = 30 * phycon.DEG2RAD) -> List[Grid]:
     """Get the coordinate grids for the torsions in a rotor
 
     :param rotor: A rotor
@@ -353,6 +354,7 @@ def rotors_from_zmatrix(
     """
     gra = zmat.graph(zma, stereo=True, dummy=True) if gra is None else gra
     lin_keys = graph.linear_atom_keys(gra, dummy=True)
+    znkeys_dct = zmat.neighbor_keys(zma)
 
     rot_bkeys = graph.rotational_bond_keys(gra, lin_keys=lin_keys)
 
@@ -369,6 +371,7 @@ def rotors_from_zmatrix(
             coo=tor_keys,
             grps=graph.rotational_groups(gra, *tor_axis),
             symm=graph.rotational_symmetry_number(gra, *tor_axis, lin_keys=lin_keys),
+            ngrps=list(map(znkeys_dct.get, tor_axis)),
         )
         tor_lst.append(tor)
 
@@ -566,7 +569,7 @@ def rotors_torsion_symmetries(
 
 
 def rotors_torsion_grids(
-    rotors: List[Rotor], flat: bool = False, increment: float=30 * phycon.DEG2RAD
+    rotors: List[Rotor], flat: bool = False, increment: float = 30 * phycon.DEG2RAD
 ) -> Union[List[Grid], List[List[Grid]]]:
     """Get the torsion coordinate grids from a list of rotors
 
