@@ -393,10 +393,22 @@ def test__consistency():
     assert tor_grps == ref_tor_grps, f"{tor_grps} != {ref_tor_grps}"
 
 
+def test__dummy_replacement():
+    """Check that dummy atoms get replaced upon conversion to geometry."""
+    zma = C2H5OH_CH3_ZMA
+    zgra = reac.ts_graph(C2H5OH_CH3_ZRXN)
+    rotors = rotor.rotors_from_zmatrix(zma, gra=zgra)
+
+    tor_coos = rotor.rotors_torsion_coordinates(rotors, key_typ="geom")
+    ref_tor_coos = (((2, 0, 1, 3),), ((0, 1, 3, 6),), ((3, 6, 9, 10),))
+    assert tor_coos == ref_tor_coos, f"{tor_coos} != {ref_tor_coos}"
+
+
 if __name__ == "__main__":
     # test__rotor()
     # test__rotor_with_dummy_atoms()
     # test__rotor_multidimensional()
     # test__torsion_list_string()
     # test__rotor_for_ts()
-    test__consistency()
+    # test__consistency()
+    test__dummy_replacement()

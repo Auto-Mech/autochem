@@ -74,17 +74,30 @@ def name(tor: Torsion) -> str:
 
 
 def coordinate(
-    tor: Torsion, key_typ: str = "zmat", zc_: ZmatConv | None = None
+    tor: Torsion,
+    key_typ: str = "zmat",
+    zc_: ZmatConv | None = None,
+    replace_dummy: bool = True,
 ) -> DihCoord:
     """Get the torsion coordinate keys.
 
     :param tor: A torsion
     :param key_typ: The type of keys to return, "zmat" (default) or "geom"
     :param zc_: Z-matrix conversion info, to avoid re-calculation, defaults to None
+    :param replace_dummy: Replace dummy atom with other (presumably in-line) neighbor?
     :return: The torsion rotational keys
     """
     coo = tor.coordinate
     if key_typ == "geom":
+        if replace_dummy:
+            dkeys = zmat_conv.dummy_keys(zc_)
+            ngrps = neighbor_groups(tor, dummy=False, zc_=zc_)
+            end_keys0 = [coo[0], coo[-1]]
+            end_keys = [
+                k if k not in dkeys else next(iter(nks))
+                for k, nks in zip(end_keys0, ngrps, strict=True)
+            ]
+            coo = (end_keys[0], coo[1], coo[2], end_keys[1])
         coo = zmat_conv.relabel_zmatrix_key_sequence(zc_, coo, dummy=True)
     return coo
 
@@ -113,16 +126,21 @@ def symmetry(tor: Torsion) -> int:
 
 
 def neighbor_groups(
-    tor: Torsion, key_typ: str = "zmat", zc_: ZmatConv | None = None
+    tor: Torsion, key_typ: str = "zmat", zc_: ZmatConv | None = None, dummy: bool = True
 ) -> Groups:
     """Get the neighbor groups of a torsion.
 
     :param tor: A torsion
     :param key_typ: The type of keys to return, "zmat" (default) or "geom"
     :param zc_: Z-matrix conversion info, to avoid re-calculation, defaults to None
+    :param dummy: Include dummy atom neighbors?
     :return: The neighbor groups
     """
     ngrps = tor.neighbor_groups
+    if not dummy:
+        dkeys = zmat_conv.dummy_keys(zc_)
+        ngrps = tuple([k for k in g if k not in dkeys] for g in ngrps)
+
     if key_typ == "geom":
         ngrps = zmat_conv.relabel_zmatrix_key_sequence(zc_, ngrps)
     return ngrps
