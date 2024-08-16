@@ -785,7 +785,7 @@ C5H4_TSG = (
 # OO[C@@H]1CC=C[CH]1 => C=1[C@H]2C[C@H](C=1)O2 + [OH]
 #    *          *           *      *
 # [* marks a pair of bridgehead stereo atoms]
-C5H6O_TSG = (
+C5H7O2_TSG = (
     {
         0: ("O", 0, None),
         1: ("O", 0, None),
@@ -818,6 +818,50 @@ C5H6O_TSG = (
         frozenset({1, 5}): (0.1, None),
         frozenset({2, 7}): (1, None),
         frozenset({0, 9}): (1, None),
+    },
+)
+
+# Double Bridgehead Atom Pair
+# [O]OC1CCC2C1O2 => OOC1[CH]CC2C1O2
+#     ^ ^ * *         ^  ^   * *
+# [* marks the first pair of bridgehead stereo atoms]
+# [^ marks the first pair of bridgehead stereo atoms]
+C5H7O3_TSG = (
+    {
+        0: ("O", 0, None),
+        1: ("O", 0, None),
+        2: ("C", 0, None),
+        3: ("C", 0, None),
+        4: ("C", 0, None),
+        5: ("C", 0, None),
+        6: ("C", 0, None),
+        7: ("O", 0, None),
+        8: ("H", 0, None),
+        9: ("H", 0, None),
+        10: ("H", 0, None),
+        11: ("H", 0, None),
+        12: ("H", 0, None),
+        13: ("H", 0, None),
+        14: ("H", 0, None),
+    },
+    {
+        frozenset({8, 2}): (1, None),
+        frozenset({2, 3}): (1, None),
+        frozenset({9, 3}): (0.9, None),
+        frozenset({2, 6}): (1, None),
+        frozenset({4, 5}): (1, None),
+        frozenset({0, 1}): (1, None),
+        frozenset({6, 7}): (1, None),
+        frozenset({6, 14}): (1, None),
+        frozenset({5, 13}): (1, None),
+        frozenset({5, 7}): (1, None),
+        frozenset({0, 9}): (0.1, None),
+        frozenset({3, 4}): (1, None),
+        frozenset({1, 2}): (1, None),
+        frozenset({4, 12}): (1, None),
+        frozenset({10, 3}): (1, None),
+        frozenset({5, 6}): (1, None),
+        frozenset({11, 4}): (1, None),
     },
 )
 
@@ -928,7 +972,8 @@ def test__from_local_stereo():
         ("C2H4O2", C2H4O2_TSG, [1, 1]),
         ("C4H4F2", C4H4F2_TSG, [1, 1, 1, 1]),
         ("C8H14", C8H14_TSG, [1, 1, 1, 1]),
-        ("C5H6O", C5H6O_TSG, [1, 1]),
+        ("C5H7O2", C5H7O2_TSG, [1, 1]),
+        ("C5H7O3", C5H7O3_TSG, [1, 1, 1, 1]),
     ],
 )
 def test__ts__expand_reaction_stereo(formula, ts_gra, ts_counts):
@@ -1370,10 +1415,11 @@ if __name__ == "__main__":
     # test__ts__reagents_graph()
     # test__rotational_bond_keys()
     # test__ts__expand_reaction_stereo()
-    test__amchi("CH4CLFNO", CH4CLFNO_TSG)
+    # test__amchi("CH4CLFNO", CH4CLFNO_TSG)
     # test__ts__fleeting_stereocenter_keys()
     # test__linear_atom_keys()
     # test__radical_atom_keys()
     # test__geometry()
-    # test__ts__expand_reaction_stereo("C5H6O", C5H6O_TSG, [1, 1])
     # test__zmatrix()
+    # test__ts__expand_reaction_stereo("C5H6O", C5H6O_TSG, [1, 1])
+    test__ts__expand_reaction_stereo("C5H7O3", C5H7O3_TSG, [1, 1, 1, 1])
