@@ -610,7 +610,7 @@ def standard_form(vma: VMatrix, shift: int = 0) -> VMatrix:
 # # # add/remove atoms
 def add_atom(
     vma: VMatrix,
-    symb: str,
+    symb: Symbol,
     key_row: KeyRow,
     name_row: NameRow = None,
     one_indexed: bool = False,
