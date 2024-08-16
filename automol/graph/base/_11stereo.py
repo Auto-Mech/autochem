@@ -184,6 +184,7 @@ def _remove_strained_stereoisomers_from_expansion(gps, cand_dct):
                 is_strained = not par1 ^ par2 ^ sgn1 ^ sgn2
                 if is_strained:
                     gps.remove((gra, pri_dct))
+                    break
 
     return gps
 
