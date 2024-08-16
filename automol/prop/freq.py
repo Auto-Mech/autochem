@@ -5,7 +5,9 @@ import numpy
 from phydat import phycon
 
 
-def scale_frequencies_and_zpe(freqs, method, basis, scale_method="c3"):
+def scale_frequencies_and_zpe(
+    freqs: tuple[float, ...], method: str, basis: str, scale_method="c3"
+) -> tuple[float, ...]:
     """Scale frequencies according to some method
     obtain a corrected zpe.
     """
@@ -29,7 +31,9 @@ def scale_frequencies_and_zpe(freqs, method, basis, scale_method="c3"):
     return scaled_freqs, scaled_zpe
 
 
-def scale_frequencies(freqs, method, basis, scale_method="c3"):
+def scale_frequencies(
+    freqs: tuple[float, ...], method: str, basis: str, scale_method: str = "c3"
+) -> tuple[float, ...]:
     """Scale frequencies according to some method."""
     # Scale the frequencies
     if scale_method in SCALE_METHODS:
@@ -39,12 +43,11 @@ def scale_frequencies(freqs, method, basis, scale_method="c3"):
     return scaled_freqs
 
 
-def _anharm_zpve_from_scaling(freq, scaled_freq):
-    """Determine what the anharmonic ZPVE should be after scaling."""
-    return (freq / 2.0) + (1.0 / 8.0) * (scaled_freq - freq)
-
-
-def rotor_scale_factor_from_harmonics(rt_freqs, rth_freqs, tors_freqs):
+def rotor_scale_factor_from_harmonics(
+    rt_freqs: tuple[float, ...],
+    rth_freqs: tuple[float, ...],
+    tors_freqs: tuple[float, ...],
+):
     """Scaling factor for rotor potentials to map them into harmonic."""
     # Create a scaling factor for the frequencies
     # First sort tors frequencies in ascending order
@@ -103,7 +106,9 @@ M3_COEFFS_ANHARM = {
 M3_COEFFS_HARM = {("wb97xd", "6-31g*"): (0.91, -0.058, 0.001)}
 
 
-def _three_coeff_anharm_scaling(freqs, method, basis):
+def _three_coeff_anharm_scaling(
+    freqs: tuple[float, ...], method: str, basis: str
+) -> tuple[float, ...]:
     """Scales frequencies using factos with three coefficients."""
     cf1, cf2, cf3 = M3_COEFFS_ANHARM.get((method, basis), (1.0, 0.0, 0.0))
     scaled_freqs = ()
@@ -114,7 +119,9 @@ def _three_coeff_anharm_scaling(freqs, method, basis):
     return scaled_freqs
 
 
-def _three_coeff_harm_scaling(freqs, method, basis):
+def _three_coeff_harm_scaling(
+    freqs: tuple[float, ...], method: str, basis: str
+) -> tuple[float, ...]:
     """Scales frequencies using one factor, same factor applies to all
     frequencies.
     """
