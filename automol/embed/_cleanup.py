@@ -30,7 +30,6 @@ import logging
 
 import numpy
 import scipy.optimize
-import tuple
 from _collections_abc import Sequence
 
 from ._dgeom import (
@@ -93,8 +92,8 @@ def volume_gradient(xmat, idxs):
 
 
 def error_function_(
-    lmat,
-    umat,
+    lmat: NDArrayLike2D,
+    umat: NDArrayLike2D,
     chi_dct=None,
     pla_dct=None,
     wdist=1.0,
@@ -103,7 +102,7 @@ def error_function_(
     leps=0.1,
     ueps=0.1,
     log=False,
-):
+) -> callable[[NDArrayLike2D], float]:
     """Compute the embedding error function.
 
     :param lmat: lower-bound distance matrix
@@ -147,16 +146,16 @@ def error_function_(
                 numpy.argsort(numpy.ravel(-uerrs)), uerrs.shape
             )
             print("\tGreatest lower-bound errors:")
-            for idxs in list(zip(*lsrt_idxs, strict=False))[:5]:
+            for idxs in list(zip(*lsrt_idxs, strict=True))[:5]:
                 print("\t\t", idxs, lerrs[idxs])
             print("\tGreatest upper-bound errors:")
-            for idxs in list(zip(*usrt_idxs, strict=False))[:5]:
+            for idxs in list(zip(*usrt_idxs, strict=True))[:5]:
                 print("\t\t", idxs, uerrs[idxs])
 
         # chirality/planarity error (equation 62 in the paper referenced above)
         if chip_dct:
             vols = numpy.array([volume(xmat, idxs) for idxs in chip_dct.keys()])
-            lvols, uvols = map(numpy.array, zip(*chip_dct.values(), strict=False))
+            lvols, uvols = map(numpy.array, zip(*chip_dct.values(), strict=True))
             ltv = (lvols - vols) * (vols < lvols)
             utv = (vols - uvols) * (vols > uvols)
             chip_err = wchip * (numpy.vdot(ltv, ltv) + numpy.vdot(utv, utv))
@@ -182,8 +181,8 @@ def error_function_(
 
 
 def error_function_gradient_(
-    lmat,
-    umat,
+    lmat: NDArrayLike2D,
+    umat: NDArrayLike2D,
     chi_dct=None,
     pla_dct=None,
     wdist=1.0,
@@ -191,7 +190,7 @@ def error_function_gradient_(
     wdim4=1.0,
     leps=0.1,
     ueps=0.1,
-):
+) -> callable[[NDArrayLike2D], numpy.ndarray]:
     """Check the embedding error function gradient.
 
     :param lmat: lower-bound distance matrix
@@ -236,7 +235,7 @@ def error_function_gradient_(
             vol_grads = numpy.array(
                 [volume_gradient(xmat, idxs) for idxs in chip_dct.keys()]
             )
-            lvols, uvols = map(numpy.array, zip(*chip_dct.values(), strict=False))
+            lvols, uvols = map(numpy.array, zip(*chip_dct.values(), strict=True))
             ltv = (lvols - vols) * (vols < lvols)
             utv = (vols - uvols) * (vols > uvols)
             ltg = -2.0 * ltv[:, X, X] * vol_grads
@@ -260,8 +259,8 @@ def error_function_gradient_(
 
 
 def error_function_numerical_gradient_(
-    lmat,
-    umat,
+    lmat: NDArrayLike2D,
+    umat: NDArrayLike2D,
     chi_dct=None,
     pla_dct=None,
     wdist=1.0,
@@ -269,7 +268,7 @@ def error_function_numerical_gradient_(
     wdim4=1.0,
     leps=0.1,
     ueps=0.1,
-):
+) -> callable[NDArrayLike2D, numpy.ndarray]:
     """Check the gradient of the distance error function.
 
     (For testing purposes only; Used to check the analytic gradient formula.)
@@ -391,7 +390,9 @@ def cleaned_up_coordinates(
     return xmat, conv
 
 
-def default_convergence_checker_(lmat, umat, max_dist_err=0.2, grad_thresh=0.2):
+def default_convergence_checker_(
+    lmat: NDArrayLike2D, umat: NDArrayLike2D, max_dist_err=0.2, grad_thresh=0.2
+) -> callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Check for default convergence."""
     conv1_ = distance_convergence_checker_(lmat, umat, max_dist_err)
     conv2_ = gradient_convergence_checker_(grad_thresh)
@@ -416,14 +417,16 @@ def distance_convergence_checker_(lmat, umat, max_dist_err=0.2):
     return _is_converged
 
 
-def planarity_convergence_checker_(pla_dct, max_vol_err=0.2):
+def planarity_convergence_checker_(
+    pla_dct, max_vol_err=0.2
+) -> callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Convergence checker based on the maximum planarity error."""
 
     def _is_converged(xmat, err, grad):
         assert err or not err
         assert numpy.shape(xmat) == numpy.shape(grad)
         vols = numpy.array([volume(xmat, idxs) for idxs in pla_dct.keys()])
-        lvols, uvols = map(numpy.array, zip(*pla_dct.values(), strict=False))
+        lvols, uvols = map(numpy.array, zip(*pla_dct.values(), strict=True))
         lmax = numpy.amax((lvols - vols) * (vols < lvols))
         umax = numpy.amax((vols - uvols) * (vols > uvols))
         return max(lmax, umax) <= max_vol_err
@@ -431,7 +434,9 @@ def planarity_convergence_checker_(pla_dct, max_vol_err=0.2):
     return _is_converged
 
 
-def gradient_convergence_checker_(thresh=1e-1):
+def gradient_convergence_checker_(
+    thresh=1e-1,
+) -> callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Maximum gradient convergence checker."""
 
     def _is_converged(xmat, err, grad):
