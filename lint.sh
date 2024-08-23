@@ -21,6 +21,7 @@ FILES=(
     "automol/vmat.py"
     "automol/prop/_wfn.py"
     "automol/prop/freq.py"
+    "automol/embed/_cleanup.py"
 )
 
 (

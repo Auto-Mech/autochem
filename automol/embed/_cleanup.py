@@ -1,4 +1,4 @@
-""" implements geometry purification for the distance geometry algorithm
+"""implements geometry purification for the distance geometry algorithm.
 
 This is used to clean up the structure of the molecule and enforce correct
 chirality, by minimizing an error function.
@@ -30,12 +30,22 @@ import logging
 
 import numpy
 import scipy.optimize
+import tuple
+from _collections_abc import Sequence
 
 from ._dgeom import (
     distance_matrix_from_coordinates,
     greatest_distance_errors,
 )
 from ._findif import central_difference
+
+SignedVolumeContraints = dict[tuple[int, int, int, int] : tuple[float, float]]
+
+chi_dct: SignedVolumeContraints
+pla_dct: SignedVolumeContraints
+
+Sequence2D = Sequence[Sequence[float]]
+NDArrayLike2D = numpy.ndarray | Sequence2D
 
 # uncomment this line if you want the logging statements while debugging:
 # logging.basicConfig(format='%(message)s', level=logging.DEBUG)
@@ -44,7 +54,7 @@ X = numpy.newaxis
 
 
 def volume(xmat, idxs):
-    """calculate signed tetrahedral volume for a tetrad of atoms
+    """Calculate signed tetrahedral volume for a tetrad of atoms.
 
     for a tetrad of four atoms (1, 2, 3, 4) around a central atom, the signed
     volume formula of this tetrahedral pyramid is given by
@@ -65,7 +75,7 @@ def volume(xmat, idxs):
 
 
 def volume_gradient(xmat, idxs):
-    """calculate the tetrahedral volume gradient for a tetrad of atoms"""
+    """Calculate the tetrahedral volume gradient for a tetrad of atoms."""
     xmat = numpy.array(xmat)
     idxs = list(idxs)
     xyzs = xmat[:, :3][idxs]
@@ -94,7 +104,7 @@ def error_function_(
     ueps=0.1,
     log=False,
 ):
-    """the embedding error function
+    """Compute the embedding error function.
 
     :param lmat: lower-bound distance matrix
     :param umat: upper-bound distance matrix
@@ -137,16 +147,16 @@ def error_function_(
                 numpy.argsort(numpy.ravel(-uerrs)), uerrs.shape
             )
             print("\tGreatest lower-bound errors:")
-            for idxs in list(zip(*lsrt_idxs))[:5]:
+            for idxs in list(zip(*lsrt_idxs, strict=False))[:5]:
                 print("\t\t", idxs, lerrs[idxs])
             print("\tGreatest upper-bound errors:")
-            for idxs in list(zip(*usrt_idxs))[:5]:
+            for idxs in list(zip(*usrt_idxs, strict=False))[:5]:
                 print("\t\t", idxs, uerrs[idxs])
 
         # chirality/planarity error (equation 62 in the paper referenced above)
         if chip_dct:
             vols = numpy.array([volume(xmat, idxs) for idxs in chip_dct.keys()])
-            lvols, uvols = map(numpy.array, zip(*chip_dct.values()))
+            lvols, uvols = map(numpy.array, zip(*chip_dct.values(), strict=False))
             ltv = (lvols - vols) * (vols < lvols)
             utv = (vols - uvols) * (vols > uvols)
             chip_err = wchip * (numpy.vdot(ltv, ltv) + numpy.vdot(utv, utv))
@@ -182,7 +192,7 @@ def error_function_gradient_(
     leps=0.1,
     ueps=0.1,
 ):
-    """the embedding error function gradient
+    """Check the embedding error function gradient.
 
     :param lmat: lower-bound distance matrix
     :param umat: upper-bound distance matrix
@@ -226,7 +236,7 @@ def error_function_gradient_(
             vol_grads = numpy.array(
                 [volume_gradient(xmat, idxs) for idxs in chip_dct.keys()]
             )
-            lvols, uvols = map(numpy.array, zip(*chip_dct.values()))
+            lvols, uvols = map(numpy.array, zip(*chip_dct.values(), strict=False))
             ltv = (lvols - vols) * (vols < lvols)
             utv = (vols - uvols) * (vols > uvols)
             ltg = -2.0 * ltv[:, X, X] * vol_grads
@@ -260,11 +270,10 @@ def error_function_numerical_gradient_(
     leps=0.1,
     ueps=0.1,
 ):
-    """the gradient of the distance error function
+    """Check the gradient of the distance error function.
 
     (For testing purposes only; Used to check the analytic gradient formula.)
     """
-
     erf_ = error_function_(
         lmat,
         umat,
@@ -285,12 +294,12 @@ def error_function_numerical_gradient_(
 
 
 def polak_ribiere_beta(sd1, sd0):
-    """calculate the Polak-Ribiere Beta coefficient"""
+    """Calculate the Polak-Ribiere Beta coefficient."""
     return numpy.vdot(sd1, sd1 - sd0) / numpy.vdot(sd0, sd0)
 
 
 def line_search_alpha(err_, sd1, cd1):
-    """perform a line search to determine the alpha coefficient"""
+    """Perform a line search to determine the alpha coefficient."""
 
     # define the objective function
     def _function_of_alpha(alpha):
@@ -323,7 +332,7 @@ def cleaned_up_coordinates(
     dim4=True,
     log=False,
 ):
-    """clean up coordinates by conjugate-gradients error minimization
+    """Clean up coordinates by conjugate-gradients error minimization.
 
     :param xmat: the initial guess coordinates to be cleaned up
     :param lmat: lower-bound distance matrix
@@ -383,7 +392,7 @@ def cleaned_up_coordinates(
 
 
 def default_convergence_checker_(lmat, umat, max_dist_err=0.2, grad_thresh=0.2):
-    """default convergence checker"""
+    """Check for default convergence."""
     conv1_ = distance_convergence_checker_(lmat, umat, max_dist_err)
     conv2_ = gradient_convergence_checker_(grad_thresh)
 
@@ -394,7 +403,7 @@ def default_convergence_checker_(lmat, umat, max_dist_err=0.2, grad_thresh=0.2):
 
 
 def distance_convergence_checker_(lmat, umat, max_dist_err=0.2):
-    """convergence checker based on the maximum distance error"""
+    """Convergence checker based on the maximum distance error."""
 
     def _is_converged(xmat, err, grad):
         assert err or not err
@@ -408,13 +417,13 @@ def distance_convergence_checker_(lmat, umat, max_dist_err=0.2):
 
 
 def planarity_convergence_checker_(pla_dct, max_vol_err=0.2):
-    """convergence checker based on the maximum planarity error"""
+    """Convergence checker based on the maximum planarity error."""
 
     def _is_converged(xmat, err, grad):
         assert err or not err
         assert numpy.shape(xmat) == numpy.shape(grad)
         vols = numpy.array([volume(xmat, idxs) for idxs in pla_dct.keys()])
-        lvols, uvols = map(numpy.array, zip(*pla_dct.values()))
+        lvols, uvols = map(numpy.array, zip(*pla_dct.values(), strict=False))
         lmax = numpy.amax((lvols - vols) * (vols < lvols))
         umax = numpy.amax((vols - uvols) * (vols > uvols))
         return max(lmax, umax) <= max_vol_err
@@ -423,7 +432,7 @@ def planarity_convergence_checker_(pla_dct, max_vol_err=0.2):
 
 
 def gradient_convergence_checker_(thresh=1e-1):
-    """maximum gradient convergence checker"""
+    """Maximum gradient convergence checker."""
 
     def _is_converged(xmat, err, grad):
         assert numpy.shape(xmat) == numpy.shape(grad)
@@ -437,7 +446,7 @@ def gradient_convergence_checker_(thresh=1e-1):
 
 
 def minimize_error(xmat, err_, grad_, conv_, maxiter=None):
-    """do conjugate-gradients error minimization
+    """Do conjugate-gradients error minimization.
 
     :param err_: a callable error function of xmat
     :param grad_: a callable error gradient function of xmat
