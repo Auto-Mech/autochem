@@ -72,7 +72,7 @@ from ._extra import samples
 from ._extra import constraint_dict
 from ._extra import set_constraint_names
 from ._extra import samples_avg_dih
-#from ._extra import checks_with_crest
+from ._extra import checks_with_crest
 
 
 __all__ = [
@@ -145,5 +145,5 @@ __all__ = [
     'samples_avg_dih',
     'constraint_dict',
     'set_constraint_names',
-#    'checks_with_crest',
+    'checks_with_crest',
 ]
