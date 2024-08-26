@@ -109,7 +109,7 @@ from ._ring import ring_distances
 from ._ring import ring_dihedrals
 from ._ring import ring_distances_reasonable
 from ._ring import complete_ring_dihedrals
-
+from ._ring import checks_with_crest
 
 __all__ = [
     # L2
@@ -212,4 +212,5 @@ __all__ = [
     'ring_dihedrals',
     'complete_ring_dihedrals',
     'ring_distances_reasonable',
+    'checks_with_crest',
 ]
