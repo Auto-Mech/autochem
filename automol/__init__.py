@@ -17,7 +17,7 @@ Level 1: No dependencies; no interdependencies
  - form
  - inchi_key
  - vmat
- -  prop
+ - prop
  -  embed
 
 Level 2: L1 dependencies; hierarchical interdependency (descending)
