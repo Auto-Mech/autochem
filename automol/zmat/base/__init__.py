@@ -71,6 +71,7 @@ from ._core import almost_equal
 from ._extra import samples
 from ._extra import constraint_dict
 from ._extra import set_constraint_names
+from ._extra import samples_avg_dih
 
 
 __all__ = [
@@ -140,6 +141,7 @@ __all__ = [
     'neighbor_keys',
     # extra functions
     'samples',
+    'samples_avg_dih',
     'constraint_dict',
     'set_constraint_names',
 ]

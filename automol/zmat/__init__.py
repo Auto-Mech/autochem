@@ -78,6 +78,7 @@ from .base._core import almost_equal
 from .base._extra import samples
 from .base._extra import constraint_dict
 from .base._extra import set_constraint_names
+from .base._extra import samples_avg_dih
 # L4
 # conversion functions
 # # conversions
@@ -107,6 +108,7 @@ from ._ring import all_rings_distances_reasonable
 from ._ring import ring_distances
 from ._ring import ring_dihedrals
 from ._ring import ring_distances_reasonable
+from ._ring import complete_ring_dihedrals
 
 
 __all__ = [
@@ -176,6 +178,7 @@ __all__ = [
     'neighbor_keys',
     # extra base functions
     'samples',
+    'samples_avg_dih',
     'constraint_dict',
     'set_constraint_names',
     'coordinate',
@@ -207,5 +210,6 @@ __all__ = [
     'all_rings_distances_reasonable',
     'ring_distances',
     'ring_dihedrals',
+    'complete_ring_dihedrals',
     'ring_distances_reasonable'
 ]

@@ -62,6 +62,10 @@ def all_rings_atoms(zma, tsg=None):
             ring_atoms = sorted(ring_atoms)
             # Connectivity should still be preserved,
             # If it is not COME BACK HERE AND FIX
+
+            # TODO - test- 
+            # I think it is not ALWAYS preserved (see fused rings!!) so maybe I should remove the sort
+
             rings_atoms.append(tuple(ring_atoms))
             rings_atoms = frozenset(rings_atoms)
 
@@ -89,7 +93,8 @@ def all_rings_distances_reasonable(zma, rings_atoms):
     :param rng_atoms: idxs for atoms inside rings
     :type rng_atoms: list
     """
-
+    # TODO HOW CAN IT EVER BE FALSE IF I CREATE VALUE DCT AND USE IT WITH SAME ZMA
+    # Currently only used in tests
     condition = True
     for ring_atoms in rings_atoms:
         dist_val_dct = ring_distances(zma, ring_atoms)
@@ -106,7 +111,8 @@ def all_rings_dihedrals(zma, rings_atoms):
     :param rng_atoms: idxs for atoms inside rings
     :type rng_atoms: list
     """
-    return tuple(ring_dihedrals(zma, ring_atoms) for ring_atoms in rings_atoms)
+    #return tuple(ring_dihedrals(zma, ring_atoms) for ring_atoms in rings_atoms)
+    return tuple(complete_ring_dihedrals(zma, ring_atoms) for ring_atoms in rings_atoms)
 
 
 def all_rings_dct(zma, rings_atoms):
@@ -176,6 +182,28 @@ def ring_dihedrals(zma, rng_atoms):
     for da_name in da_names:
         da_idxs = list(coos[da_name])[0]
         if len(list(set(da_idxs) & set(rng_atoms))) == 4:
+            ring_value_dct[da_name] = val_dct[da_name]
+
+    return ring_value_dct
+
+def complete_ring_dihedrals(zma, rng_atoms):
+    """Get ring dihedral names and their angle values
+    of all the atoms involved in a ring, not only N-3 dihs
+
+    :param zma: Z-Matrix
+    :type zma: automol.zmat object
+    :param rng_atoms: idxs for atoms inside rings
+    :type rng_atoms: list
+    """
+
+    coos = coordinates(zma)
+    da_names = dihedral_angle_names(zma)
+    val_dct = value_dictionary(zma)
+
+    ring_value_dct = {}
+    for da_name in da_names:
+        da_idxs = list(coos[da_name])[0]
+        if da_idxs[0] in rng_atoms:
             ring_value_dct[da_name] = val_dct[da_name]
 
     return ring_value_dct
