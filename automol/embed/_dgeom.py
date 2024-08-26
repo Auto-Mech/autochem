@@ -1,4 +1,4 @@
-""" implements the basic distance geometry algoirthm
+"""implements the basic distance geometry algoirthm.
 
 This algorithm generates approximate geometries by a randomized guess at the
 distance matrix, within heuristic distance bounds, which is then converted to
@@ -33,12 +33,17 @@ Step 7 is a whole separate algorithm which is undertaken in a separate file in
 this module.
 """
 import itertools
+
 import numpy
+from _collections_abc import Sequence
+
+Sequence2D = Sequence[Sequence[float]]
+
+MatrixLike = numpy.ndarray | Sequence2D
 
 
-def sample_raw_distance_coordinates(lmat, umat, dim4=True):
-    """ sample raw (uncorrected) distance coordinates
-    """
+def sample_raw_distance_coordinates(lmat: MatrixLike, umat: MatrixLike, dim4=True):
+    """Sample raw (uncorrected) distance coordinates."""
     # 2. Triangle-smooth the bounds matrices
     lmat, umat = triangle_smooth_bounds_matrices(lmat, umat)
 
@@ -54,8 +59,8 @@ def sample_raw_distance_coordinates(lmat, umat, dim4=True):
     return xmat
 
 
-def triangle_smooth_bounds_matrices(lmat, umat):
-    """ smoothing of the bounds matrix by triangle inequality
+def triangle_smooth_bounds_matrices(lmat: MatrixLike, umat: MatrixLike):
+    """Smoothing of the bounds matrix by triangle inequality.
 
     Dress, A. W. M.; Havel, T. F. "Shortest-Path Problems and Molecular
     Conformation"; Discrete Applied Mathematics (1988) 19 p. 129-144.
@@ -80,13 +85,16 @@ def triangle_smooth_bounds_matrices(lmat, umat):
 
             assert lmat[i, j] <= umat[i, j], (
                 "Lower bound exceeds upper bound. Something is wrong!",
-                lmat[i, j], ">", umat[i, j])
+                lmat[i, j],
+                ">",
+                umat[i, j],
+            )
 
     return lmat, umat
 
 
-def sample_distance_matrix(lmat, umat):
-    """ determine a random distance matrix based on the bounds matrices
+def sample_distance_matrix(lmat: MatrixLike, umat: MatrixLike):
+    """Determine a random distance matrix based on the bounds matrices.
 
     That is, a random guess at d_ij = |r_i - r_j|
     """
@@ -100,8 +108,8 @@ def sample_distance_matrix(lmat, umat):
     return dmat
 
 
-def distances_from_center(dmat):
-    """ get the vector of distances from the center (average position)
+def distances_from_center(dmat: MatrixLike):
+    """Get the vector of distances from the center (average position).
 
     The "center" in this case is the average of the position vectors. The
     elements of this vector are therefore dc_i = |r_c - r_i|.
@@ -122,19 +130,20 @@ def distances_from_center(dmat):
     dcvec = numpy.zeros((natms,))
 
     for i in range(natms):
-        sum_dij2 = sum(dmat[i, j]**2 for j in range(natms))
-        sum_djk2 = sum(dmat[j, k]**2 for j, k in
-                       itertools.combinations(range(natms), 2))
+        sum_dij2 = sum(dmat[i, j] ** 2 for j in range(natms))
+        sum_djk2 = sum(
+            dmat[j, k] ** 2 for j, k in itertools.combinations(range(natms), 2)
+        )
 
-        dci2 = numpy.abs(sum_dij2/natms - sum_djk2/(natms**2))
+        dci2 = numpy.abs(sum_dij2 / natms - sum_djk2 / (natms**2))
 
         dcvec[i] = numpy.sqrt(dci2)
 
     return dcvec
 
 
-def metric_matrix(dmat):
-    """ the matrix of of position vector dot products, with a central origin
+def metric_matrix(dmat: MatrixLike):
+    """Compute the matrix of position vector dot products, with a central origin.
 
     "Central" in this case mean the average of the position vectors. So these
     elements are g_ij = (r_i - r_c).(r_j - r_c) where r_c is the average
@@ -154,14 +163,13 @@ def metric_matrix(dmat):
     gmat = numpy.eye(natms)
 
     for i, j in itertools.product(range(natms), range(natms)):
-        gmat[i, j] = (dcvec[i]**2 + dcvec[j]**2 - dmat[i, j]**2)/2.
+        gmat[i, j] = (dcvec[i] ** 2 + dcvec[j] ** 2 - dmat[i, j] ** 2) / 2.0
 
     return gmat
 
 
-def coordinates_from_metric_matrix(gmat, dim4=False):
-    """ determine molecule coordinates from the metric matrix
-    """
+def coordinates_from_metric_matrix(gmat: MatrixLike, dim4=False):
+    """Determine molecule coordinates from the metric matrix."""
     gmat = numpy.array(gmat)
 
     dim = 3 if not dim4 else 4
@@ -178,8 +186,8 @@ def coordinates_from_metric_matrix(gmat, dim4=False):
     return xmat
 
 
-def metric_matrix_from_coordinates(xmat):
-    """ determine the metric matrix from coordinates
+def metric_matrix_from_coordinates(xmat: MatrixLike):
+    """Determine the metric matrix from coordinates.
 
     (for testing purposes only!)
     """
@@ -187,8 +195,8 @@ def metric_matrix_from_coordinates(xmat):
     return xmat @ xmat.T
 
 
-def distance_matrix_from_coordinates(xmat, dim4=True):
-    """ determine the distance matrix from coordinates
+def distance_matrix_from_coordinates(xmat: MatrixLike, dim4=True):
+    """Determine the distance matrix from coordinates.
 
     (for testing purposes only!)
     """
@@ -206,14 +214,15 @@ def distance_matrix_from_coordinates(xmat, dim4=True):
     return dmat
 
 
-def greatest_distance_errors(dmat, lmat, umat, count=10):
-    """ get the indices of the maximum distance errors
-    """
+def greatest_distance_errors(
+    dmat: MatrixLike, lmat: MatrixLike, umat: MatrixLike, count=10
+):
+    """Get the indices of the maximum distance errors."""
     lerrs = (lmat - dmat) * (lmat >= dmat)
     uerrs = (dmat - umat) * (dmat >= umat)
     errs = numpy.maximum(lerrs, uerrs)
     idx_vecs = numpy.unravel_index(numpy.argsort(-errs, axis=None), errs.shape)
     vals = errs[idx_vecs][:count]
-    idxs = tuple(map(tuple, zip(*idx_vecs)))[:count]
-    err_dct = dict(zip(idxs, vals))
+    idxs = tuple(map(tuple, zip(*idx_vecs, strict=True)))[:count]
+    err_dct = dict(zip(idxs, vals, strict=True))
     return err_dct

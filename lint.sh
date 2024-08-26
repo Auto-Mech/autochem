@@ -22,6 +22,7 @@ FILES=(
     "automol/prop/_wfn.py"
     "automol/prop/freq.py"
     "automol/embed/_cleanup.py"
+    "automol/embed/_dgeom.py"
 )
 
 (
