@@ -13,8 +13,8 @@ from ._conv import (
 )
 from .base import (
     central_angle,
-    dihedral_angle, 
-    subgeom, 
+    dihedral_angle,
+    subgeom,
     from_xyz_trajectory_string,
     xyz_string,
     string,
@@ -97,7 +97,7 @@ def ring_only_geometry(geo, rings_atoms=None):
     :param geo: molecular geometry
     :type geo: automol.geom object
     """
-    
+
     if rings_atoms is None:
         gra = graph(geo)
         rings_atoms = graph_base.rings_atom_keys(gra)
@@ -233,7 +233,7 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
         std = np.std(features, axis=0)
         normalized_features = (features - mean) / std
         return normalized_features
-    
+
     def min_max_normalize(features):
         """min-max normalization (all values between 0 and 1)
 
@@ -246,7 +246,7 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
         max_val = np.max(features, axis=0)
         normalized_features = (features - min_val) / (max_val - min_val)
         return normalized_features
-    
+
     def dbscan(features, eps, min_samples=1):
         """Density based clustering algorithm
 
@@ -263,7 +263,7 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
         def find_neighbors(features,point):
             distances = np.linalg.norm(features - features[point], axis=1)
             return np.asarray(distances <= eps).nonzero()[0]
-        
+
         num_points = features.shape[0]
         labels = np.full(num_points, 0)  # Initialize all labels as 0 (unclassified)
         cluster_id = 1
@@ -283,7 +283,7 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
                 i = 0
                 while i < len(neighbors):
                     neighbor_point = neighbors[i]
-                    if labels[neighbor_point] == -1:  # Noise point becomes part of the cluster
+                    if labels[neighbor_point] == -1:  # Noise point in cluster
                         labels[neighbor_point] = cluster_id
                     elif labels[neighbor_point] == 0:  # New unvisited point
                         labels[neighbor_point] = cluster_id
@@ -301,12 +301,13 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
     crest_dir_prefix = "crest_checks"
     dirs_lst = [dir for dir in os.listdir() if crest_dir_prefix in dir]
     folder_nums = []
-    if not dirs_lst: crest_dir = crest_dir_prefix+"_1"
+    if not dirs_lst: 
+        crest_dir = crest_dir_prefix+"_1"
     else:
         for direc in dirs_lst:
-            folder_nums.append(int(direc.split("_")[2])) 
+            folder_nums.append(int(direc.split("_")[2]))
         crest_dir = f"{crest_dir_prefix}_{max(folder_nums) + 1}"
-    os.system(f"mkdir -p {crest_dir}") 
+    os.system(f"mkdir -p {crest_dir}")
     print(f"\n####\nWorking in {crest_dir}\n####\n")
 
     crest_check = f'''cp {filename} {crest_dir}
@@ -315,18 +316,18 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
                 cd {crest_dir}
                 crest --for {filename} --prop singlepoint --ewin 100. &> crest_ouput.out
                 '''
-    p = subprocess.Popen(crest_check, stdout=subprocess.PIPE, shell=True)
-    output, err = p.communicate()
-    p_status = p.wait()
+    with subprocess.Popen(crest_check, stdout=subprocess.PIPE, shell=True) as p:
+        output, err = p.communicate()
+        p_status = p.wait()
 
-    with open(f"{crest_dir}/crest_ensemble.xyz","r") as f:
+    with open(f"{crest_dir}/crest_ensemble.xyz","r",encoding="utf-8") as f:
         geo_list = from_xyz_trajectory_string(f.read())
     crest_geos = [geo for geo,_ in geo_list]
     print("rings_atoms: ", rings_atoms)
     sub_geos = [ring_only_geometry(geoi,rings_atoms) for geoi in crest_geos]
 
     subgeo_strings = []
-    with open("sub_geoms.xyz","w") as f:
+    with open("sub_geoms.xyz","w",encoding="utf-8") as f:
         for geoi in sub_geos:
             geo_string = xyz_string(geoi, comment="  ")
             subgeo_strings.append(geo_string)
@@ -349,7 +350,8 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
         z_local = []
         for ring_atoms in rings_atoms:
             geo_string = string(geoi, angstrom=True)
-            geo_list = [ [float(x) for x in line.split()[1:]] for line in geo_string.split('\n') ]
+            geo_list = [ [float(x) for x in line.split(
+                        )[1:]] for line in geo_string.split('\n') ]
             coords = [xyz for i,xyz in enumerate(geo_list) if i in ring_atoms]
             coords = np.array(coords)
             coords = translate_to_ring_center(coords)
@@ -390,7 +392,7 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
         if label not in visited_labels:
             visited_labels.add(label)
             unique_geos.append(geoi)
-    
+
     unique_zmas = [from_geometry(vma, geoi) for geoi in unique_geos]
 
     return unique_zmas

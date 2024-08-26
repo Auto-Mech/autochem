@@ -63,8 +63,9 @@ def all_rings_atoms(zma, tsg=None):
             # Connectivity should still be preserved,
             # If it is not COME BACK HERE AND FIX
 
-            # TODO - test- 
-            # I think it is not ALWAYS preserved (see fused rings!!) so maybe I should remove the sort
+            # TODO - test
+            # I think it is not ALWAYS preserved (see fused rings!!)
+            #  so maybe I should remove the sort
 
             rings_atoms.append(tuple(ring_atoms))
             rings_atoms = frozenset(rings_atoms)
