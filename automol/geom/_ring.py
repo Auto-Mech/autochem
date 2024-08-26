@@ -1,8 +1,6 @@
 """ get lvl 4
 """
 
-import os
-import subprocess
 import numpy as np
 
 from phydat import phycon

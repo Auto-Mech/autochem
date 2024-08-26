@@ -2,9 +2,10 @@
 """
 
 import math
-import numpy
 import os
 import subprocess
+import numpy
+
 
 from ..graph import base as graph_base
 from ._conv import (
