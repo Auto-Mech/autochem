@@ -152,7 +152,6 @@ from ._ring import mean_ring_plane
 from ._ring import normal_to_ring_plane
 from ._ring import get_displacement
 from ._ring import cremer_pople_params
-from ._ring import checks_with_crest
 
 
 __all__ = [
@@ -296,5 +295,4 @@ __all__ = [
     'normal_to_ring_plane',
     'get_displacement',
     'cremer_pople_params',
-    'checks_with_crest',
 ]
