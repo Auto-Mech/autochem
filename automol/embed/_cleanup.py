@@ -50,7 +50,7 @@ NDArrayLike2D = numpy.ndarray | Sequence2D
 X = numpy.newaxis
 
 
-def volume(xmat:NDArrayLike2D, idxs:list):
+def volume(xmat: NDArrayLike2D, idxs: list):
     """Calculate signed tetrahedral volume for a tetrad of atoms.
 
     for a tetrad of four atoms (1, 2, 3, 4) around a central atom, the signed
@@ -71,7 +71,7 @@ def volume(xmat:NDArrayLike2D, idxs:list):
     return vol
 
 
-def volume_gradient(xmat:NDArrayLike2D, idxs:list):
+def volume_gradient(xmat: NDArrayLike2D, idxs: list):
     """Calculate the tetrahedral volume gradient for a tetrad of atoms."""
     xmat = numpy.array(xmat)
     idxs = list(idxs)
@@ -122,7 +122,7 @@ def error_function_(
     pla_dct = {} if pla_dct is None else pla_dct
     chip_dct = {**chi_dct, **pla_dct}
 
-    def _function(xmat:NDArrayLike2D):
+    def _function(xmat: NDArrayLike2D):
         dmat = distance_matrix_from_coordinates(xmat)
 
         # distance error (equation 61 in the paper referenced above)
@@ -259,8 +259,8 @@ def error_function_gradient_(
 def error_function_numerical_gradient_(
     lmat: NDArrayLike2D,
     umat: NDArrayLike2D,
-    chi_dct:SignedVolumeContraints=None,
-    pla_dct:SignedVolumeContraints=None,
+    chi_dct: SignedVolumeContraints = None,
+    pla_dct: SignedVolumeContraints = None,
     wdist=1.0,
     wchip=1.0,
     wdim4=1.0,
@@ -316,11 +316,11 @@ def line_search_alpha(err_, sd1, cd1):
 
 
 def cleaned_up_coordinates(
-    xmat:NDArrayLike2D,
-    lmat:NDArrayLike2D,
-    umat:NDArrayLike2D,
-    chi_dct:SignedVolumeContraints=None,
-    pla_dct:SignedVolumeContraints=None,
+    xmat: NDArrayLike2D,
+    lmat: NDArrayLike2D,
+    umat: NDArrayLike2D,
+    chi_dct: SignedVolumeContraints = None,
+    pla_dct: SignedVolumeContraints = None,
     conv_=None,
     max_dist_err=0.2,
     grad_thresh=0.2,
@@ -401,7 +401,9 @@ def default_convergence_checker_(
     return _is_converged
 
 
-def distance_convergence_checker_(lmat:NDArrayLike2D, umat:NDArrayLike2D, max_dist_err=0.2):
+def distance_convergence_checker_(
+    lmat: NDArrayLike2D, umat: NDArrayLike2D, max_dist_err=0.2
+):
     """Convergence checker based on the maximum distance error."""
 
     def _is_converged(xmat, err, grad):
@@ -448,7 +450,7 @@ def gradient_convergence_checker_(
     return _is_converged
 
 
-def minimize_error(xmat:NDArrayLike2D, err_, grad_, conv_, maxiter=None):
+def minimize_error(xmat: NDArrayLike2D, err_, grad_, conv_, maxiter=None):
     """Do conjugate-gradients error minimization.
 
     :param err_: a callable error function of xmat
