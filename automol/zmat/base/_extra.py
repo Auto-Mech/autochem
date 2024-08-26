@@ -15,11 +15,11 @@ from ._core import (
     from_geometry,
 )
 from ._core import value, set_key_matrix
-from ...geom import dihedral_angle
 #from ...zmat import coordinates as zcoords
 from ...vmat import coordinates, key_matrix
 
 from ...geom.base import (
+    dihedral_angle,
     from_xyz_trajectory_string,
     xyz_string,
     string,
