@@ -25,7 +25,7 @@ from ..geom.base import (
     xyz_string,
     string,
 )
-from geom._ring import (
+from ..geom._ring import (
     translate_to_ring_center,
     get_displacement,
     ring_only_geometry,
