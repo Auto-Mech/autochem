@@ -30,7 +30,7 @@ import logging
 
 import numpy
 import scipy.optimize
-from _collections_abc import Sequence
+from _collections_abc import Callable, Sequence
 
 from ._dgeom import (
     distance_matrix_from_coordinates,
@@ -40,8 +40,6 @@ from ._findif import central_difference
 
 SignedVolumeContraints = dict[tuple[int, int, int, int] : tuple[float, float]]
 
-chi_dct: SignedVolumeContraints
-pla_dct: SignedVolumeContraints
 
 Sequence2D = Sequence[Sequence[float]]
 NDArrayLike2D = numpy.ndarray | Sequence2D
@@ -94,15 +92,15 @@ def volume_gradient(xmat, idxs):
 def error_function_(
     lmat: NDArrayLike2D,
     umat: NDArrayLike2D,
-    chi_dct=None,
-    pla_dct=None,
+    chi_dct: SignedVolumeContraints = None,
+    pla_dct: SignedVolumeContraints = None,
     wdist=1.0,
     wchip=1.0,
     wdim4=1.0,
     leps=0.1,
     ueps=0.1,
     log=False,
-) -> callable[[NDArrayLike2D], float]:
+) -> Callable[[NDArrayLike2D], float]:
     """Compute the embedding error function.
 
     :param lmat: lower-bound distance matrix
@@ -183,14 +181,14 @@ def error_function_(
 def error_function_gradient_(
     lmat: NDArrayLike2D,
     umat: NDArrayLike2D,
-    chi_dct=None,
-    pla_dct=None,
+    chi_dct: SignedVolumeContraints = None,
+    pla_dct: SignedVolumeContraints = None,
     wdist=1.0,
     wchip=1.0,
     wdim4=1.0,
     leps=0.1,
     ueps=0.1,
-) -> callable[[NDArrayLike2D], numpy.ndarray]:
+) -> Callable[[NDArrayLike2D], numpy.ndarray]:
     """Check the embedding error function gradient.
 
     :param lmat: lower-bound distance matrix
@@ -268,7 +266,7 @@ def error_function_numerical_gradient_(
     wdim4=1.0,
     leps=0.1,
     ueps=0.1,
-) -> callable[NDArrayLike2D, numpy.ndarray]:
+) -> Callable[[NDArrayLike2D], numpy.ndarray]:
     """Check the gradient of the distance error function.
 
     (For testing purposes only; Used to check the analytic gradient formula.)
@@ -392,7 +390,7 @@ def cleaned_up_coordinates(
 
 def default_convergence_checker_(
     lmat: NDArrayLike2D, umat: NDArrayLike2D, max_dist_err=0.2, grad_thresh=0.2
-) -> callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
+) -> Callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Check for default convergence."""
     conv1_ = distance_convergence_checker_(lmat, umat, max_dist_err)
     conv2_ = gradient_convergence_checker_(grad_thresh)
@@ -419,7 +417,7 @@ def distance_convergence_checker_(lmat, umat, max_dist_err=0.2):
 
 def planarity_convergence_checker_(
     pla_dct, max_vol_err=0.2
-) -> callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
+) -> Callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Convergence checker based on the maximum planarity error."""
 
     def _is_converged(xmat, err, grad):
@@ -436,7 +434,7 @@ def planarity_convergence_checker_(
 
 def gradient_convergence_checker_(
     thresh=1e-1,
-) -> callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
+) -> Callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Maximum gradient convergence checker."""
 
     def _is_converged(xmat, err, grad):
