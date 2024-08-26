@@ -7,17 +7,17 @@ import itertools
 
 import numpy
 
-from ._core import set_values_by_name, value_dictionary
-from ._core import value, set_key_matrix
-from ...geom import dihedral_angle
-from ...zmat import coordinates as zcoords
-from ...vmat import coordinates, key_matrix
+from . import coordinates as zcoords
 
 from ._core import (
-    coordinates,
+    set_values_by_name, 
     value_dictionary,
     from_geometry,
 )
+from ._core import value, set_key_matrix
+from ...geom import dihedral_angle
+#from ...zmat import coordinates as zcoords
+from ...vmat import coordinates, key_matrix
 
 from ...geom.base import (
     dihedral_angle,
