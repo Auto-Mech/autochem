@@ -20,8 +20,6 @@ from .base import (
     string,
 )
 
-from automol.zmat.base import from_geometry
-
 ATHRESH = 80.0 * phycon.DEG2RAD
 
 
@@ -301,7 +299,7 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
     crest_dir_prefix = "crest_checks"
     dirs_lst = [dir for dir in os.listdir() if crest_dir_prefix in dir]
     folder_nums = []
-    if not dirs_lst: 
+    if not dirs_lst:
         crest_dir = crest_dir_prefix+"_1"
     else:
         for direc in dirs_lst:
@@ -393,6 +391,4 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
             visited_labels.add(label)
             unique_geos.append(geoi)
 
-    unique_zmas = [from_geometry(vma, geoi) for geoi in unique_geos]
-
-    return unique_zmas
+    return unique_geos
