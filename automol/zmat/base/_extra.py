@@ -5,9 +5,8 @@ import itertools
 
 import numpy
 
-from ...vmat import coordinates
 from ._core import set_values_by_name, value_dictionary
-
+from ...vmat import coordinates
 
 def samples(zma, nsamp, range_dct):
     """randomly sample over torsional dihedrals"""

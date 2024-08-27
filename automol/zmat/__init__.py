@@ -107,6 +107,9 @@ from ._ring import all_rings_distances_reasonable
 from ._ring import ring_distances
 from ._ring import ring_dihedrals
 from ._ring import ring_distances_reasonable
+from ._ring import complete_ring_dihedrals
+from ._ring import samples_avg_dih
+
 
 
 __all__ = [
@@ -207,5 +210,7 @@ __all__ = [
     'all_rings_distances_reasonable',
     'ring_distances',
     'ring_dihedrals',
-    'ring_distances_reasonable'
+    'complete_ring_dihedrals',
+    'ring_distances_reasonable',
+    'samples_avg_dih',
 ]

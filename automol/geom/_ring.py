@@ -1,6 +1,8 @@
 """ get lvl 4
 """
 
+import os
+import subprocess
 import numpy as np
 
 from phydat import phycon
@@ -9,7 +11,14 @@ from ..graph import base as graph_base
 from ._conv import (
     graph,
 )
-from .base import central_angle, subgeom
+from .base import (
+    central_angle,
+    dihedral_angle,
+    subgeom,
+    from_xyz_trajectory_string,
+    xyz_string,
+    string,
+)
 
 ATHRESH = 80.0 * phycon.DEG2RAD
 
@@ -74,6 +83,30 @@ def ring_fragments_geometry(geo, rings_atoms=None, ngbs=None):
             for ngb in ring_ngbs:
                 if ngb not in ring_idxs:
                     ring_idxs.append(ngb)
+    if ring_idxs:
+        ret = subgeom(geo, ring_idxs)
+
+    return ret
+
+def ring_only_geometry(geo, rings_atoms=None):
+    """Fragment out the rings in a geometry.
+    How to deal with geos in which rings are not connected??
+
+    :param geo: molecular geometry
+    :type geo: automol.geom object
+    """
+
+    if rings_atoms is None:
+        gra = graph(geo)
+        rings_atoms = graph_base.rings_atom_keys(gra)
+
+    ring_idxs = []
+    ret = None
+    for ring_atoms in rings_atoms:
+        for ring_atom in ring_atoms:
+            if ring_atom not in ring_idxs:
+                ring_idxs.append(ring_atom)
+
     if ring_idxs:
         ret = subgeom(geo, ring_idxs)
 
@@ -168,3 +201,188 @@ def cremer_pople_params(coords):
         angle = np.arctan2(qsin,qcos).tolist()
 
     return (amplitude, angle), z.tolist()
+
+
+def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
+    """Performs checks on ring geometries to determine unique sampling points for
+    puckering protocol
+
+    :param filename: input file containing geometries, molden style
+    :type filename: string
+    :param spc_info: input file containing geometries, molden style
+    :type spc_info: automech data structure
+    :param rings_atoms: list of all atoms in rings
+    :type rings_atoms: list of lists of ints
+    :output unique_zmas: Z-matrices of unique samples
+    :type unique_zmas: list of automol.zmat objects
+    """
+    # Possible normalizations, worsened the performance for the puckering
+    # def z_score_normalize(features):
+    #     """z-score normalization (0 mean, 1 std)
+
+    #     :param features: array of features
+    #     :type features: np.array
+    #     :output normalized_features: array of normalized features
+    #     :type normalized_features: np.array
+    #     """
+    #     mean = np.mean(features, axis=0)
+    #     std = np.std(features, axis=0)
+    #     normalized_features = (features - mean) / std
+    #     return normalized_features
+
+    # def min_max_normalize(features):
+    #     """min-max normalization (all values between 0 and 1)
+
+    #     :param features: array of features
+    #     :type features: np.array
+    #     :output normalized_features: array of normalized features
+    #     :type normalized_features: np.array
+    #     """
+    #     min_val = np.min(features, axis=0)
+    #     max_val = np.max(features, axis=0)
+    #     normalized_features = (features - min_val) / (max_val - min_val)
+    #     return normalized_features
+
+    def dbscan(features, eps, min_samples=1):
+        """Density based clustering algorithm
+
+        :param features: array of features
+        :type features: np.array
+        :param eps: pradius of a neighborhood centered on a given point
+        :type eps: cluster
+        :param min_samples: minimum number of points in cluster
+        :type min_samples: int
+        :output labels: list of labels for each data point
+        :type labels: list of ints from 1 to n_clusters
+        """
+
+        def find_neighbors(features,point):
+            distances = np.linalg.norm(features - features[point], axis=1)
+            return np.asarray(distances <= eps).nonzero()[0]
+
+        num_points = features.shape[0]
+        labels = np.full(num_points, 0)  # Initialize all labels as 0 (unclassified)
+        cluster_id = 1
+
+        for point in range(num_points):
+            print(f"Working on point {point}, initial label is {labels[point]}")
+            if labels[point] != 0:  # Skip if already classified
+                continue
+
+            # Find neighbors
+            neighbors = find_neighbors(features,point)
+            print(f"Initial neighbors: {neighbors}")
+            if len(neighbors) < min_samples:
+                labels[point] = -1  # Mark as noise
+            else:
+                labels[point] = cluster_id
+                i = 0
+                while i < len(neighbors):
+                    neighbor_point = neighbors[i]
+                    if labels[neighbor_point] == -1:  # Noise point in cluster
+                        labels[neighbor_point] = cluster_id
+                    elif labels[neighbor_point] == 0:  # New unvisited point
+                        labels[neighbor_point] = cluster_id
+                        # Find more neighbors of this point
+                        new_neighbors = find_neighbors(features,neighbor_point)
+                        if len(new_neighbors) >= min_samples:
+                            neighbors = np.concatenate((neighbors, new_neighbors))
+                    i += 1
+                cluster_id += 1
+            print(f"Now label is {labels[point]}")
+
+        return labels
+
+    # Setup crest subfolder
+    crest_dir_prefix = "crest_checks"
+    dirs_lst = [dir for dir in os.listdir() if crest_dir_prefix in dir]
+    folder_nums = []
+    if not dirs_lst:
+        crest_dir = crest_dir_prefix+"_1"
+    else:
+        for direc in dirs_lst:
+            folder_nums.append(int(direc.split("_")[2]))
+        crest_dir = f"{crest_dir_prefix}_{max(folder_nums) + 1}"
+    os.system(f"mkdir -p {crest_dir}")
+    print(f"\n####\nWorking in {crest_dir}\n####\n")
+
+    crest_check = f'''cp {filename} {crest_dir}
+                echo {spc_info[-2]} > {crest_dir}/.CHRG
+                echo {int(spc_info[-1])-1} > {crest_dir}/.UHF
+                cd {crest_dir}
+                crest --for {filename} --prop singlepoint --ewin 100. &> crest_ouput.out
+                '''
+    with subprocess.Popen(crest_check, stdout=subprocess.PIPE, shell=True) as p:
+        p.communicate()
+        p.wait()
+
+    with open(f"{crest_dir}/crest_ensemble.xyz","r",encoding="utf-8") as f:
+        geo_list = from_xyz_trajectory_string(f.read())
+    crest_geos = [geo for geo,_ in geo_list]
+    print("rings_atoms: ", rings_atoms)
+    sub_geos = [ring_only_geometry(geoi,rings_atoms) for geoi in crest_geos]
+
+    subgeo_strings = []
+    with open("sub_geoms.xyz","w",encoding="utf-8") as f:
+        for geoi in sub_geos:
+            geo_string = xyz_string(geoi, comment="  ")
+            subgeo_strings.append(geo_string)
+            f.write(geo_string+"\n")
+
+    # Calculate RMSD for each pair of molecules
+    import rdkit
+    mols = [rdkit.Chem.rdmolfiles.MolFromXYZBlock(geoi) for geoi in subgeo_strings]
+    num_mols = len(mols)
+    rmsd_matrix = np.zeros((num_mols, num_mols))
+    for i in range(num_mols):
+        for j in range(i+1, num_mols):
+            rmsd = rdkit.Chem.AllChem.GetBestRMS(mols[i], mols[j])
+            rmsd_matrix[i, j] = rmsd
+            rmsd_matrix[j, i] = rmsd
+
+    # Compute displacements from mean ring planes
+    z_list = []
+    for geoi in crest_geos:
+        z_local = []
+        for ring_atoms in rings_atoms:
+            geo_string = string(geoi, angstrom=True)
+            geo_list = [ [float(x) for x in line.split(
+                        )[1:]] for line in geo_string.split('\n') ]
+            coords = [xyz for i,xyz in enumerate(geo_list) if i in ring_atoms]
+            coords = np.array(coords)
+            coords = translate_to_ring_center(coords)
+            z = get_displacement(coords)
+            z_local.extend(z)
+        z_list.append(z_local)
+    input_z = np.array(z_list)
+
+    # Compute dihedrals of rings atoms
+    dih_list = []
+    for geoi in crest_geos:
+        dih_local = []
+        for ring_atoms in rings_atoms:
+            for i in range(len(ring_atoms)):
+                idxs = [ring_atoms[j%len(ring_atoms)] for j in range(i,i+4)]
+                dih = dihedral_angle(geoi,*idxs)
+                if dih > np.pi:
+                    dih -= 2*np.pi
+                elif dih < -np.pi:
+                    dih += 2*np.pi
+                dih_local.append(dih)
+        dih_list.append(dih_local)
+    input_dih = np.array(dih_list)
+
+    # Clustering with DBSCAN algorithm
+    #input_z = min_max_normalize(input_z)
+    features = np.hstack((input_dih,input_z,rmsd_matrix))
+    labels = dbscan(features, eps=eps, min_samples=1)
+    print("labels: ",labels)
+
+    unique_geos = []
+    visited_labels = set()
+    for label,geoi in zip(labels,crest_geos):
+        if label not in visited_labels:
+            visited_labels.add(label)
+            unique_geos.append(geoi)
+
+    return unique_geos

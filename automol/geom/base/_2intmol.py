@@ -28,7 +28,7 @@ def has_low_relative_repulsion_energy(
 
     pot = total_repulsion_energy(geo, model=model)
     ref_pot = total_repulsion_energy(ref_geo, model=model)
-
+    print("rep. energy:",(pot - ref_pot))
     return bool((pot - ref_pot) <= thresh)
 
 

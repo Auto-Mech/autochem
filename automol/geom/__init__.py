@@ -145,12 +145,14 @@ from ._align import align
 from ._ring import all_rings_angles_reasonable
 from ._ring import ring_angles_reasonable
 from ._ring import ring_fragments_geometry
+from ._ring import ring_only_geometry
 #adl cremer-pople paramters calculation
 from ._ring import translate_to_ring_center
 from ._ring import mean_ring_plane
 from ._ring import normal_to_ring_plane
 from ._ring import get_displacement
 from ._ring import cremer_pople_params
+from ._ring import checks_with_crest
 
 
 __all__ = [
@@ -287,10 +289,12 @@ __all__ = [
     'all_rings_angles_reasonable',
     'ring_angles_reasonable',
     'ring_fragments_geometry',
+    'ring_only_geometry',
     #madl cremer-pople
     'translate_to_ring_center',
     'mean_ring_plane',
     'normal_to_ring_plane',
     'get_displacement',
-    'cremer_pople_params'
+    'cremer_pople_params',
+    'checks_with_crest',
 ]

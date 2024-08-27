@@ -283,7 +283,8 @@ def from_xyz_trajectory_string(geo_str):
         return split_lst
 
     # Split the lines for iteration
-    geo_lines = [line for line in geo_str.splitlines() if line != ""]
+    # The else takes care of empty comment line
+    geo_lines = [line if line != "" else "  " for line in geo_str.splitlines()]
 
     # Get the number of atoms used to partition the trajectory file
     line1 = geo_lines[0].strip()
