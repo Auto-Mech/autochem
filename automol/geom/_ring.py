@@ -203,7 +203,7 @@ def cremer_pople_params(coords):
     return (amplitude, angle), z.tolist()
 
 
-def dbscan(geos,rings_atoms, features, eps, min_samples=1):
+def dbscan(geos,rings_atoms, eps, min_samples=1):
     """Density based clustering algorithm
     :param geos: list of geometries
     :type geos: list of automol.geom objects
@@ -247,44 +247,45 @@ def dbscan(geos,rings_atoms, features, eps, min_samples=1):
     #     normalized_features = (features - min_val) / (max_val - min_val)
     #     return normalized_features
 
-    def find_neighbors(features,point):
-        distances = np.linalg.norm(features - features[point], axis=1)
-        return np.asarray(distances <= eps).nonzero()[0]
+    def clustering(features, eps, min_samples):
 
-    num_points = features.shape[0]
-    labels = np.full(num_points, 0)  # Initialize all labels as 0 (unclassified)
-    cluster_id = 1
+        def find_neighbors(features,point):
+            distances = np.linalg.norm(features - features[point], axis=1)
+            return np.asarray(distances <= eps).nonzero()[0]
 
-    for point in range(num_points):
-        print(f"Working on point {point}, initial label is {labels[point]}")
-        if labels[point] != 0:  # Skip if already classified
-            continue
+        num_points = features.shape[0]
+        labels = np.full(num_points, 0)  # Initialize all labels as 0 (unclassified)
+        cluster_id = 1
 
-        # Find neighbors
-        neighbors = find_neighbors(features,point)
-        print(f"Initial neighbors: {neighbors}")
-        if len(neighbors) < min_samples:
-            labels[point] = -1  # Mark as noise
-        else:
-            labels[point] = cluster_id
-            i = 0
-            while i < len(neighbors):
-                neighbor_point = neighbors[i]
-                if labels[neighbor_point] == -1:  # Noise point in cluster
-                    labels[neighbor_point] = cluster_id
-                elif labels[neighbor_point] == 0:  # New unvisited point
-                    labels[neighbor_point] = cluster_id
-                    # Find more neighbors of this point
-                    new_neighbors = find_neighbors(features,neighbor_point)
-                    if len(new_neighbors) >= min_samples:
-                        neighbors = np.concatenate((neighbors, new_neighbors))
-                i += 1
-            cluster_id += 1
-        print(f"Now label is {labels[point]}")
+        for point in range(num_points):
+            print(f"Working on point {point}, initial label is {labels[point]}")
+            if labels[point] != 0:  # Skip if already classified
+                continue
+
+            # Find neighbors
+            neighbors = find_neighbors(features,point)
+            print(f"Initial neighbors: {neighbors}")
+            if len(neighbors) < min_samples:
+                labels[point] = -1  # Mark as noise
+            else:
+                labels[point] = cluster_id
+                i = 0
+                while i < len(neighbors):
+                    neighbor_point = neighbors[i]
+                    if labels[neighbor_point] == -1:  # Noise point in cluster
+                        labels[neighbor_point] = cluster_id
+                    elif labels[neighbor_point] == 0:  # New unvisited point
+                        labels[neighbor_point] = cluster_id
+                        # Find more neighbors of this point
+                        new_neighbors = find_neighbors(features,neighbor_point)
+                        if len(new_neighbors) >= min_samples:
+                            neighbors = np.concatenate((neighbors, new_neighbors))
+                    i += 1
+                cluster_id += 1
+            print(f"Now label is {labels[point]}")
 
         return labels
 
-    print("rings_atoms: ", rings_atoms)
     sub_geos = [ring_only_geometry(geoi,rings_atoms) for geoi in geos]
 
     subgeo_strings = []
@@ -340,7 +341,7 @@ def dbscan(geos,rings_atoms, features, eps, min_samples=1):
     # Clustering with DBSCAN algorithm
     #input_z = min_max_normalize(input_z)
     features = np.hstack((input_dih,input_z,rmsd_matrix))
-    labels = dbscan(features, eps=eps, min_samples=1)
+    labels = clustering(features, eps=eps, min_samples=min_samples)
     print("labels: ",labels)
 
     unique_geos = []
@@ -351,6 +352,7 @@ def dbscan(geos,rings_atoms, features, eps, min_samples=1):
             unique_geos.append(geoi)
 
     return unique_geos
+
 
 def checks_with_crest(filename,spc_info):
     """Performs checks with crest on ring geometries to determine unique sampling 
