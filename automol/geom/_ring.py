@@ -203,7 +203,7 @@ def cremer_pople_params(coords):
     return (amplitude, angle), z.tolist()
 
 
-def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
+def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
     """Performs checks on ring geometries to determine unique sampling points for
     puckering protocol
 
@@ -211,8 +211,6 @@ def checks_with_crest(filename,spc_info,vma,rings_atoms,eps=0.2):
     :type filename: string
     :param spc_info: input file containing geometries, molden style
     :type spc_info: automech data structure
-    :param vma: value matrix from reference Z-Matrix
-    :type vma: automol.vma object
     :param rings_atoms: list of all atoms in rings
     :type rings_atoms: list of lists of ints
     :output unique_zmas: Z-matrices of unique samples

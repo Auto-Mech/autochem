@@ -2,6 +2,7 @@
 """
 
 import math
+import itertools
 
 from ..graph import base as graph_base
 from ._conv import (
@@ -12,7 +13,14 @@ from .base import (
     coordinates,
     dihedral_angle_names,
     value_dictionary,
+    set_values_by_name,
+    value,
+    set_key_matrix,
 )
+
+from ..geom import dihedral_angle
+from ..zmat import coordinates as zcoords
+from ..vmat import coordinates, key_matrix
 
 
 # Get information for all rings at once
@@ -225,3 +233,78 @@ def ring_samp_ranges(zma, rng_atoms):
         samp_range_dct[key] = [value - math.pi / 4, value + math.pi / 4]
 
     return samp_range_dct
+
+
+def samples_avg_dih(zma, geo, tors_dcts, average_dih,ring_tors_dct,dih_remover):
+    """Samples N-3 dihs of a ring giving either the average value of dihs
+    of the ring, 0 or the opposite of the average.
+    """
+    vals_lst = []
+    iter_combos = []
+    _names, avg_dih = [], []
+
+    all_sampled_torsions = []
+    for _,samp_range_dct in tors_dcts:
+        all_sampled_torsions.extend(list(samp_range_dct.keys()))
+
+    for key_dct,samp_range_dct in tors_dcts:
+
+        repeats = len(samp_range_dct.keys())
+        ring_atoms = [int(idx)-1 for idx in key_dct.split('-')]
+
+        if repeats != len(ring_atoms):
+            keymat = [list(item) for item in(key_matrix(zma))]
+            # Find all DHs of ring atoms from 4th atom
+            # is DH in tors-dcts?
+            changed_dh = []
+
+            for at in ring_atoms[3:]:
+                dih=f"D{at}"
+                if dih not in [b for a,b in dih_remover if a != key_dct]:
+                    if dih not in all_sampled_torsions:
+                        changed_dh.append(dih)
+                        idx = ring_atoms.index(at)
+                        keymat[at] = [ring_atoms[idx-1], \
+                                      ring_atoms[idx-2], ring_atoms[idx-3]]
+
+                        ring_tors_dct[key_dct].update({dih:(0.,0.)})
+
+            zma = set_key_matrix(zma, keymat)
+
+            # rebuild the zmatrix with new value of that dih
+            key_coord_dct = zcoords(zma)
+            new_key_dct = {}
+            for name,coos in key_coord_dct.items():
+                atm_idxs = coos[0]
+                if len(atm_idxs) == 2:
+                    new_key_dct[name] = value(zma, name, angstrom=True)
+                elif len(atm_idxs) == 3:
+                    new_key_dct[name] = value(zma, name, degree=True)
+                elif len(atm_idxs) == 4:
+                    new_key_dct[name] = value(zma, name, degree=True)
+                    if name in changed_dh: # compute DH with previous three ring atoms
+                        new_key_dct[name] = dihedral_angle(geo, *atm_idxs,degree=True)
+            zma = set_values_by_name(zma, new_key_dct)
+
+    for key_dct,samp_range_dct in tors_dcts:
+
+        repeats = len(samp_range_dct.keys())
+
+        _names.extend(list(samp_range_dct.keys()))
+        iter_combos.append(itertools.product([1,0,-1],repeat=repeats))
+        avg_dih.append(average_dih[key_dct])
+
+    samp_mat = itertools.product(*iter_combos)
+
+    for samp in samp_mat:
+        vals = []
+        for i,dih_value in enumerate(avg_dih):
+            vals.extend( [val * dih_value for val in samp[i]] )
+        vals_lst.append(tuple(vals))
+
+    zmas = tuple(
+        set_values_by_name(zma, dict(zip(_names, vals)), degree=False)
+        for vals in vals_lst
+    )
+
+    return zmas
