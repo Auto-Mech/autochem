@@ -70,8 +70,6 @@ def all_rings_atoms(zma, tsg=None):
             ring_atoms = sorted(ring_atoms)
             # Connectivity should still be preserved,
             # If it is not COME BACK HERE AND FIX
-
-            # TODO - test
             # I think it is not ALWAYS preserved (see fused rings!!)
             #  so maybe I should remove the sort
 
@@ -102,7 +100,7 @@ def all_rings_distances_reasonable(zma, rings_atoms):
     :param rng_atoms: idxs for atoms inside rings
     :type rng_atoms: list
     """
-    # TODO HOW CAN IT EVER BE FALSE IF I CREATE VALUE DCT AND USE IT WITH SAME ZMA
+    # HOW CAN IT EVER BE FALSE IF I CREATE VALUE DCT AND USE IT WITH SAME ZMA
     # Currently only used in tests
     condition = True
     for ring_atoms in rings_atoms:
@@ -229,8 +227,8 @@ def ring_samp_ranges(zma, rng_atoms):
 
     samp_range_dct = {}
     ring_value_dct = ring_dihedrals(zma, rng_atoms)
-    for key, value in ring_value_dct.items():
-        samp_range_dct[key] = [value - math.pi / 4, value + math.pi / 4]
+    for key, val in ring_value_dct.items():
+        samp_range_dct[key] = [val - math.pi / 4, val + math.pi / 4]
 
     return samp_range_dct
 
