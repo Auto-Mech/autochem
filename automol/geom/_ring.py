@@ -203,18 +203,22 @@ def cremer_pople_params(coords):
     return (amplitude, angle), z.tolist()
 
 
-def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
-    """Performs checks on ring geometries to determine unique sampling points for
-    puckering protocol
-
-    :param filename: input file containing geometries, molden style
-    :type filename: string
-    :param spc_info: input file containing geometries, molden style
-    :type spc_info: automech data structure
+def dbscan(geos,rings_atoms, features, eps, min_samples=1):
+    """Density based clustering algorithm
+    :param geos: list of geometries
+    :type geos: list of automol.geom objects
     :param rings_atoms: list of all atoms in rings
     :type rings_atoms: list of lists of ints
     :output unique_zmas: Z-matrices of unique samples
     :type unique_zmas: list of automol.zmat objects
+    :param features: array of features
+    :type features: np.array
+    :param eps: pradius of a neighborhood centered on a given point
+    :type eps: cluster
+    :param min_samples: minimum number of points in cluster
+    :type min_samples: int
+    :output unique_geos: list of unique geometries from cliustering
+    :type unique_geos: list of automol.geom objects
     """
     # Possible normalizations, worsened the performance for the puckering
     # def z_score_normalize(features):
@@ -243,84 +247,45 @@ def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
     #     normalized_features = (features - min_val) / (max_val - min_val)
     #     return normalized_features
 
-    def dbscan(features, eps, min_samples=1):
-        """Density based clustering algorithm
+    def find_neighbors(features,point):
+        distances = np.linalg.norm(features - features[point], axis=1)
+        return np.asarray(distances <= eps).nonzero()[0]
 
-        :param features: array of features
-        :type features: np.array
-        :param eps: pradius of a neighborhood centered on a given point
-        :type eps: cluster
-        :param min_samples: minimum number of points in cluster
-        :type min_samples: int
-        :output labels: list of labels for each data point
-        :type labels: list of ints from 1 to n_clusters
-        """
+    num_points = features.shape[0]
+    labels = np.full(num_points, 0)  # Initialize all labels as 0 (unclassified)
+    cluster_id = 1
 
-        def find_neighbors(features,point):
-            distances = np.linalg.norm(features - features[point], axis=1)
-            return np.asarray(distances <= eps).nonzero()[0]
+    for point in range(num_points):
+        print(f"Working on point {point}, initial label is {labels[point]}")
+        if labels[point] != 0:  # Skip if already classified
+            continue
 
-        num_points = features.shape[0]
-        labels = np.full(num_points, 0)  # Initialize all labels as 0 (unclassified)
-        cluster_id = 1
-
-        for point in range(num_points):
-            print(f"Working on point {point}, initial label is {labels[point]}")
-            if labels[point] != 0:  # Skip if already classified
-                continue
-
-            # Find neighbors
-            neighbors = find_neighbors(features,point)
-            print(f"Initial neighbors: {neighbors}")
-            if len(neighbors) < min_samples:
-                labels[point] = -1  # Mark as noise
-            else:
-                labels[point] = cluster_id
-                i = 0
-                while i < len(neighbors):
-                    neighbor_point = neighbors[i]
-                    if labels[neighbor_point] == -1:  # Noise point in cluster
-                        labels[neighbor_point] = cluster_id
-                    elif labels[neighbor_point] == 0:  # New unvisited point
-                        labels[neighbor_point] = cluster_id
-                        # Find more neighbors of this point
-                        new_neighbors = find_neighbors(features,neighbor_point)
-                        if len(new_neighbors) >= min_samples:
-                            neighbors = np.concatenate((neighbors, new_neighbors))
-                    i += 1
-                cluster_id += 1
-            print(f"Now label is {labels[point]}")
+        # Find neighbors
+        neighbors = find_neighbors(features,point)
+        print(f"Initial neighbors: {neighbors}")
+        if len(neighbors) < min_samples:
+            labels[point] = -1  # Mark as noise
+        else:
+            labels[point] = cluster_id
+            i = 0
+            while i < len(neighbors):
+                neighbor_point = neighbors[i]
+                if labels[neighbor_point] == -1:  # Noise point in cluster
+                    labels[neighbor_point] = cluster_id
+                elif labels[neighbor_point] == 0:  # New unvisited point
+                    labels[neighbor_point] = cluster_id
+                    # Find more neighbors of this point
+                    new_neighbors = find_neighbors(features,neighbor_point)
+                    if len(new_neighbors) >= min_samples:
+                        neighbors = np.concatenate((neighbors, new_neighbors))
+                i += 1
+            cluster_id += 1
+        print(f"Now label is {labels[point]}")
 
         return labels
 
-    # Setup crest subfolder
-    crest_dir_prefix = "crest_checks"
-    dirs_lst = [dir for dir in os.listdir() if crest_dir_prefix in dir]
-    folder_nums = []
-    if not dirs_lst:
-        crest_dir = crest_dir_prefix+"_1"
-    else:
-        for direc in dirs_lst:
-            folder_nums.append(int(direc.split("_")[2]))
-        crest_dir = f"{crest_dir_prefix}_{max(folder_nums) + 1}"
-    os.system(f"mkdir -p {crest_dir}")
-    print(f"\n####\nWorking in {crest_dir}\n####\n")
-
-    crest_check = f'''cp {filename} {crest_dir}
-                echo {spc_info[-2]} > {crest_dir}/.CHRG
-                echo {int(spc_info[-1])-1} > {crest_dir}/.UHF
-                cd {crest_dir}
-                crest --for {filename} --prop singlepoint --ewin 100. &> crest_ouput.out
-                '''
-    with subprocess.Popen(crest_check, stdout=subprocess.PIPE, shell=True) as p:
-        p.communicate()
-        p.wait()
-
-    with open(f"{crest_dir}/crest_ensemble.xyz","r",encoding="utf-8") as f:
-        geo_list = from_xyz_trajectory_string(f.read())
-    crest_geos = [geo for geo,_ in geo_list]
     print("rings_atoms: ", rings_atoms)
-    sub_geos = [ring_only_geometry(geoi,rings_atoms) for geoi in crest_geos]
+    sub_geos = [ring_only_geometry(geoi,rings_atoms) for geoi in geos]
 
     subgeo_strings = []
     with open("sub_geoms.xyz","w",encoding="utf-8") as f:
@@ -342,7 +307,7 @@ def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
 
     # Compute displacements from mean ring planes
     z_list = []
-    for geoi in crest_geos:
+    for geoi in geos:
         z_local = []
         for ring_atoms in rings_atoms:
             geo_string = string(geoi, angstrom=True)
@@ -358,7 +323,7 @@ def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
 
     # Compute dihedrals of rings atoms
     dih_list = []
-    for geoi in crest_geos:
+    for geoi in geos:
         dih_local = []
         for ring_atoms in rings_atoms:
             for i in range(len(ring_atoms)):
@@ -380,9 +345,48 @@ def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
 
     unique_geos = []
     visited_labels = set()
-    for label,geoi in zip(labels,crest_geos):
+    for label,geoi in zip(labels,geos):
         if label not in visited_labels:
             visited_labels.add(label)
             unique_geos.append(geoi)
 
     return unique_geos
+
+def checks_with_crest(filename,spc_info):
+    """Performs checks with crest on ring geometries to determine unique sampling 
+    points for puckering protocol
+
+    :param filename: input file containing geometries, molden style
+    :type filename: string
+    :param spc_info: input file containing geometries, molden style
+    :type spc_info: automech data structure
+    :output output unique_geos: list of unique geometries from cliustering
+    :type unique_geos: list of automol.geom objects
+    """
+    # Setup crest subfolder
+    crest_dir_prefix = "crest_checks"
+    dirs_lst = [dir for dir in os.listdir() if crest_dir_prefix in dir]
+    folder_nums = []
+    if not dirs_lst:
+        crest_dir = crest_dir_prefix+"_1"
+    else:
+        for direc in dirs_lst:
+            folder_nums.append(int(direc.split("_")[2]))
+        crest_dir = f"{crest_dir_prefix}_{max(folder_nums) + 1}"
+    os.system(f"mkdir -p {crest_dir}")
+    print(f"\n####\nWorking in {crest_dir}\n####\n")
+
+    crest_check = f'''cp {filename} {crest_dir}
+                echo {spc_info[-2]} > {crest_dir}/.CHRG
+                echo {int(spc_info[-1])-1} > {crest_dir}/.UHF
+                cd {crest_dir}
+                crest --for {filename} --prop singlepoint --ewin 50. &> crest_ouput.out
+                '''
+    with subprocess.Popen(crest_check, stdout=subprocess.PIPE, shell=True) as p:
+        p.communicate()
+        p.wait()
+
+    with open(f"{crest_dir}/crest_ensemble.xyz","r",encoding="utf-8") as f:
+        geo_list = from_xyz_trajectory_string(f.read())
+
+    return [geo for geo,_ in geo_list]
