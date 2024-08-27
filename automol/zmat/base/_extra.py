@@ -5,17 +5,11 @@ import itertools
 
 import numpy
 
-from ._core import (
-    set_values_by_name,
-    value_dictionary,
-)
-from automol.zmat.base import coordinates as zcoords
+from ._core import set_values_by_name, value_dictionary
 from ._core import value, set_key_matrix
+from ...geom import dihedral_angle
+from ...zmat import coordinates as zcoords
 from ...vmat import coordinates, key_matrix
-
-from ...geom.base import (
-    dihedral_angle,
-)
 
 def samples(zma, nsamp, range_dct):
     """randomly sample over torsional dihedrals"""
