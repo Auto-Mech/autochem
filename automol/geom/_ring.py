@@ -216,32 +216,32 @@ def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
     :output unique_zmas: Z-matrices of unique samples
     :type unique_zmas: list of automol.zmat objects
     """
+    # Possible normalizations, worsened the performance for the puckering
+    # def z_score_normalize(features):
+    #     """z-score normalization (0 mean, 1 std)
 
-    def z_score_normalize(features):
-        """z-score normalization (0 mean, 1 std)
+    #     :param features: array of features
+    #     :type features: np.array
+    #     :output normalized_features: array of normalized features
+    #     :type normalized_features: np.array
+    #     """
+    #     mean = np.mean(features, axis=0)
+    #     std = np.std(features, axis=0)
+    #     normalized_features = (features - mean) / std
+    #     return normalized_features
 
-        :param features: array of features
-        :type features: np.array
-        :output normalized_features: array of normalized features
-        :type normalized_features: np.array
-        """
-        mean = np.mean(features, axis=0)
-        std = np.std(features, axis=0)
-        normalized_features = (features - mean) / std
-        return normalized_features
+    # def min_max_normalize(features):
+    #     """min-max normalization (all values between 0 and 1)
 
-    def min_max_normalize(features):
-        """min-max normalization (all values between 0 and 1)
-
-        :param features: array of features
-        :type features: np.array
-        :output normalized_features: array of normalized features
-        :type normalized_features: np.array
-        """
-        min_val = np.min(features, axis=0)
-        max_val = np.max(features, axis=0)
-        normalized_features = (features - min_val) / (max_val - min_val)
-        return normalized_features
+    #     :param features: array of features
+    #     :type features: np.array
+    #     :output normalized_features: array of normalized features
+    #     :type normalized_features: np.array
+    #     """
+    #     min_val = np.min(features, axis=0)
+    #     max_val = np.max(features, axis=0)
+    #     normalized_features = (features - min_val) / (max_val - min_val)
+    #     return normalized_features
 
     def dbscan(features, eps, min_samples=1):
         """Density based clustering algorithm
@@ -313,8 +313,8 @@ def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
                 crest --for {filename} --prop singlepoint --ewin 100. &> crest_ouput.out
                 '''
     with subprocess.Popen(crest_check, stdout=subprocess.PIPE, shell=True) as p:
-        output, err = p.communicate()
-        p_status = p.wait()
+        p.communicate()
+        p.wait()
 
     with open(f"{crest_dir}/crest_ensemble.xyz","r",encoding="utf-8") as f:
         geo_list = from_xyz_trajectory_string(f.read())
@@ -371,10 +371,6 @@ def checks_with_crest(filename,spc_info,rings_atoms,eps=0.2):
                 dih_local.append(dih)
         dih_list.append(dih_local)
     input_dih = np.array(dih_list)
-
-    print(len(mols))
-    print(len(input_z))
-    print(len(input_dih))
 
     # Clustering with DBSCAN algorithm
     #input_z = min_max_normalize(input_z)

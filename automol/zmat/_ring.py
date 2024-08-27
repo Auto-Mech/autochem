@@ -19,8 +19,7 @@ from .base import (
 )
 
 from ..geom import dihedral_angle
-from ..zmat import coordinates as zcoords
-from ..vmat import coordinates, key_matrix
+from ..vmat import key_matrix
 
 
 # Get information for all rings at once
@@ -270,7 +269,7 @@ def samples_avg_dih(zma, geo, tors_dcts, average_dih,ring_tors_dct,dih_remover):
             zma = set_key_matrix(zma, keymat)
 
             # rebuild the zmatrix with new value of that dih
-            key_coord_dct = zcoords(zma)
+            key_coord_dct = coordinates(zma) #zcoords(zma)
             new_key_dct = {}
             for name,coos in key_coord_dct.items():
                 atm_idxs = coos[0]
