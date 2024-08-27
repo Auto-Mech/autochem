@@ -78,7 +78,6 @@ from .base._core import almost_equal
 from .base._extra import samples
 from .base._extra import constraint_dict
 from .base._extra import set_constraint_names
-from .base._extra import samples_avg_dih
 # L4
 # conversion functions
 # # conversions
@@ -180,7 +179,6 @@ __all__ = [
     'neighbor_keys',
     # extra base functions
     'samples',
-    'samples_avg_dih',
     'constraint_dict',
     'set_constraint_names',
     'coordinate',
