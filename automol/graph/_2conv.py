@@ -464,6 +464,7 @@ def ts_geometry_from_reactants(
     tsg, ts_geo, *_, idx_dct = align_with_geometry(tsg, ts_geo, (), geo_idx_dct)
 
     # 2. Convert to local stereo
+    tsg0 = tsg
     tsg = to_local_stereo(tsg)
 
     # 3. Correct the stereochemistry against the TS graph, so it is consistent with
@@ -498,7 +499,7 @@ def ts_geometry_from_reactants(
         print(f"TS geometry after cleaning:\n{ts_geo}")
 
     if check and not geometry_matches(tsg, ts_geo, local_stereo=True, log=log):
-        raise error.FailedGeometryGenerationError(f"Failed TS graph:\n{string(tsg)}")
+        raise error.FailedGeometryGenerationError(f"Failed TS graph:\n{string(tsg0)}")
 
     return ts_geo
 

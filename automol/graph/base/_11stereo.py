@@ -377,7 +377,7 @@ def has_fleeting_atom_or_bond_stereo(tsg, strict: bool = True) -> Tuple[bool, bo
 def stereo_corrected_geometry(
     gra, geo, geo_idx_dct=None, local_stereo: bool = False, lin_ts_bonds: bool = False
 ):
-    """Obtain a geometry corrected for stereo parities based on a graph
+    """Obtain a geometry corrected for stereo parities based on a graph.
 
     :param gra: molecular graph with stereo parities
     :type gra: automol graph data structure
@@ -510,7 +510,7 @@ def unassigned_stereocenter_keys(
 def geometry_pseudorotate_atom(
     gra, geo, key, ang=numpy.pi, degree=False, geo_idx_dct=None
 ):
-    r"""Pseudorotate an atom in a molecular geometry by a certain amount
+    r"""Pseudorotate an atom in a molecular geometry by a certain amount.
 
     'Pseudorotate' here means to rotate all but two of the atom's neighbors, which can
     be used to invert/correct stereochemistry at an atom:
@@ -571,8 +571,7 @@ def geometry_pseudorotate_atom(
 
     # Now, find a pair of atoms to keep fixed
     found_pair = False
-    for nkeys1, nkeys2 in mit.pairwise(nkey_sets + [set()]):
-        print(nkeys1, nkeys2)
+    for nkeys1, nkeys2 in mit.pairwise([*nkey_sets, set()]):
         if len(nkeys1) == 2 or len(nkeys1 | nkeys2) == 2:
             found_pair = True
             nkey1, nkey2, *_ = list(nkeys1) + list(nkeys2)
@@ -588,6 +587,13 @@ def geometry_pseudorotate_atom(
     # Identify the remaining keys to be rotated
     rot_nkeys = nkeys - {nkey1, nkey2}
     rot_keys = set(itertools.chain(*(branch_atom_keys(gra, key, k) for k in rot_nkeys)))
+
+    # For bicyclic TSs, we need to avoid rotating the whole molecule when there is a
+    # forming ring
+    if nkey1 in rot_keys or nkey2 in rot_keys:
+        rot_keys = set(
+            itertools.chain(*(branch_atom_keys(gra_reac, key, k) for k in rot_nkeys))
+        )
 
     geo = geom_base.rotate(geo, rot_axis, ang, orig_xyz=xyz, idxs=rot_keys)
 
