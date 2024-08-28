@@ -1362,6 +1362,71 @@ def test__geometry():
     )
     print(automol.geom.round_(ts_geo))
 
+    # Bridgehead Atom Stereo Pair
+    # [O]OC1OC=CCC1 => OOC1OC=CC[CH]1
+    #     *      *       *       *
+    # [* marks the pair of bridgehead stereo atoms]
+    # One of the stereoatom neighbors is undergoing H migration, which presents a tricky
+    # case for stereo correction
+    ts_gra = (
+        {
+            0: ("O", 0, None),
+            1: ("O", 0, None),
+            2: ("C", 0, False),
+            3: ("O", 0, None),
+            4: ("C", 0, None),
+            5: ("C", 0, None),
+            6: ("C", 0, None),
+            7: ("C", 0, False),
+            8: ("H", 0, None),
+            9: ("H", 0, None),
+            10: ("H", 0, None),
+            11: ("H", 0, None),
+            12: ("H", 0, None),
+            13: ("H", 0, None),
+            14: ("H", 0, None),
+        },
+        {
+            frozenset({8, 2}): (1, None),
+            frozenset({2, 3}): (1, None),
+            frozenset({4, 5}): (1, None),
+            frozenset({0, 1}): (1, None),
+            frozenset({6, 7}): (1, None),
+            frozenset({14, 7}): (1, None),
+            frozenset({10, 5}): (1, None),
+            frozenset({9, 4}): (1, None),
+            frozenset({2, 7}): (1, None),
+            frozenset({11, 6}): (1, None),
+            frozenset({3, 4}): (1, None),
+            frozenset({0, 13}): (0.1, None),
+            frozenset({13, 7}): (0.9, None),
+            frozenset({1, 2}): (1, None),
+            frozenset({5, 6}): (1, None),
+            frozenset({12, 6}): (1, None),
+        },
+    )
+    rct_geos = [
+        (
+            ("O", (-5.522426, -3.187961, -0.390535)),
+            ("O", (-3.762872, -2.550969, 1.204516)),
+            ("C", (-1.711414, -1.434957, 0.016648)),
+            ("O", (0.534461, -2.85378, 0.309636)),
+            ("C", (2.861053, -1.636541, 0.08201)),
+            ("C", (3.043655, 0.805284, -0.391908)),
+            ("C", (0.751244, 2.339971, -0.699047)),
+            ("C", (-1.259943, 1.206692, 1.044995)),
+            ("H", (-2.154465, -1.19976, -2.033012)),
+            ("H", (4.600758, -2.688934, 0.293275)),
+            ("H", (4.868492, 1.666952, -0.552345)),
+            ("H", (0.020412, 1.995037, -2.666963)),
+            ("H", (0.9976, 4.339791, -0.264024)),
+            ("H", (-2.96238, 2.361521, 1.108978)),
+            ("H", (-0.374629, 0.994683, 2.963635)),
+        )
+    ]
+    ts_geo = graph.ts_geometry_from_reactants(ts_gra, rct_geos, check=True)
+    print(automol.geom.round_(ts_geo))
+
 
 def test__zmatrix():
     """test z-matrix generation"""
@@ -1419,7 +1484,7 @@ if __name__ == "__main__":
     # test__ts__fleeting_stereocenter_keys()
     # test__linear_atom_keys()
     # test__radical_atom_keys()
-    # test__geometry()
+    test__geometry()
     # test__zmatrix()
     # test__ts__expand_reaction_stereo("C5H6O", C5H6O_TSG, [1, 1])
-    test__ts__expand_reaction_stereo("C5H7O3", C5H7O3_TSG, [1, 1, 1, 1])
+    # test__ts__expand_reaction_stereo("C5H7O3", C5H7O3_TSG, [1, 1, 1, 1])
