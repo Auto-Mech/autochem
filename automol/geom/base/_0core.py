@@ -607,11 +607,7 @@ def principal_axes(geo, amu=True):
     :type amu: bool
     :rtype: tuple(tuple(float))
     """
-
-    ine = inertia_tensor(geo, amu=amu)
-    _, paxs = numpy.linalg.eigh(ine)
-    paxs = tuple(map(tuple, paxs))
-
+    _, paxs = rotational_analysis(geo, amu=amu)
     return paxs
 
 
@@ -625,12 +621,23 @@ def moments_of_inertia(geo, amu=True):
     :type amu: bool
     :rtype: tuple(tuple(float))
     """
-
-    ine = inertia_tensor(geo, amu=amu)
-    moms, _ = numpy.linalg.eigh(ine)
-    moms = tuple(moms)
-
+    moms, _ = rotational_analysis(geo, amu=amu)
     return moms
+
+
+def rotational_analysis(
+    geo, amu: bool = True
+) -> tuple[tuple[float, ...], numpy.ndarray]:
+    """Do a rotational analysis, generating the moments of inertia and principal axes.
+
+    :param geo: A molecular geometry
+    :param amu: Use atomic mass units instead of electron mass unit?, defaults to True
+    :return: The eigenvalues and eigenvetors of the inertia tensor
+    """
+    ine = inertia_tensor(geo, amu=amu)
+    eig_vals, eig_vecs = numpy.linalg.eigh(ine)
+    eig_vals = tuple(eig_vals)
+    return eig_vals, eig_vecs
 
 
 def rotational_constants(geo, amu=True):
@@ -643,7 +650,6 @@ def rotational_constants(geo, amu=True):
     :type amu: bool
     :rtype: tuple(float)
     """
-
     moms = moments_of_inertia(geo, amu=amu)
     cons = numpy.divide(1.0, moms) / 4.0 / numpy.pi / phycon.SOL
     cons = tuple(cons)
@@ -1101,7 +1107,7 @@ def perturb(geo, atm_idx, pert_xyz):
     return pert_geo
 
 
-def rotate(geo, axis, angle, orig_xyz=(0., 0., 0.), idxs=None, degree=False):
+def rotate(geo, axis, angle, orig_xyz=(0.0, 0.0, 0.0), idxs=None, degree=False):
     """Rotate the coordinates of a molecular geometry about
     an axis by a specified angle. A set of `idxs` can be supplied
     to transform a subset of coordinates.
