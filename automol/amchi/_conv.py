@@ -46,7 +46,7 @@ def amchi_key(chi):
     return rdkit_.inchi_to_inchi_key(chi)
 
 
-def chemkin_name(chi: str) -> str:
+def chemkin_name(chi: str, root_name: str | None = None) -> str:
     """Generate a CHEMKIN name from a ChI string.
 
     Todo: Simplified names for common species. Anything that can be described as a
@@ -62,8 +62,13 @@ def chemkin_name(chi: str) -> str:
         C5e13 = O1CCC1CC = 1,3-epoxypentane
 
     :param chi: ChI string
+    :param root_name: A root for the CHEMKIN name, to add stereo if needed
     :return: The CHEMKIN name
     """
+    if root_name is not None:
+        ste_str = stereo_digest(chi, max_len=16 - len(root_name))
+        return root_name + ste_str
+
     return digest(chi, conn_max_len=10, ste_max_len=6)
 
 
@@ -429,16 +434,14 @@ def add_stereo(chi):
     return chi
 
 
-def expand_stereo(chi, enant=True):
+def expand_stereo(chi: str, enant: bool = True, strained: bool = False) -> list[str]:
     """Obtain all possible stereoisomers of a ChI string.
 
     :param chi: ChI string
-    :type chi: str
     :param enant: Include all enantiomers, or only canonical ones?
-    :type enant: bool
-    :rtype: list[str]
+    :param strained: Include strained stereoisomers?
     """
     gra = graph(chi, stereo=False)
-    sgrs = graph_.expand_stereo(gra, enant=enant, symeq=False)
+    sgrs = graph_.expand_stereo(gra, enant=enant, strained=strained, symeq=False)
     ste_chis = [graph_.amchi(sgr, stereo=True) for sgr in sgrs]
     return ste_chis

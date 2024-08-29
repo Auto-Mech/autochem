@@ -744,11 +744,8 @@ def find(rct_gras, prd_gras, stereo=False):
     # check whether this is a valid reaction
     rct_fmls = list(map(graph.formula, rct_gras))
     prd_fmls = list(map(graph.formula, prd_gras))
-    rct_strs = list(map(form.string, rct_fmls))
-    prd_strs = list(map(form.string, prd_fmls))
-    assert form.reac.is_valid_reaction(
-        rct_fmls, prd_fmls
-    ), f"Invalid reaction: {str(rct_strs):s} -> {str(prd_strs):s}"
+    if not form.reac.is_valid_reaction(rct_fmls, prd_fmls):
+        return ()
 
     # Cycle through the different finders and gather all possible reactions
     finders_ = [
