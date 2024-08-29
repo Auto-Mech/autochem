@@ -1,4 +1,4 @@
-"""implements geometry purification for the distance geometry algorithm.
+"""Implements geometry purification for the distance geometry algorithm.
 
 This is used to clean up the structure of the molecule and enforce correct
 chirality, by minimizing an error function.
@@ -50,7 +50,7 @@ NDArrayLike2D = numpy.ndarray | Sequence2D
 X = numpy.newaxis
 
 
-def volume(xmat: NDArrayLike2D, idxs: list):
+def volume(xmat: NDArrayLike2D, idxs: list) -> float:
     """Calculate signed tetrahedral volume for a tetrad of atoms.
 
     for a tetrad of four atoms (1, 2, 3, 4) around a central atom, the signed
@@ -59,6 +59,10 @@ def volume(xmat: NDArrayLike2D, idxs: list):
         d12 . (d13 x d14)
 
     where dij = rj - ri, . is the dot product, and x is the cross product
+
+    :param xmat: The matrix of XYZ coordinates
+    :param idxs: A tetrad of four atom indices defining the volume
+    :return: The volume
     """
     xmat = numpy.array(xmat)
     idxs = list(idxs)
@@ -71,8 +75,12 @@ def volume(xmat: NDArrayLike2D, idxs: list):
     return vol
 
 
-def volume_gradient(xmat: NDArrayLike2D, idxs: list):
-    """Calculate the tetrahedral volume gradient for a tetrad of atoms."""
+def volume_gradient(xmat: NDArrayLike2D, idxs: list)->numpy.ndarray:
+    """Calculate the tetrahedral volume gradient for a tetrad of atoms.
+    :param xmat: The matrix of XYZ coordinates
+    :param idxs: A tetrad of four atom indices defining the volume
+    :return: The volume gradient.
+    """
     xmat = numpy.array(xmat)
     idxs = list(idxs)
     xyzs = xmat[:, :3][idxs]
@@ -94,28 +102,28 @@ def error_function_(
     umat: NDArrayLike2D,
     chi_dct: SignedVolumeContraints = None,
     pla_dct: SignedVolumeContraints = None,
-    wdist=1.0,
-    wchip=1.0,
-    wdim4=1.0,
-    leps=0.1,
-    ueps=0.1,
-    log=False,
+    wdist:float=1.0,
+    wchip:float=1.0,
+    wdim4:float=1.0,
+    leps:float=0.1,
+    ueps:float=0.1,
+    log:bool=False,
 ) -> Callable[[NDArrayLike2D], float]:
     """Compute the embedding error function.
 
-    :param lmat: lower-bound distance matrix
-    :param umat: upper-bound distance matrix
-    :param chi_dct: chirality constraints; the keys are tuples of four atoms,
+    :param lmat: Lower-bound distance matrix
+    :param umat: Upper-bound distance matrix
+    :param chi_dct: Chirality constraints; the keys are tuples of four atoms,
         the values are lower and upper bounds on the four-point signed volume
         of these atoms
-    :param pla_dct: planarity constraints; the keys are tuples of four atoms,
+    :param pla_dct: Planarity constraints; the keys are tuples of four atoms,
         the values are lower and upper bounds on the four-point signed volume
         of these atoms
-    :param wdist: weight on the distance constraint
-    :param wchip: weight on the chirality/planarity constraint
-    :param wdim4: weight on the fourth dimension constraint
-    :param leps: denominator epsilon for lower bound distances
-    :param ueps: denominator epsilon for upper bound distances
+    :param wdist: Weight on the distance constraint
+    :param wchip: Weight on the chirality/planarity constraint
+    :param wdim4: Weight on the fourth dimension constraint
+    :param leps: Denominator epsilon for lower bound distances
+    :param ueps: Denominator epsilon for upper bound distances
     """
     triu = numpy.triu_indices_from(lmat)
     chi_dct = {} if chi_dct is None else chi_dct
@@ -183,27 +191,28 @@ def error_function_gradient_(
     umat: NDArrayLike2D,
     chi_dct: SignedVolumeContraints = None,
     pla_dct: SignedVolumeContraints = None,
-    wdist=1.0,
-    wchip=1.0,
-    wdim4=1.0,
-    leps=0.1,
-    ueps=0.1,
+    wdist:float=1.0,
+    wchip:float=1.0,
+    wdim4:float=1.0,
+    leps:float=0.1,
+    ueps:float=0.1,
 ) -> Callable[[NDArrayLike2D], numpy.ndarray]:
     """Check the embedding error function gradient.
 
-    :param lmat: lower-bound distance matrix
-    :param umat: upper-bound distance matrix
-    :param chi_dct: chirality constraints; the keys are tuples of four atoms,
+    :param lmat: Lower-bound distance matrix
+    :param umat: Upper-bound distance matrix
+    :param chi_dct: Chirality constraints; the keys are tuples of four atoms,
         the values are lower and upper bounds on the four-point signed volume
         of these atoms
-    :param pla_dct: planarity constraints; the keys are tuples of four atoms,
+    :param pla_dct: Planarity constraints; the keys are tuples of four atoms,
         the values are lower and upper bounds on the four-point signed volume
         of these atoms
-    :param wdist: weight on the distance constraint
-    :param wchip: weight on the chirality/planarity constraint
-    :param wdim4: weight on the fourth dimension constraint
-    :param leps: denominator epsilon for lower bound distances
-    :param ueps: denominator epsilon for upper bound distances
+    :param wdist: Weight on the distance constraint
+    :param wchip: Weight on the chirality/planarity constraint
+    :param wdim4: Weight on the fourth dimension constraint
+    :param leps: Denominator epsilon for lower bound distances
+    :param ueps: Denominator epsilon for upper bound distances
+    :return: Error function gradient
     """
     chi_dct = {} if chi_dct is None else chi_dct
     pla_dct = {} if pla_dct is None else pla_dct
@@ -261,15 +270,29 @@ def error_function_numerical_gradient_(
     umat: NDArrayLike2D,
     chi_dct: SignedVolumeContraints = None,
     pla_dct: SignedVolumeContraints = None,
-    wdist=1.0,
-    wchip=1.0,
-    wdim4=1.0,
-    leps=0.1,
-    ueps=0.1,
+    wdist:float=1.0,
+    wchip:float=1.0,
+    wdim4:float=1.0,
+    leps:float=0.1,
+    ueps:float=0.1,
 ) -> Callable[[NDArrayLike2D], numpy.ndarray]:
     """Check the gradient of the distance error function.
 
     (For testing purposes only; Used to check the analytic gradient formula.)
+    :param lmat: Lower-bound distance matrix
+    :param umat: Upper-bound distance matrix
+    :param chi_dct: Chirality constraints; the keys are tuples of four atoms,
+        the values are lower and upper bounds on the four-point signed volume
+        of these atoms
+    :param pla_dct: Planarity constraints; the keys are tuples of four atoms,
+        the values are lower and upper bounds on the four-point signed volume
+        of these atoms
+    :param wdist: Weight on the distance constraint
+    :param wchip: Weight on the chirality/planarity constraint
+    :param wdim4: Weight on the fourth dimension constraint
+    :param leps: Denominator epsilon for lower bound distances
+    :param ueps: Denominator epsilon for upper bound distances
+    :return:Gradient of the distance error function
     """
     erf_ = error_function_(
         lmat,
@@ -290,8 +313,15 @@ def error_function_numerical_gradient_(
     return _gradient
 
 
-def polak_ribiere_beta(sd1, sd0):
-    """Calculate the Polak-Ribiere Beta coefficient."""
+def polak_ribiere_beta(sd1:numpy.ndarray, sd0:numpy.ndarray)->float:
+    """Determine the conjugate gradient alpha coefficient from an error-minimizing line search.
+
+    (See https://en.wikipedia.org/wiki/Nonlinear_conjugate_gradient_method)
+
+    :param sd1: The steepest-descent (negative gradient) direction of the current step
+    :param cd1: The conjugate direction of the current step
+    :return: The alpha coefficient
+    """
     return numpy.vdot(sd1, sd1 - sd0) / numpy.vdot(sd0, sd0)
 
 
@@ -322,12 +352,12 @@ def cleaned_up_coordinates(
     chi_dct: SignedVolumeContraints = None,
     pla_dct: SignedVolumeContraints = None,
     conv_=None,
-    max_dist_err=0.2,
-    grad_thresh=0.2,
-    maxiter=None,
-    chi_flip=True,
-    dim4=True,
-    log=False,
+    max_dist_err:float=0.2,
+    grad_thresh:float=0.2,
+    maxiter: int | None = None,
+    chi_flip: bool = True,
+    dim4: bool = True,
+    log: bool = False,
 ):
     """Clean up coordinates by conjugate-gradients error minimization.
 
@@ -402,8 +432,8 @@ def default_convergence_checker_(
 
 
 def distance_convergence_checker_(
-    lmat: NDArrayLike2D, umat: NDArrayLike2D, max_dist_err=0.2
-):
+    lmat: NDArrayLike2D, umat: NDArrayLike2D, max_dist_err:float=0.2
+)->numpy.ndarray:
     """Convergence checker based on the maximum distance error."""
 
     def _is_converged(xmat, err, grad):
@@ -418,7 +448,7 @@ def distance_convergence_checker_(
 
 
 def planarity_convergence_checker_(
-    pla_dct, max_vol_err=0.2
+    pla_dct:dict, max_vol_err:float=0.2
 ) -> Callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Convergence checker based on the maximum planarity error."""
 
@@ -435,7 +465,7 @@ def planarity_convergence_checker_(
 
 
 def gradient_convergence_checker_(
-    thresh=1e-1,
+    thresh:float=1e-1,
 ) -> Callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Maximum gradient convergence checker."""
 
@@ -450,14 +480,16 @@ def gradient_convergence_checker_(
     return _is_converged
 
 
-def minimize_error(xmat: NDArrayLike2D, err_, grad_, conv_, maxiter=None):
+def minimize_error(xmat: NDArrayLike2D, err_, grad_, conv_, 
+                   maxiter:int| None=None)->bool:
     """Do conjugate-gradients error minimization.
 
     :param err_: a callable error function of xmat
     :param grad_: a callable error gradient function of xmat
     :param conv_: a callable convergence checker function of xmat, err_(xmat),
         and grad_(xmat) which returns True if the geometry is converged
-
+    :param maxiter: maximum number of iterations; default is three times the
+        number of coordinates
     :returns: the optimized coordinates and a boolean which is True if
         converged and False if not
     """
