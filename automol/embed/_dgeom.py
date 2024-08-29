@@ -42,8 +42,13 @@ Sequence2D = Sequence[Sequence[float]]
 MatrixLike = numpy.ndarray | Sequence2D
 
 
-def sample_raw_distance_coordinates(lmat: MatrixLike, umat: MatrixLike, dim4=True):
-    """Sample raw (uncorrected) distance coordinates."""
+def sample_raw_distance_coordinates(lmat: MatrixLike, umat: MatrixLike, 
+                                    dim4=True)->MatrixLike:
+    """Sample raw (uncorrected) distance coordinates.
+    :param lmat: Lower-bound distance matrix
+    :param umat: Upper-bound distance matrix.
+    :return: Matrix with raw distance coordinates
+    """
     # 2. Triangle-smooth the bounds matrices
     lmat, umat = triangle_smooth_bounds_matrices(lmat, umat)
 
@@ -59,13 +64,16 @@ def sample_raw_distance_coordinates(lmat: MatrixLike, umat: MatrixLike, dim4=Tru
     return xmat
 
 
-def triangle_smooth_bounds_matrices(lmat: MatrixLike, umat: MatrixLike):
+def triangle_smooth_bounds_matrices(lmat: MatrixLike, umat: MatrixLike)->MatrixLike:
     """Smoothing of the bounds matrix by triangle inequality.
 
     Dress, A. W. M.; Havel, T. F. "Shortest-Path Problems and Molecular
     Conformation"; Discrete Applied Mathematics (1988) 19 p. 129-144.
 
     This algorithm is directly from p. 8 in the paper.
+    :param lmat: Lower-bound distance matrix
+    :param umat: Upper-bound distance matrix
+    :return: Smooth matrix
     """
     lmat, umat = map(numpy.array, (lmat, umat))
 
@@ -93,10 +101,13 @@ def triangle_smooth_bounds_matrices(lmat: MatrixLike, umat: MatrixLike):
     return lmat, umat
 
 
-def sample_distance_matrix(lmat: MatrixLike, umat: MatrixLike):
+def sample_distance_matrix(lmat: MatrixLike, umat: MatrixLike) -> MatrixLike:
     """Determine a random distance matrix based on the bounds matrices.
 
     That is, a random guess at d_ij = |r_i - r_j|
+    :param lmat: Lower-bound distance matrix
+    :param umat: Upper-bound distance matrix
+    :return: Sample matrix
     """
     lmat, umat = map(numpy.array, (lmat, umat))
 
@@ -108,7 +119,7 @@ def sample_distance_matrix(lmat: MatrixLike, umat: MatrixLike):
     return dmat
 
 
-def distances_from_center(dmat: MatrixLike):
+def distances_from_center(dmat: MatrixLike) -> MatrixLike:
     """Get the vector of distances from the center (average position).
 
     The "center" in this case is the average of the position vectors. The
@@ -122,6 +133,8 @@ def distances_from_center(dmat: MatrixLike):
     I verified this against the alternative formula:
         dc_i^2 = 1/(2n^2) sum_j sum_k (d_ij^2 + d_ik^2 - d_jk^2)
     from page 284 of the paper.
+    :dmat: Distance Matrix
+    :return: Distances from center
     """
     dmat = numpy.array(dmat)
 
@@ -142,7 +155,7 @@ def distances_from_center(dmat: MatrixLike):
     return dcvec
 
 
-def metric_matrix(dmat: MatrixLike):
+def metric_matrix(dmat: MatrixLike) -> MatrixLike:
     """Compute the matrix of position vector dot products, with a central origin.
 
     "Central" in this case mean the average of the position vectors. So these
@@ -168,7 +181,7 @@ def metric_matrix(dmat: MatrixLike):
     return gmat
 
 
-def coordinates_from_metric_matrix(gmat: MatrixLike, dim4=False):
+def coordinates_from_metric_matrix(gmat: MatrixLike, dim4: bool = False) -> MatrixLike:
     """Determine molecule coordinates from the metric matrix."""
     gmat = numpy.array(gmat)
 
@@ -186,7 +199,7 @@ def coordinates_from_metric_matrix(gmat: MatrixLike, dim4=False):
     return xmat
 
 
-def metric_matrix_from_coordinates(xmat: MatrixLike):
+def metric_matrix_from_coordinates(xmat: MatrixLike) -> MatrixLike:
     """Determine the metric matrix from coordinates.
 
     (for testing purposes only!)
@@ -195,7 +208,7 @@ def metric_matrix_from_coordinates(xmat: MatrixLike):
     return xmat @ xmat.T
 
 
-def distance_matrix_from_coordinates(xmat: MatrixLike, dim4=True):
+def distance_matrix_from_coordinates(xmat: MatrixLike, dim4: bool = True) -> MatrixLike:
     """Determine the distance matrix from coordinates.
 
     (for testing purposes only!)
@@ -215,9 +228,14 @@ def distance_matrix_from_coordinates(xmat: MatrixLike, dim4=True):
 
 
 def greatest_distance_errors(
-    dmat: MatrixLike, lmat: MatrixLike, umat: MatrixLike, count=10
+    dmat: MatrixLike, lmat: MatrixLike, umat: MatrixLike, count: int = 10
 ):
-    """Get the indices of the maximum distance errors."""
+    """Get the indices of the maximum distance errors.
+    :dmat: Distance matrix
+    :param lmat: Lower-bound distance matrix
+    :param umat: Upper-bound distance matrix
+    return: Dictionary of greatest distance errores.
+    """
     lerrs = (lmat - dmat) * (lmat >= dmat)
     uerrs = (dmat - umat) * (dmat >= umat)
     errs = numpy.maximum(lerrs, uerrs)

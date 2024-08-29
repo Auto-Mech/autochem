@@ -75,7 +75,7 @@ def volume(xmat: NDArrayLike2D, idxs: list) -> float:
     return vol
 
 
-def volume_gradient(xmat: NDArrayLike2D, idxs: list)->numpy.ndarray:
+def volume_gradient(xmat: NDArrayLike2D, idxs: list) -> numpy.ndarray:
     """Calculate the tetrahedral volume gradient for a tetrad of atoms.
     :param xmat: The matrix of XYZ coordinates
     :param idxs: A tetrad of four atom indices defining the volume
@@ -102,12 +102,12 @@ def error_function_(
     umat: NDArrayLike2D,
     chi_dct: SignedVolumeContraints = None,
     pla_dct: SignedVolumeContraints = None,
-    wdist:float=1.0,
-    wchip:float=1.0,
-    wdim4:float=1.0,
-    leps:float=0.1,
-    ueps:float=0.1,
-    log:bool=False,
+    wdist: float = 1.0,
+    wchip: float = 1.0,
+    wdim4: float = 1.0,
+    leps: float = 0.1,
+    ueps: float = 0.1,
+    log: bool = False,
 ) -> Callable[[NDArrayLike2D], float]:
     """Compute the embedding error function.
 
@@ -191,11 +191,11 @@ def error_function_gradient_(
     umat: NDArrayLike2D,
     chi_dct: SignedVolumeContraints = None,
     pla_dct: SignedVolumeContraints = None,
-    wdist:float=1.0,
-    wchip:float=1.0,
-    wdim4:float=1.0,
-    leps:float=0.1,
-    ueps:float=0.1,
+    wdist: float = 1.0,
+    wchip: float = 1.0,
+    wdim4: float = 1.0,
+    leps: float = 0.1,
+    ueps: float = 0.1,
 ) -> Callable[[NDArrayLike2D], numpy.ndarray]:
     """Check the embedding error function gradient.
 
@@ -270,11 +270,11 @@ def error_function_numerical_gradient_(
     umat: NDArrayLike2D,
     chi_dct: SignedVolumeContraints = None,
     pla_dct: SignedVolumeContraints = None,
-    wdist:float=1.0,
-    wchip:float=1.0,
-    wdim4:float=1.0,
-    leps:float=0.1,
-    ueps:float=0.1,
+    wdist: float = 1.0,
+    wchip: float = 1.0,
+    wdim4: float = 1.0,
+    leps: float = 0.1,
+    ueps: float = 0.1,
 ) -> Callable[[NDArrayLike2D], numpy.ndarray]:
     """Check the gradient of the distance error function.
 
@@ -313,19 +313,21 @@ def error_function_numerical_gradient_(
     return _gradient
 
 
-def polak_ribiere_beta(sd1:numpy.ndarray, sd0:numpy.ndarray)->float:
-    """Determine the conjugate gradient alpha coefficient from an error-minimizing line search.
+def polak_ribiere_beta(sd1: numpy.ndarray, sd0: numpy.ndarray) -> float:
+    """Determine the conjugate gradient alpha coefficient
+    from an error-minimizing line search.
 
     (See https://en.wikipedia.org/wiki/Nonlinear_conjugate_gradient_method)
 
     :param sd1: The steepest-descent (negative gradient) direction of the current step
-    :param cd1: The conjugate direction of the current step
-    :return: The alpha coefficient
+    :return: The alpha  coefficient
     """
     return numpy.vdot(sd1, sd1 - sd0) / numpy.vdot(sd0, sd0)
 
 
-def line_search_alpha(err_, sd1, cd1):
+def line_search_alpha(
+    err_: Callable[[NDArrayLike2D], float], sd1: numpy.ndarray, cd1: numpy.ndarray
+):
     """Perform a line search to determine the alpha coefficient."""
 
     # define the objective function
@@ -352,8 +354,8 @@ def cleaned_up_coordinates(
     chi_dct: SignedVolumeContraints = None,
     pla_dct: SignedVolumeContraints = None,
     conv_=None,
-    max_dist_err:float=0.2,
-    grad_thresh:float=0.2,
+    max_dist_err: float = 0.2,
+    grad_thresh: float = 0.2,
     maxiter: int | None = None,
     chi_flip: bool = True,
     dim4: bool = True,
@@ -432,8 +434,8 @@ def default_convergence_checker_(
 
 
 def distance_convergence_checker_(
-    lmat: NDArrayLike2D, umat: NDArrayLike2D, max_dist_err:float=0.2
-)->numpy.ndarray:
+    lmat: NDArrayLike2D, umat: NDArrayLike2D, max_dist_err: float = 0.2
+) -> numpy.ndarray:
     """Convergence checker based on the maximum distance error."""
 
     def _is_converged(xmat, err, grad):
@@ -448,7 +450,7 @@ def distance_convergence_checker_(
 
 
 def planarity_convergence_checker_(
-    pla_dct:dict, max_vol_err:float=0.2
+    pla_dct: dict, max_vol_err: float = 0.2
 ) -> Callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Convergence checker based on the maximum planarity error."""
 
@@ -465,7 +467,7 @@ def planarity_convergence_checker_(
 
 
 def gradient_convergence_checker_(
-    thresh:float=1e-1,
+    thresh: float = 1e-1,
 ) -> Callable[[NDArrayLike2D, float, NDArrayLike2D], bool]:
     """Maximum gradient convergence checker."""
 
@@ -480,8 +482,13 @@ def gradient_convergence_checker_(
     return _is_converged
 
 
-def minimize_error(xmat: NDArrayLike2D, err_, grad_, conv_, 
-                   maxiter:int| None=None)->bool:
+def minimize_error(
+    xmat: NDArrayLike2D,
+    err_: Callable[[NDArrayLike2D], float],
+    grad_,
+    conv_,
+    maxiter: int | None = None,
+) -> bool:
     """Do conjugate-gradients error minimization.
 
     :param err_: a callable error function of xmat
@@ -511,7 +518,7 @@ def minimize_error(xmat: NDArrayLike2D, err_, grad_, conv_,
         if sd0 is None:
             cd1 = sd1
         else:
-            # 2. Cumpute beta
+            # 2. Compute beta
             beta = min(0.0, polak_ribiere_beta(sd1, sd0))
 
             # 3. determine step direction
