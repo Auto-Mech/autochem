@@ -42,12 +42,13 @@ Sequence2D = Sequence[Sequence[float]]
 MatrixLike = numpy.ndarray | Sequence2D
 
 
-def sample_raw_distance_coordinates(lmat: MatrixLike, umat: MatrixLike, 
-                                    dim4=True)->MatrixLike:
+def sample_raw_distance_coordinates(
+    lmat: MatrixLike, umat: MatrixLike, dim4=True
+) -> MatrixLike:
     """Sample raw (uncorrected) distance coordinates.
     :param lmat: Lower-bound distance matrix
     :param umat: Upper-bound distance matrix.
-    :return: Matrix with raw distance coordinates
+    :return: Matrix with raw distance coordinates.
     """
     # 2. Triangle-smooth the bounds matrices
     lmat, umat = triangle_smooth_bounds_matrices(lmat, umat)
@@ -64,7 +65,7 @@ def sample_raw_distance_coordinates(lmat: MatrixLike, umat: MatrixLike,
     return xmat
 
 
-def triangle_smooth_bounds_matrices(lmat: MatrixLike, umat: MatrixLike)->MatrixLike:
+def triangle_smooth_bounds_matrices(lmat: MatrixLike, umat: MatrixLike) -> MatrixLike:
     """Smoothing of the bounds matrix by triangle inequality.
 
     Dress, A. W. M.; Havel, T. F. "Shortest-Path Problems and Molecular
