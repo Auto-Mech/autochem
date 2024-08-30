@@ -787,18 +787,9 @@ def test__vibrational_analysis(data_directory_path):
     """Test automol.geom.vibrational_analysis."""
     geo = geom.from_xyz_string((data_directory_path / "c4h7_h2_geom.xyz").read_text())
     hess = numpy.loadtxt(data_directory_path / "c4h7_h2_hess.txt")
-    freqs = numpy.loadtxt(data_directory_path / "c4h7_h2_freqs.txt")
-    print(geo)
-    print(hess)
-    print(freqs)
+    ref_freqs = numpy.loadtxt(data_directory_path / "c4h7_h2_freqs.txt")
     freqs, _ = geom.vibrational_analysis(geo, hess)
-    print(freqs)
-
-    # from automol.geom.base import _vib2
-    # freqs2, _ = _vib2.normal_modes(geo, hess)
-    # print(freqs2)
-
-    geom.rotational_normal_modes(geo, mass_weight=True)
+    assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} !=\n{ref_freqs}"
 
 
 if __name__ == "__main__":
