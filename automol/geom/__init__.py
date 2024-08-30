@@ -105,41 +105,41 @@ from .base._2intmol import repulsion_energy
 from .base._vib import vibrational_analysis
 # L4
 # MolSym interface
-from ._molsym import point_group_from_geometry
+from ._0molsym import point_group_from_geometry
 # conversion functions:
 # # conversions
-from ._conv import graph
-from ._conv import graph_without_stereo
-from ._conv import connectivity_graph_deprecated
-from ._conv import zmatrix
-from ._conv import zmatrix_with_conversion_info
-from ._conv import update_zmatrix
-from ._conv import amchi
-from ._conv import amchi_with_numbers
-from ._conv import inchi
-from ._conv import inchi_with_numbers
-from ._conv import chi
-from ._conv import chi_with_sort
-from ._conv import smiles
-from ._conv import rdkit_molecule
-from ._conv import py3dmol_view
-from ._conv import display
+from ._1conv import graph
+from ._1conv import graph_without_stereo
+from ._1conv import connectivity_graph_deprecated
+from ._1conv import zmatrix
+from ._1conv import zmatrix_with_conversion_info
+from ._1conv import update_zmatrix
+from ._1conv import amchi
+from ._1conv import amchi_with_numbers
+from ._1conv import inchi
+from ._1conv import inchi_with_numbers
+from ._1conv import chi
+from ._1conv import chi_with_sort
+from ._1conv import smiles
+from ._1conv import rdkit_molecule
+from ._1conv import py3dmol_view
+from ._1conv import display
 # # derived properties
-from ._conv import is_connected
-from ._conv import linear_atoms
-from ._conv import closest_unbonded_atom_distances
-from ._conv import could_be_forming_bond
-from ._conv import ts_reacting_electron_direction
-from ._conv import external_symmetry_factor
+from ._1conv import is_connected
+from ._1conv import linear_atoms
+from ._1conv import closest_unbonded_atom_distances
+from ._1conv import could_be_forming_bond
+from ._1conv import ts_reacting_electron_direction
+from ._1conv import external_symmetry_factor
 # # derived operations
-from ._conv import apply_zmatrix_conversion
-from ._conv import undo_zmatrix_conversion
-from ._conv import set_distance
-from ._conv import set_central_angle
-from ._conv import set_dihedral_angle
+from ._1conv import apply_zmatrix_conversion
+from ._1conv import undo_zmatrix_conversion
+from ._1conv import set_distance
+from ._1conv import set_central_angle
+from ._1conv import set_dihedral_angle
 # # interfaces
-from ._conv import ase_atoms
-from ._conv import from_ase_atoms
+from ._1conv import ase_atoms
+from ._1conv import from_ase_atoms
 # extra functions:
 from ._extra import are_torsions_same
 from ._extra import is_unique

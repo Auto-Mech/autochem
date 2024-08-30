@@ -8,7 +8,7 @@ import numpy as np
 from phydat import phycon
 
 from ..graph import base as graph_base
-from ._conv import (
+from ._1conv import (
     graph,
 )
 from .base import (

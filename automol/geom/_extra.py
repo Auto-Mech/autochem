@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 import numpy
 
 from ..graph import base as graph_base
-from ._conv import graph, inchi
+from ._1conv import graph, inchi
 from .base import (
     almost_equal_coulomb_spectrum,
     almost_equal_dist_matrix,

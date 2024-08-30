@@ -131,7 +131,6 @@ def set_coordinates(geo, xyz_dct, angstrom=False):
     :type geo: automol geometry data structure
     :param xyz_dct: new xyz values for a set of indices
     :type xyz_dct: dict[int: tuple(float)]
-    :rtype: automol molecular graph data structure
     """
 
     symbs = symbols(geo)
