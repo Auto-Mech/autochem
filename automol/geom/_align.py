@@ -6,7 +6,7 @@ import operator
 import numpy
 
 from ..graph.base import _01networkx
-from ._conv import graph as graph_conv
+from ._1conv import graph as graph_conv
 from .base import distance_matrix, is_atom, reorder
 
 

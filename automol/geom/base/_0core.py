@@ -131,7 +131,6 @@ def set_coordinates(geo, xyz_dct, angstrom=False):
     :type geo: automol geometry data structure
     :param xyz_dct: new xyz values for a set of indices
     :type xyz_dct: dict[int: tuple(float)]
-    :rtype: automol molecular graph data structure
     """
 
     symbs = symbols(geo)
@@ -663,7 +662,7 @@ def rotational_analysis(
 
 
 def translational_normal_modes(geo, mass_weight: bool = True) -> numpy.ndarray:
-    """Calculate the rotational normal modes.
+    """Calculate the translational normal modes.
 
     :param geo: The geometry
     :param mass_weight: Return mass-weighted normal modes?
@@ -693,40 +692,10 @@ def rotational_normal_modes(geo, mass_weight: bool = True) -> numpy.ndarray:
         rot_coo = numpy.concatenate([numpy.cross(xyz, rot_axis) for xyz in xyzs])
         rot_coos.append(rot_coo)
     rot_coos = numpy.transpose(rot_coos)
+
     if mass_weight:
         rot_coos *= mass_weight_vector(geo)[:, numpy.newaxis]
     return rot_coos
-
-
-def external_normal_modes(geo, mass_weight: bool = True) -> numpy.ndarray:
-    """Calculate the external (translational and rotational) normal modes.
-
-    :param geo: The geometry
-    :param mass_weight: Return mass-weighted normal modes?
-    :return: The external normal modes, as a 3N x (6 or 5) matrix
-    """
-    trans_coos = translational_normal_modes(geo, mass_weight=mass_weight)
-    rot_coos = rotational_normal_modes(geo, mass_weight=mass_weight)
-    return numpy.hstack([trans_coos, rot_coos])
-
-
-def projection_onto_internal_modes(geo) -> numpy.ndarray:
-    """Get the matrix for projecting onto mass-weighted internal normal modes.
-
-    Note: This must be applied to the *mass-weighted* normal modes!
-
-    Uses SVD to calculate an orthonormal basis for the null space of the external normal
-    modes, which is the space of internal normal modes.
-
-    :param geo: The geometry
-    :param mass_weight: Return a mass-weighted projection?
-    :return: The projection onto internal normal modes, as a 3N x (3N - 6 or 5) matrix
-    """
-    ext_coos = external_normal_modes(geo, mass_weight=True)
-    ext_dim = numpy.shape(ext_coos)[-1]
-    coo_basis, *_ = numpy.linalg.svd(ext_coos, full_matrices=True)
-    int_proj = coo_basis[:, ext_dim:]
-    return int_proj
 
 
 def rotational_constants(geo, amu=True, drop_null: bool = False):

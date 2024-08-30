@@ -1,14 +1,15 @@
 """ test automol.geom
 """
 
-# import pytest
-import io
 from pathlib import Path
 
 import numpy
+import pytest
 
 import automol
 from automol import geom
+
+DATA_PATH = Path(__file__).parent / "data"
 
 C2H2CLF_GEO = (
     ("F", (2.994881276150, -1.414434615111, -0.807144415388)),
@@ -784,38 +785,33 @@ def test__repulsion_energy():
     assert not automol.geom.has_low_relative_repulsion_energy(geo2, ref_geo, "lj_12_6")
 
 
-def test__vibrational_analysis(data_directory_path):
+@pytest.mark.parametrize(
+    "smi,fml,tors",
+    [
+        ("[OH]", "oh", False),
+        ("OO", "h2o2", True),
+        ("C1=CCCC1.[H]", "c4h7_h2", False),
+    ],
+)
+def test__vibrational_analysis(smi, fml, tors):
     """Test automol.geom.vibrational_analysis."""
-    # Linear diatomic
-    geo = (("O", (0.0, 0.0, 0.204769)), ("H", (0.0, 0.0, -1.638153)))
-    hess_io = io.StringIO(
-        """
-            -0.00008   0.        0.        0.00008   0.        0.
-            0.        0.000021  0.        0.       -0.000021  0.
-            0.        0.        0.511701  0.        0.       -0.511701
-            0.00008   0.        0.       -0.00008   0.        0.
-            0.       -0.000021  0.        0.        0.000021  0.
-            0.        0.       -0.511701  0.        0.        0.511701
-        """
-    )
-    hess = numpy.loadtxt(hess_io)
-    ref_freqs = (3776.5,)
-    freqs, _ = geom.vibrational_analysis(geo, hess)
-    print(freqs)
-    assert len(freqs) == len(ref_freqs), f"{freqs} != {ref_freqs}"
-    assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} != {ref_freqs}"
-
-    # Non-linear polyatomic (TS)
-    geo = geom.from_xyz_string((data_directory_path / "c4h7_h2_geom.xyz").read_text())
-    hess = numpy.loadtxt(data_directory_path / "c4h7_h2_hess.txt")
-    ref_freqs = numpy.loadtxt(data_directory_path / "c4h7_h2_freqs.txt")
+    print(f"Testing frequency projection for {fml} (SMILES {smi})")
+    geo = geom.from_xyz_string((DATA_PATH / f"{fml}_geom.xyz").read_text())
+    hess = numpy.loadtxt(DATA_PATH / f"{fml}_hess.txt")
+    ref_freqs = numpy.loadtxt(DATA_PATH / f"{fml}_freqs.txt")
     freqs, _ = geom.vibrational_analysis(geo, hess)
     print(freqs)
     assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} !=\n{ref_freqs}"
 
+    # If requested, test projecting out of torsions
+    if tors:
+        ref_freqs = numpy.loadtxt(DATA_PATH / f"{fml}_freqs_proj.txt")
+        freqs, _ = geom.vibrational_analysis(geo, hess, tors=False)
+        print(freqs)
+        assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} !=\n{ref_freqs}"
+
 
 if __name__ == "__main__":
-    data_directory_path = Path(__file__).parent / "data"
     # __align()
     # test__change_zmatrix_row_values()
     # test__inchi_with_sort()
@@ -832,4 +828,4 @@ if __name__ == "__main__":
     # test__repulsion_energy()
     # test__dist_analysis()
     # test__argunique_coulomb_spectrum()
-    test__vibrational_analysis(data_directory_path)
+    test__vibrational_analysis("OO", "h2o2", True)

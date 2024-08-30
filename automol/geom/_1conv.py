@@ -14,11 +14,11 @@ from phydat import phycon
 
 from .. import vmat
 from ..extern import molfile, py3dmol_, rdkit_
-from ..geom import _molsym
 from ..graph import base as graph_base
 from ..inchi import base as inchi_base
 from ..util import ZmatConv, dict_, heuristic, vector, zmat_conv
 from ..zmat import base as zmat_base
+from . import _0molsym
 from .base import (
     central_angle,
     coordinates,
@@ -848,9 +848,9 @@ def external_symmetry_factor(geo, chiral_center=True):
     if is_atom(geo):
         ext_sym_fac = 1.0
     else:
-        pg_obj = _molsym.point_group_from_geometry(geo)
-        ext_sym_fac = _molsym.point_group_symmetry_number(pg_obj)
-        if _molsym.point_group_is_chiral(pg_obj) and chiral_center:
+        pg_obj = _0molsym.point_group_from_geometry(geo)
+        ext_sym_fac = _0molsym.point_group_symmetry_number(pg_obj)
+        if _0molsym.point_group_is_chiral(pg_obj) and chiral_center:
             ext_sym_fac *= 0.5
 
     return ext_sym_fac

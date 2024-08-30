@@ -176,10 +176,9 @@ def rotational_bond_keys(
     :param gra: the graph
     :param lin_keys: keys to linear atoms in the graph
     :type lin_keys: list[int]
-    :param with_h_rotors: Include H rotors?
-    :type with_h_rotors: bool
-    :param with_ch_rotors: Include CH rotors?
-    :type with_ch_rotors: bool
+    :param with_h_rotors: Include rotors neighbored by only hydrogens on one side?
+    :param with_ch_rotors: Include rotors with C neighbored by only hydrogens?
+    :param with_rings_rotors: Include rotors in rings?
     :returns: The rotational bond keys
     :rtype: frozenset[frozenset[{int, int}]]
     """
@@ -212,12 +211,9 @@ def rotational_segment_keys(
     :param gra: the graph
     :param lin_keys: keys to linear atoms in the graph
     :type lin_keys: list[int]
-    :param with_h_rotors: Include H rotors?
-    :type with_h_rotors: bool
-    :param with_ch_rotors: Include CH rotors?
-    :type with_ch_rotors: bool
-    :param with_rings_rotors: Include atoms in a ring?
-    :type with_rings_rotors: bool
+    :param with_h_rotors: Include rotors neighbored by only hydrogens on one side?
+    :param with_ch_rotors: Include rotors with C neighbored by only hydrogens?
+    :param with_rings_rotors: Include rotors in rings?
     :returns: The rotational bond keys
     :rtype: frozenset[frozenset[{int, int}]]
     """
