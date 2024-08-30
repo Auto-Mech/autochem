@@ -287,13 +287,7 @@ def dbscan(geos,rings_atoms, eps, min_samples=1):
         return labels
 
     sub_geos = [ring_only_geometry(geoi,rings_atoms) for geoi in geos]
-
-    subgeo_strings = []
-    with open("sub_geoms.xyz","w",encoding="utf-8") as f:
-        for geoi in sub_geos:
-            geo_string = xyz_string(geoi, comment="  ")
-            subgeo_strings.append(geo_string)
-            f.write(geo_string+"\n")
+    subgeo_strings = [xyz_string(geoi, comment="  ") for geoi in sub_geos]
 
     # Calculate RMSD for each pair of molecules
     import rdkit

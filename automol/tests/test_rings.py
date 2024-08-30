@@ -1,6 +1,8 @@
 """ test ring functionality in graph
+tests on new functions in geom and zmat
 """
 
+from pathlib import Path
 import numpy
 from automol import geom, graph, inchi, smiles, zmat
 
@@ -320,5 +322,70 @@ def __geom_ring():
     # assert not geom.all_rings_angles_reasonable(bad_geo, rng_atoms)
 
 
+def test__cremerpople():
+    ring_subgeo = geom.ring_only_geometry(GEO1)
+    coord = [cord for _,cord in ring_subgeo]
+    crem_pop,z = geom.cremer_pople_params(coord)
+    q,phi = crem_pop
+    assert numpy.allclose(q,[5.075613768691569e-07, 1.045118846546784])
+    assert numpy.allclose(phi,[-2.112719159650232])
+    assert numpy.allclose(z,[0.4266678312885065, -0.4266676894427873, 0.4266678405885699, 
+                          -0.42666813358007144, 0.4266682754257904, -0.42666812428000805])
+    
+
+def test__dbscan_clustering(data_directory_path):
+    # chair_geo = (
+    #             ('C',   (-0.498449,   1.373130,  -0.231044)),
+    #             ('C',   (-1.438792,   0.254970,   0.230618)),
+    #             ('H',   (-0.518909,   1.429388,  -1.328912)),
+    #             ('H',   (-0.850553,   2.342729,   0.140418)),
+    #             ('C',   (-0.940111,  -1.118642,  -0.230303)),
+    #             ('H',   (-2.454323,   0.434869,  -0.141376)),
+    #             ('H',   (-1.497800,   0.265878,   1.328485)),
+    #             ('C',   ( 0.498874,  -1.373373,   0.230436)),
+    #             ('H',   (-1.603521,  -1.908152,   0.142029)),
+    #             ('H',   (-0.979109,  -1.164870,  -1.328153)),
+    #             ('C',   ( 1.438724,  -0.254593,  -0.230841)),
+    #             ('H',   ( 0.519731,  -1.430001,   1.328298)),
+    #             ('H',   ( 0.850748,  -2.342753,  -0.141769)),
+    #             ('C',   ( 0.939869,   1.118473,   0.231205)),
+    #             ('H',   ( 2.454439,  -0.434609,   0.140627)),
+    #             ('H',   ( 1.497365,  -0.264640,  -1.328740)),
+    #             ('H',   ( 1.603264,   1.908325,  -0.140437)),
+    #             ('H',   ( 0.977975,   1.164049,   1.329104)))
+    # boat_geo = (
+    #             ('C',   (-1.522738,   0.002041,  -0.001183)),
+    #             ('C',   (-0.661994,  -1.219595,  -0.385613)),
+    #             ('H',   (-2.177579,   0.263471,  -0.840807)),
+    #             ('H',   (-2.181223,  -0.256410,   0.836540)),
+    #             ('C',   ( 0.658915,  -1.220294,   0.386819)),
+    #             ('H',   (-0.440951,  -1.197783,  -1.460997)),
+    #             ('H',   (-1.218479,  -2.145790,  -0.205260)),
+    #             ('C',   ( 1.522632,  -0.002036,  -0.001022)),
+    #             ('H',   ( 0.438393,  -1.195663,   1.462232)),
+    #             ('H',   ( 1.213086,  -2.148226,   0.208202)),
+    #             ('C',   ( 0.661923,   1.219541,  -0.385839)),
+    #             ('H',   ( 2.181557,   0.256728,   0.836251)),
+    #             ('H',   ( 2.177168,  -0.263487,  -0.840920)),
+    #             ('C',   (-0.658856,   1.220286,   0.386858)),
+    #             ('H',   ( 1.218438,   2.145690,  -0.205311)),
+    #             ('H',   ( 0.441008,   1.197793,  -1.461228)),
+    #             ('H',   (-1.212746,   2.148550,   0.208977)),
+    #             ('H',   (-0.437966,   1.195471,   1.462199)))
+
+    traj = (data_directory_path / "c6h12_ring_samples.xyz").read_text()
+    geos = [geo for geo,_ in geom.from_xyz_trajectory_string(traj)]
+
+    rings_atoms = graph.rings_atom_keys(geom.graph(geos[0]))
+    unique_geos = geom.dbscan(geos,rings_atoms,2.0,min_samples=1)
+
+    assert len(unique_geos) == 5
+
+    # I have not added check to checks_with_crest as it would require a CREST run
+
+
 if __name__ == "__main__":
-    test__ring_puckering()
+    data_directory_path = Path(__file__).parent / "data"
+    #test__ring_puckering()
+    #test__cremerpople()
+    test__dbscan_clustering(data_directory_path)
