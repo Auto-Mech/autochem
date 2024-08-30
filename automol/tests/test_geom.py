@@ -786,19 +786,19 @@ def test__repulsion_energy():
 
 
 @pytest.mark.parametrize(
-    "smi,geo_file,hess_file,freqs_file",
+    "smi,fml",
     [
-        ("[OH]", "oh_geom.xyz", "oh_hess.txt", "oh_freqs.txt"),
-        ("OO", "h2o2_geom.xyz", "h2o2_hess.txt", "h2o2_freqs.txt"),
-        ("C1=CCCC1.[H]", "c4h7_h2_geom.xyz", "c4h7_h2_hess.txt", "c4h7_h2_freqs.txt"),
+        ("[OH]", "oh"),
+        ("OO", "h2o2"),
+        ("C1=CCCC1.[H]", "c4h7_h2"),
     ],
 )
-def test__vibrational_analysis(smi, geo_file, hess_file, freqs_file):
+def test__vibrational_analysis(smi, fml):
     """Test automol.geom.vibrational_analysis."""
-    print(f"Testing frequency projection for {smi}")
-    geo = geom.from_xyz_string((DATA_PATH / geo_file).read_text())
-    hess = numpy.loadtxt(DATA_PATH / hess_file)
-    ref_freqs = numpy.loadtxt(DATA_PATH / freqs_file)
+    print(f"Testing frequency projection for {fml} (SMILES {smi})")
+    geo = geom.from_xyz_string((DATA_PATH / f"{fml}_geom.xyz").read_text())
+    hess = numpy.loadtxt(DATA_PATH / f"{fml}_hess.txt")
+    ref_freqs = numpy.loadtxt(DATA_PATH / f"{fml}_freqs.txt")
     freqs, _ = geom.vibrational_analysis(geo, hess)
     print(freqs)
     assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} !=\n{ref_freqs}"
@@ -821,4 +821,4 @@ if __name__ == "__main__":
     # test__repulsion_energy()
     # test__dist_analysis()
     # test__argunique_coulomb_spectrum()
-    test__vibrational_analysis("OO", "h2o2_geom.xyz", "h2o2_hess.txt", "h2o2_freqs.txt")
+    test__vibrational_analysis("OO", "h2o2")

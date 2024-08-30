@@ -101,8 +101,6 @@ from .base._1comp import minimum_volume_geometry
 from .base._2intmol import has_low_relative_repulsion_energy
 from .base._2intmol import total_repulsion_energy
 from .base._2intmol import repulsion_energy
-# vibrational analysis
-from .base._vib import vibrational_analysis
 # L4
 # MolSym interface
 from ._0molsym import point_group_from_geometry
@@ -140,6 +138,8 @@ from ._1conv import set_dihedral_angle
 # # interfaces
 from ._1conv import ase_atoms
 from ._1conv import from_ase_atoms
+# vibrational analysis
+from ._2vib import vibrational_analysis
 # extra functions:
 from ._extra import are_torsions_same
 from ._extra import is_unique
