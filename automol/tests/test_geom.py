@@ -805,6 +805,14 @@ def test__vibrational_analysis(data_directory_path):
     assert len(freqs) == len(ref_freqs), f"{freqs} != {ref_freqs}"
     assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} != {ref_freqs}"
 
+    # Non-linear polyatomic (H2O2)
+    geo = geom.from_xyz_string((data_directory_path / "h2o2_geom.xyz").read_text())
+    hess = numpy.loadtxt(data_directory_path / "h2o2_hess.txt")
+    ref_freqs = numpy.loadtxt(data_directory_path / "h2o2_freqs.txt")
+    freqs, _ = geom.vibrational_analysis(geo, hess)
+    print(freqs)
+    assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} !=\n{ref_freqs}"
+
     # Non-linear polyatomic (TS)
     geo = geom.from_xyz_string((data_directory_path / "c4h7_h2_geom.xyz").read_text())
     hess = numpy.loadtxt(data_directory_path / "c4h7_h2_hess.txt")
