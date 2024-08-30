@@ -794,6 +794,12 @@ def test__vibrational_analysis(data_directory_path):
     freqs, _ = geom.vibrational_analysis(geo, hess)
     print(freqs)
 
+    # from automol.geom.base import _vib2
+    # freqs2, _ = _vib2.normal_modes(geo, hess)
+    # print(freqs2)
+
+    geom.rotational_normal_modes(geo, mass_weight=True)
+
 
 if __name__ == "__main__":
     data_directory_path = Path(__file__).parent / "data"

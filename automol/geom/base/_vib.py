@@ -5,9 +5,7 @@ from collections.abc import Sequence
 import numpy
 from qcelemental import constants as qcc
 
-from phydat import ptab
-
-from ._0core import symbols
+from ._0core import coordinates, masses, rotational_analysis
 
 MatrixLike = Sequence[Sequence[float]] | numpy.ndarray
 
@@ -23,15 +21,22 @@ def vibrational_analysis(
     :return: The vibrational frequencies (or force constants) and normal modes
     """
     # 1. build mass-weighted Hessian matrix
-    symbs = symbols(geo)
-    mw_vec = numpy.repeat(list(map(ptab.to_mass, symbs)), 3) ** -0.5
-    hess_mw = mw_vec[:, numpy.newaxis] * hess * mw_vec[numpy.newaxis, :]
+    mw_vec = numpy.sqrt(numpy.repeat(masses(geo), 3))
+    hess_mw = hess / mw_vec[:, numpy.newaxis] / mw_vec[numpy.newaxis, :]
 
     # 2. compute eigenvalues and eigenvectors of the mass-weighted Hessian matrix
     eig_vals, eig_vecs = numpy.linalg.eigh(hess_mw)
 
+    # 3. Project out translations and rotations
+    _, rot_axes, geo_aligned = rotational_analysis(geo)
+    eck_xyzs = numpy.array(coordinates(geo_aligned))
+    print("Eck 1", numpy.linalg.norm(eck_xyzs))
+    print(eck_xyzs)
+    print("Axes 1", numpy.linalg.norm(rot_axes))
+    print(rot_axes)
+
     # 3. un-mass-weight the normal coordinates
-    norm_coos = mw_vec[:, numpy.newaxis] * eig_vecs
+    norm_coos = eig_vecs / mw_vec[:, numpy.newaxis]
     if not freq:
         return eig_vals, norm_coos
 

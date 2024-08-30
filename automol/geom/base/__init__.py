@@ -42,11 +42,15 @@ from ._0core import masses
 from ._0core import total_mass
 from ._0core import center_of_mass
 from ._0core import mass_centered
+from ._0core import aligned_to_principal_axes
 from ._0core import reduced_mass
 from ._0core import inertia_tensor
 from ._0core import principal_axes
 from ._0core import moments_of_inertia
 from ._0core import rotational_constants
+from ._0core import rotational_analysis
+from ._0core import translational_normal_modes
+from ._0core import rotational_normal_modes
 # # geometric measurements
 from ._0core import distance
 from ._0core import central_angle
@@ -130,11 +134,15 @@ __all__ = [
     'total_mass',
     'center_of_mass',
     'mass_centered',
+    'aligned_to_principal_axes',
     'reduced_mass',
     'inertia_tensor',
     'principal_axes',
     'moments_of_inertia',
     'rotational_constants',
+    'rotational_analysis',
+    'translational_normal_modes',
+    'rotational_normal_modes',
     # # geometric measurements
     'distance',
     'central_angle',
