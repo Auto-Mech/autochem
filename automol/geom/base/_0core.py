@@ -662,7 +662,7 @@ def rotational_analysis(
 
 
 def translational_normal_modes(geo, mass_weight: bool = True) -> numpy.ndarray:
-    """Calculate the rotational normal modes.
+    """Calculate the translational normal modes.
 
     :param geo: The geometry
     :param mass_weight: Return mass-weighted normal modes?
@@ -692,6 +692,7 @@ def rotational_normal_modes(geo, mass_weight: bool = True) -> numpy.ndarray:
         rot_coo = numpy.concatenate([numpy.cross(xyz, rot_axis) for xyz in xyzs])
         rot_coos.append(rot_coo)
     rot_coos = numpy.transpose(rot_coos)
+
     if mass_weight:
         rot_coos *= mass_weight_vector(geo)[:, numpy.newaxis]
     return rot_coos

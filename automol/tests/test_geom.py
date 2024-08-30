@@ -786,14 +786,14 @@ def test__repulsion_energy():
 
 
 @pytest.mark.parametrize(
-    "smi,fml",
+    "smi,fml,tors",
     [
-        ("[OH]", "oh"),
-        ("OO", "h2o2"),
-        ("C1=CCCC1.[H]", "c4h7_h2"),
+        ("[OH]", "oh", False),
+        ("OO", "h2o2", True),
+        ("C1=CCCC1.[H]", "c4h7_h2", False),
     ],
 )
-def test__vibrational_analysis(smi, fml):
+def test__vibrational_analysis(smi, fml, tors):
     """Test automol.geom.vibrational_analysis."""
     print(f"Testing frequency projection for {fml} (SMILES {smi})")
     geo = geom.from_xyz_string((DATA_PATH / f"{fml}_geom.xyz").read_text())
@@ -802,6 +802,13 @@ def test__vibrational_analysis(smi, fml):
     freqs, _ = geom.vibrational_analysis(geo, hess)
     print(freqs)
     assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} !=\n{ref_freqs}"
+
+    # If requested, test projecting out of torsions
+    if tors:
+        ref_freqs = numpy.loadtxt(DATA_PATH / f"{fml}_freqs_proj.txt")
+        freqs, _ = geom.vibrational_analysis(geo, hess, tors=False)
+        print(freqs)
+        assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} !=\n{ref_freqs}"
 
 
 if __name__ == "__main__":
@@ -821,4 +828,4 @@ if __name__ == "__main__":
     # test__repulsion_energy()
     # test__dist_analysis()
     # test__argunique_coulomb_spectrum()
-    test__vibrational_analysis("OO", "h2o2")
+    test__vibrational_analysis("OO", "h2o2", True)

@@ -47,6 +47,7 @@ from .base._0core import electron_count
 from .base._0core import atom_indices
 from .base._0core import dummy_atom_indices
 from .base._0core import masses
+from .base._0core import mass_weight_vector
 from .base._0core import total_mass
 from .base._0core import center_of_mass
 from .base._0core import mass_centered
@@ -197,6 +198,7 @@ __all__ = [
     'atom_indices',
     'dummy_atom_indices',
     'masses',
+    'mass_weight_vector',
     'total_mass',
     'center_of_mass',
     'mass_centered',
