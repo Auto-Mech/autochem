@@ -2,8 +2,11 @@
 """
 
 # import pytest
-import automol
+from pathlib import Path
+
 import numpy
+
+import automol
 from automol import geom
 
 C2H2CLF_GEO = (
@@ -777,12 +780,23 @@ def test__repulsion_energy():
     assert automol.geom.has_low_relative_repulsion_energy(geo1, ref_geo, "exp6")
     assert automol.geom.has_low_relative_repulsion_energy(geo1, ref_geo, "lj_12_6")
     assert not automol.geom.has_low_relative_repulsion_energy(geo2, ref_geo, "exp6")
-    assert not automol.geom.has_low_relative_repulsion_energy(
-        geo2, ref_geo, "lj_12_6"
-    )
+    assert not automol.geom.has_low_relative_repulsion_energy(geo2, ref_geo, "lj_12_6")
+
+
+def test__vibrational_analysis(data_directory_path):
+    """Test automol.geom.vibrational_analysis."""
+    geo = geom.from_xyz_string((data_directory_path / "c4h7_h2_geom.xyz").read_text())
+    hess = numpy.loadtxt(data_directory_path / "c4h7_h2_hess.txt")
+    freqs = numpy.loadtxt(data_directory_path / "c4h7_h2_freqs.txt")
+    print(geo)
+    print(hess)
+    print(freqs)
+    freqs, _ = geom.vibrational_analysis(geo, hess)
+    print(freqs)
 
 
 if __name__ == "__main__":
+    data_directory_path = Path(__file__).parent / "data"
     # __align()
     # test__change_zmatrix_row_values()
     # test__inchi_with_sort()
@@ -797,5 +811,6 @@ if __name__ == "__main__":
     # test__insert_dummies()
     # test__closest_unbonded_atoms()
     # test__repulsion_energy()
-    test__dist_analysis()
-    test__argunique_coulomb_spectrum()
+    # test__dist_analysis()
+    # test__argunique_coulomb_spectrum()
+    test__vibrational_analysis(data_directory_path)

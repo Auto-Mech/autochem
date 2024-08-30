@@ -89,6 +89,7 @@ from ._1comp import minimum_volume_geometry
 from ._2intmol import has_low_relative_repulsion_energy
 from ._2intmol import total_repulsion_energy
 from ._2intmol import repulsion_energy
+from ._vib import vibrational_analysis
 
 
 __all__ = [
@@ -176,4 +177,6 @@ __all__ = [
     'has_low_relative_repulsion_energy',
     'total_repulsion_energy',
     'repulsion_energy',
+    # vibrational analysis
+    'vibrational_analysis',
 ]

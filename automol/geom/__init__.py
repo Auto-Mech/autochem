@@ -97,6 +97,8 @@ from .base._1comp import minimum_volume_geometry
 from .base._2intmol import has_low_relative_repulsion_energy
 from .base._2intmol import total_repulsion_energy
 from .base._2intmol import repulsion_energy
+# vibrational analysis
+from .base._vib import vibrational_analysis
 # L4
 # MolSym interface
 from ._molsym import point_group_from_geometry
@@ -241,6 +243,8 @@ __all__ = [
     'has_low_relative_repulsion_energy',
     'total_repulsion_energy',
     'repulsion_energy',
+    # vibrational analysis
+    'vibrational_analysis',
     # L4
     # MolSym interface
     "point_group_from_geometry",
