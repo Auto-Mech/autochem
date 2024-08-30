@@ -5,9 +5,7 @@ from collections.abc import Sequence
 import numpy
 from qcelemental import constants as qcc
 
-from phydat import ptab
-
-from ._0core import symbols
+from ._0core import masses, projection_onto_internal_modes
 
 MatrixLike = Sequence[Sequence[float]] | numpy.ndarray
 
@@ -22,16 +20,22 @@ def vibrational_analysis(
     :param freq: Return frequencies (cm^-1), instead of force constants (a.u.)?
     :return: The vibrational frequencies (or force constants) and normal modes
     """
-    # 1. build mass-weighted Hessian matrix
-    symbs = symbols(geo)
-    mw_vec = numpy.repeat(list(map(ptab.to_mass, symbs)), 3) ** -0.5
-    hess_mw = mw_vec[:, numpy.newaxis] * hess * mw_vec[numpy.newaxis, :]
+    # 1. Mass-weight the Hessian matrix
+    mw_vec = numpy.sqrt(numpy.repeat(masses(geo), 3))
+    hess_mw = hess / mw_vec[:, numpy.newaxis] / mw_vec[numpy.newaxis, :]
+
+    # 2. Project onto the space of internal motions
+    #       K = Qmwt Hmw Qmw = (PI)t Hmw (PI) = It Hint I
+    int_proj = projection_onto_internal_modes(geo)
+    hess_int = int_proj.T @ hess_mw @ int_proj
 
     # 2. compute eigenvalues and eigenvectors of the mass-weighted Hessian matrix
-    eig_vals, eig_vecs = numpy.linalg.eigh(hess_mw)
+    eig_vals, eig_vecs = numpy.linalg.eigh(hess_int)
 
     # 3. un-mass-weight the normal coordinates
-    norm_coos = mw_vec[:, numpy.newaxis] * eig_vecs
+    #       Qmw = PI (see above)    Q = Qmw / mw_vec
+    norm_coos_mw = numpy.dot(int_proj, eig_vecs) / mw_vec[:, numpy.newaxis]
+    norm_coos = norm_coos_mw / mw_vec[:, numpy.newaxis]
     if not freq:
         return eig_vals, norm_coos
 

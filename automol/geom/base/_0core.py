@@ -173,7 +173,7 @@ def string(geo, angstrom: bool = True, mode: Optional[ArrayLike] = None):
 
     # If requested, include the mode in the string
     if mode is not None:
-        assert len(lines) == natms, f"Invalid mode for geometry:\n{mode}\n{geo}"
+        mode = numpy.reshape(mode, (natms, 3))
         mode_strs = [f"{m[0]:10.6f} {m[1]:10.6f} {m[2]:10.6f}" for m in mode]
         lines = ["  ".join([s, x]) for s, x in zip(lines, mode_strs)]
 
@@ -515,6 +515,15 @@ def masses(geo, amu=True):
     return amas
 
 
+def mass_weight_vector(geo) -> numpy.ndarray:
+    """Get the mass-weighting vector for a geometry.
+
+    :param geo: The geometry
+    :return: The mass-weighting vector
+    """
+    return numpy.sqrt(numpy.repeat(masses(geo), 3))
+
+
 def total_mass(geo, amu=True):
     """Calculate the total mass of a molecular geometry.
 
@@ -598,20 +607,7 @@ def inertia_tensor(geo, amu=True):
     return ine
 
 
-def principal_axes(geo, amu=True):
-    """Determine the principal axes of rotation for a molecular geometry.
-
-    :param geo: molecular geometry
-    :type geo: automol geometry data structure
-    :param amu: parameter to control electron mass -> amu conversion
-    :type amu: bool
-    :rtype: tuple(tuple(float))
-    """
-    _, paxs = rotational_analysis(geo, amu=amu)
-    return paxs
-
-
-def moments_of_inertia(geo, amu=True):
+def moments_of_inertia(geo, amu: bool = True, drop_null: bool = False):
     """Calculate the moments of inertia along the xyz axes
     (these not sorted in to A,B,C).
 
@@ -621,26 +617,119 @@ def moments_of_inertia(geo, amu=True):
     :type amu: bool
     :rtype: tuple(tuple(float))
     """
-    moms, _ = rotational_analysis(geo, amu=amu)
+    moms, _ = rotational_analysis(geo, amu=amu, drop_null=drop_null)
     return moms
 
 
+def principal_axes(geo, drop_null: bool = False):
+    """Determine the principal axes of rotation for a molecular geometry.
+
+    :param geo: molecular geometry
+    :param amu: parameter to control electron mass -> amu conversion
+    :rtype: tuple(tuple(float))
+    """
+    _, rot_axes = rotational_analysis(geo, drop_null=drop_null)
+    return rot_axes
+
+
+def aligned_to_principal_axes(geo):
+    """Project the geometry onto principal axes of rotation, to standardize its
+    orientation.
+
+    :param geo: The geometry
+    :return: The geometry with standard orientation
+    """
+    return transform_by_matrix(mass_centered(geo), principal_axes(geo), trans=False)
+
+
 def rotational_analysis(
-    geo, amu: bool = True
+    geo, drop_null: bool = False, amu: bool = True
 ) -> tuple[tuple[float, ...], numpy.ndarray]:
     """Do a rotational analysis, generating the moments of inertia and principal axes.
 
     :param geo: A molecular geometry
+    :param drop_null: Drop null rotations from the analysis? (1 if linear, 3 if atom)
     :param amu: Use atomic mass units instead of electron mass unit?, defaults to True
     :return: The eigenvalues and eigenvetors of the inertia tensor
     """
     ine = inertia_tensor(geo, amu=amu)
     eig_vals, eig_vecs = numpy.linalg.eigh(ine)
+    # Sort the eigenvectors and values
     eig_vals = tuple(eig_vals)
-    return eig_vals, eig_vecs
+    # Drop null rotations, if requested
+    ndrop = 0 if not drop_null else 3 if is_atom(geo) else 1 if is_linear(geo) else 0
+    assert numpy.allclose(eig_vals[:ndrop], 0.0), f"ndrop={ndrop} eig_vals={eig_vals}"
+    return eig_vals[ndrop:], eig_vecs[:, ndrop:]
 
 
-def rotational_constants(geo, amu=True):
+def translational_normal_modes(geo, mass_weight: bool = True) -> numpy.ndarray:
+    """Calculate the rotational normal modes.
+
+    :param geo: The geometry
+    :param mass_weight: Return mass-weighted normal modes?
+    :return: The translational normal modes, as a 3N x 3 matrix
+    """
+    natms = count(geo)
+    trans_coos = numpy.tile(numpy.eye(3), (natms, 1))
+    if mass_weight:
+        trans_coos *= mass_weight_vector(geo)[:, numpy.newaxis]
+    return trans_coos
+
+
+def rotational_normal_modes(geo, mass_weight: bool = True) -> numpy.ndarray:
+    """Calculate the rotational normal modes.
+
+    For each atom, the direction of rotation around a given axis is given as the cross
+    product of its position with the axis.
+
+    :param geo: The geometry
+    :param mass_weight: Return mass-weighted normal modes?
+    :return: The rotational normal modes, as a 3N x (3 or 2) matrix
+    """
+    _, rot_axes = rotational_analysis(geo, drop_null=True)
+    xyzs = coordinates(mass_centered(geo))
+    rot_coos = []
+    for rot_axis in rot_axes.T:
+        rot_coo = numpy.concatenate([numpy.cross(xyz, rot_axis) for xyz in xyzs])
+        rot_coos.append(rot_coo)
+    rot_coos = numpy.transpose(rot_coos)
+    if mass_weight:
+        rot_coos *= mass_weight_vector(geo)[:, numpy.newaxis]
+    return rot_coos
+
+
+def external_normal_modes(geo, mass_weight: bool = True) -> numpy.ndarray:
+    """Calculate the external (translational and rotational) normal modes.
+
+    :param geo: The geometry
+    :param mass_weight: Return mass-weighted normal modes?
+    :return: The external normal modes, as a 3N x (6 or 5) matrix
+    """
+    trans_coos = translational_normal_modes(geo, mass_weight=mass_weight)
+    rot_coos = rotational_normal_modes(geo, mass_weight=mass_weight)
+    return numpy.hstack([trans_coos, rot_coos])
+
+
+def projection_onto_internal_modes(geo) -> numpy.ndarray:
+    """Get the matrix for projecting onto mass-weighted internal normal modes.
+
+    Note: This must be applied to the *mass-weighted* normal modes!
+
+    Uses SVD to calculate an orthonormal basis for the null space of the external normal
+    modes, which is the space of internal normal modes.
+
+    :param geo: The geometry
+    :param mass_weight: Return a mass-weighted projection?
+    :return: The projection onto internal normal modes, as a 3N x (3N - 6 or 5) matrix
+    """
+    ext_coos = external_normal_modes(geo, mass_weight=True)
+    ext_dim = numpy.shape(ext_coos)[-1]
+    coo_basis, *_ = numpy.linalg.svd(ext_coos, full_matrices=True)
+    int_proj = coo_basis[:, ext_dim:]
+    return int_proj
+
+
+def rotational_constants(geo, amu=True, drop_null: bool = False):
     """Calculate the rotational constants.
     (these not sorted in to A,B,C).
 
@@ -650,7 +739,7 @@ def rotational_constants(geo, amu=True):
     :type amu: bool
     :rtype: tuple(float)
     """
-    moms = moments_of_inertia(geo, amu=amu)
+    moms = moments_of_inertia(geo, amu=amu, drop_null=drop_null)
     cons = numpy.divide(1.0, moms) / 4.0 / numpy.pi / phycon.SOL
     cons = tuple(cons)
     return cons
@@ -1149,20 +1238,23 @@ def transform(geo, func, idxs=None):
     return from_data(symbs, xyzs)
 
 
-def transform_by_matrix(geo, mat):
+def transform_by_matrix(geo, mat, trans: bool = True):
     """Transform the coordinates of a molecular geometry by multiplying
-    it by some input transfomration matrix.
+    it by some input transformation matrix.
 
     :param geo: molecular geometry
     :type geo: automol molecular geometry data structure
     :param mat: transformation matrix
     :type mat: tuple(tuple(float))
+    :param trans: Whether to transpose the matrix for multiplication as r . M^T
     :rtype: automol moleculer geometry data structure
     """
+    if trans:
+        mat = numpy.transpose(mat)
 
     symbs = symbols(geo)
     xyzs = coordinates(geo)
-    xyzs = numpy.dot(xyzs, numpy.transpose(mat))
+    xyzs = numpy.dot(xyzs, mat)
 
     return from_data(symbs, xyzs)
 

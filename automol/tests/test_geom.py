@@ -2,6 +2,7 @@
 """
 
 # import pytest
+import io
 from pathlib import Path
 
 import numpy
@@ -785,14 +786,32 @@ def test__repulsion_energy():
 
 def test__vibrational_analysis(data_directory_path):
     """Test automol.geom.vibrational_analysis."""
-    geo = geom.from_xyz_string((data_directory_path / "c4h7_h2_geom.xyz").read_text())
-    hess = numpy.loadtxt(data_directory_path / "c4h7_h2_hess.txt")
-    freqs = numpy.loadtxt(data_directory_path / "c4h7_h2_freqs.txt")
-    print(geo)
-    print(hess)
-    print(freqs)
+    # Linear diatomic
+    geo = (("O", (0.0, 0.0, 0.204769)), ("H", (0.0, 0.0, -1.638153)))
+    hess_io = io.StringIO(
+        """
+            -0.00008   0.        0.        0.00008   0.        0.
+            0.        0.000021  0.        0.       -0.000021  0.
+            0.        0.        0.511701  0.        0.       -0.511701
+            0.00008   0.        0.       -0.00008   0.        0.
+            0.       -0.000021  0.        0.        0.000021  0.
+            0.        0.       -0.511701  0.        0.        0.511701
+        """
+    )
+    hess = numpy.loadtxt(hess_io)
+    ref_freqs = (3776.5,)
     freqs, _ = geom.vibrational_analysis(geo, hess)
     print(freqs)
+    assert len(freqs) == len(ref_freqs), f"{freqs} != {ref_freqs}"
+    assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} != {ref_freqs}"
+
+    # Non-linear polyatomic (TS)
+    geo = geom.from_xyz_string((data_directory_path / "c4h7_h2_geom.xyz").read_text())
+    hess = numpy.loadtxt(data_directory_path / "c4h7_h2_hess.txt")
+    ref_freqs = numpy.loadtxt(data_directory_path / "c4h7_h2_freqs.txt")
+    freqs, _ = geom.vibrational_analysis(geo, hess)
+    print(freqs)
+    assert numpy.allclose(freqs, ref_freqs, atol=1e-1), f"{freqs} !=\n{ref_freqs}"
 
 
 if __name__ == "__main__":
