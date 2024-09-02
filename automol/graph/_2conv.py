@@ -188,7 +188,7 @@ def _clean_and_validate_connected_geometry(
     return geo if matches or not check else None
 
 
-def inchi(gra, stereo=True):
+def inchi(gra, stereo: bool=True, local_stereo: bool=False):
     """Generate an InChI string from a molecular graph.
 
     :param gra: molecular graph
@@ -197,7 +197,7 @@ def inchi(gra, stereo=True):
     :type stereo: bool
     :rtype: str
     """
-    smi = smiles(gra, stereo=stereo, res_stereo=False)
+    smi = smiles(gra, stereo=stereo, res_stereo=False, local_stereo=local_stereo)
     rdm = rdkit_.from_smiles(smi)
     ich = rdkit_.to_inchi(rdm)
     return ich
