@@ -149,6 +149,19 @@ def stereo_digest(chi: str, racem: bool = False, max_len: int | None = None) -> 
     return ste_str
 
 
+def chi_(chi: str) -> str:
+    """Convert AMChI string to InChI, if appropriate.
+
+    :param chi: AMChI string
+    :return: An InChI or AMChI string encoding the same species
+    """
+    gra = graph(chi, local_stereo=True)
+    ich = graph_.inchi(gra, stereo=True, local_stereo=True)
+    if not graph_.inchi_is_bad(gra, ich):
+        return ich
+    return chi
+
+
 def smiles(chi, res_stereo=True):
     """Convert a ChI string into a SMILES string.
 

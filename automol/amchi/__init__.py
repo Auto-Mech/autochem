@@ -89,6 +89,7 @@ from ._conv import amchi_key
 from ._conv import chemkin_name
 from ._conv import connectivity_digest
 from ._conv import stereo_digest
+from ._conv import chi_
 from ._conv import smiles
 from ._conv import graph
 from ._conv import geometry
@@ -198,6 +199,7 @@ __all__ = [
     'chemkin_name',
     'connectivity_digest',
     'stereo_digest',
+    'chi_',
     'smiles',
     'graph',
     'geometry',
