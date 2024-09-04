@@ -347,7 +347,7 @@ def rdkit_reaction(rchis, pchis, stereo=True, res_stereo=False):
     return graph_.rdkit_reaction(rgras, pgras, stereo=stereo, res_stereo=res_stereo)
 
 
-def display(chi, stereo=True):
+def display(chi, stereo=True, exp=False, label=False, label_dct=None):
     """Display molecule to IPython using the RDKit visualizer
 
     :param chi: ChI string
@@ -357,7 +357,7 @@ def display(chi, stereo=True):
     """
     rdkit_.turn_3d_visualization_off()
     gra = graph(chi, stereo=stereo)
-    graph_.display(gra, stereo=stereo)
+    graph_.display(gra, stereo=stereo, exp=exp, label=label, label_dct=label_dct)
 
 
 def display_reaction(rchis, pchis, stereo=True):
