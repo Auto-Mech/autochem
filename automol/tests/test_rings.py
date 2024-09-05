@@ -327,15 +327,17 @@ def __geom_ring():
 
 
 def test__cremerpople():
-    ring_subgeo = geom.ring_only_geometry(GEO1)
+    ring_subgeo = geom.ring_only_geometry(GEO4)
     coord = [cord for _,cord in ring_subgeo]
     crem_pop,z = geom.cremer_pople_params(coord)
     q,phi = crem_pop
-    assert numpy.allclose(q,[5.075613768691569e-07, 1.045118846546784],atol=1e-05)
-    assert numpy.allclose(phi,[-2.112719159650232],atol=1e-05)
-    assert numpy.allclose(z,[0.4266678312885065, -0.4266676894427873, 0.4266678405885699, 
-                          -0.42666813358007144, 0.4266682754257904, -0.42666812428000805],
-                          atol=1e-05)
+    print(z)
+    print(q)
+    print(phi)
+    assert numpy.allclose(q,[0.7680477833143369],atol=1e-05)
+    assert numpy.allclose(phi,[-1.4363780148135412],atol=1e-05)
+    assert numpy.allclose(z,[0.06509806183300262, 0.2302792666630219, -0.4376977421981725, 
+                             0.4779305570127104, -0.33561014331056255], atol=1e-05)
     
 
 def test__dbscan_clustering():
@@ -390,6 +392,6 @@ def test__dbscan_clustering():
 
 
 if __name__ == "__main__":
-    test__ring_puckering()
+   # test__ring_puckering()
     test__cremerpople()
-    test__dbscan_clustering()
+   # test__dbscan_clustering()
