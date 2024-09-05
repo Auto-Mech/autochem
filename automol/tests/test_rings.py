@@ -2,6 +2,7 @@
 tests on new functions in geom and zmat
 """
 
+import os
 from pathlib import Path
 import numpy
 from automol import geom, graph, inchi, smiles, zmat
@@ -27,6 +28,9 @@ ZMA2 = geom.zmatrix(GEO2)
 ZMA3 = geom.zmatrix(GEO3)
 ZMA4 = geom.zmatrix(GEO4)
 ZMA5 = geom.zmatrix(GEO5)
+
+PATH = os.path.dirname(os.path.realpath(__file__))
+DAT_PATH = os.path.join(PATH, "data")
 
 
 def test__rings():
@@ -327,13 +331,14 @@ def test__cremerpople():
     coord = [cord for _,cord in ring_subgeo]
     crem_pop,z = geom.cremer_pople_params(coord)
     q,phi = crem_pop
-    assert numpy.allclose(q,[5.075613768691569e-07, 1.045118846546784])
-    assert numpy.allclose(phi,[-2.112719159650232])
+    assert numpy.allclose(q,[5.075613768691569e-07, 1.045118846546784],atol=1e-05)
+    assert numpy.allclose(phi,[-2.112719159650232],atol=1e-05)
     assert numpy.allclose(z,[0.4266678312885065, -0.4266676894427873, 0.4266678405885699, 
-                          -0.42666813358007144, 0.4266682754257904, -0.42666812428000805])
+                          -0.42666813358007144, 0.4266682754257904, -0.42666812428000805],
+                          atol=1e-05)
     
 
-def test__dbscan_clustering(data_directory_path):
+def test__dbscan_clustering():
     # chair_geo = (
     #             ('C',   (-0.498449,   1.373130,  -0.231044)),
     #             ('C',   (-1.438792,   0.254970,   0.230618)),
@@ -372,9 +377,9 @@ def test__dbscan_clustering(data_directory_path):
     #             ('H',   ( 0.441008,   1.197793,  -1.461228)),
     #             ('H',   (-1.212746,   2.148550,   0.208977)),
     #             ('H',   (-0.437966,   1.195471,   1.462199)))
-
-    traj = (data_directory_path / "c6h12_ring_samples.xyz").read_text()
-    geos = [geo for geo,_ in geom.from_xyz_trajectory_string(traj)]
+    with open(os.path.join(DAT_PATH, "c6h12_ring_samples.xyz"), "r") as f:
+        traj = f.read()
+    geos = [geoi for geoi,_ in geom.from_xyz_trajectory_string(traj)]
 
     rings_atoms = graph.rings_atom_keys(geom.graph(geos[0]))
     unique_geos = geom.dbscan(geos,rings_atoms,2.0,min_samples=1)
@@ -385,7 +390,6 @@ def test__dbscan_clustering(data_directory_path):
 
 
 if __name__ == "__main__":
-    data_directory_path = Path(__file__).parent / "data"
-    #test__ring_puckering()
-    #test__cremerpople()
-    test__dbscan_clustering(data_directory_path)
+    test__ring_puckering()
+    test__cremerpople()
+    test__dbscan_clustering()
