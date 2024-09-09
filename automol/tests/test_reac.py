@@ -1,9 +1,55 @@
-"""Test reac
-"""
+"""Test reac."""
 
 import pytest
+
 from automol import chi as chi_
 from automol import geom, graph, reac, smiles, zmat
+
+# Stereo-dependent reaction ID
+#   [CH]1[C@H]2CC[C@@H]1O2 => C1=C2CC[C@@H]1O2 + [H]
+#         *       ^              *    ^
+#
+# Notes:
+#   1. Without stereochemistry, * and ^ are symmetrically equivalent, so that the
+#      C-H bond of either one could be broken to yield the product.
+#   2. With stereochemistry, this is not the case. Only one of them can yield the product.
+#   3. This was causing a bug in our reaction mapping strategy, as only one of
+#      the (apparently equivalent) bonds was enumerated for the beta scission,
+#      but it was for the wrong (impossible) stereoisomer.
+C5H7O_RGEOS = (
+    (
+        ("C", (-1.818776, 0.000365, -1.870351)),
+        ("C", (-0.728737, 1.849057, 0.019341)),
+        ("H", (-3.815204, 0.00202, -2.406224)),
+        ("O", (-1.43218, -0.00102, 1.941119)),
+        ("C", (2.14661, 1.467934, -0.165888)),
+        ("H", (-1.480623, 3.753408, 0.344455)),
+        ("C", (-0.7282, -1.849316, 0.017276)),
+        ("H", (-1.479758, -3.753888, 0.342001)),
+        ("C", (2.147088, -1.467251, -0.165725)),
+        ("H", (2.945064, 2.30276, -1.89216)),
+        ("H", (3.116856, 2.276812, 1.482364)),
+        ("H", (3.11582, -2.275557, 1.483743)),
+        ("H", (2.947381, -2.302127, -1.891058)),
+    ),
+)
+C5H7O_PGEOS = (
+    (
+        ("C", (-1.656404, -1.057905, 1.788813)),
+        ("C", (-1.32713, 1.452595, 0.301729)),
+        ("H", (-1.047337, -1.533683, 3.704721)),
+        ("O", (-1.448161, 0.042876, -2.01624)),
+        ("C", (1.639596, 1.769402, 0.474459)),
+        ("H", (-2.548583, 3.132631, 0.445664)),
+        ("C", (-0.411648, -1.765102, -0.368446)),
+        ("C", (2.371036, -1.082399, -0.302428)),
+        ("H", (2.362823, 3.238507, -0.810887)),
+        ("H", (2.320699, 2.182828, 2.397452)),
+        ("H", (3.469656, -2.054244, 1.162259)),
+        ("H", (3.335331, -1.208571, -2.134068)),
+    ),
+    (("H", (0.0, 0.0, 0.0)),),
+)
 
 
 def test__reactant_graphs():
@@ -232,6 +278,19 @@ def test__from_datatypes():
 
 
 @pytest.mark.parametrize(
+    "fml,rgeos,pgeos,nrxns",
+    [
+        ("C5H7O", C5H7O_RGEOS, C5H7O_PGEOS, 1),
+    ],
+)
+def test__from_geometries(fml, rgeos, pgeos, nrxns):
+    print(f"Testing for {fml}")
+    rxns = reac.from_geometries(rct_geos=rgeos, prd_geos=pgeos, stereo=True)
+    print(len(rxns))
+    assert len(rxns) == nrxns, f"{len(rxns)} != {nrxns}"
+
+
+@pytest.mark.parametrize(
     "rct_smi,prd_smi",
     [
         # UNIMOLECULAR
@@ -456,5 +515,6 @@ if __name__ == "__main__":
     # test__end_to_end("[C@H](O)(C)F.[Cl]", "[C@@H](O)(C)Cl.[F]")
     # test__end_to_end("CCCO[O]", "[CH2]CCOO")
     # test__end_to_end("C[C]1O[C@H]1COO", r"C/C([O])=C\COO")
-    test__end_to_end("CC1[C](O1)COO", "CC1C2(O1)CO2.[OH]")
+    # test__end_to_end("CC1[C](O1)COO", "CC1C2(O1)CO2.[OH]")
     # test__canonical_enantiomer()
+    test__from_geometries("C5H7O", C5H7O_RGEOS, C5H7O_PGEOS, 1)
