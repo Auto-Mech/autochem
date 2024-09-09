@@ -466,19 +466,28 @@ def additions(rct_gras, prd_gras):
         iso_dct = graph.isomorphism(rcts_gra_, prds_gra, stereo=False)
         if iso_dct:
             f_frm_bnd_key = (atm1_key, atm2_key)
-            b_brk_bnd_key = (iso_dct[atm1_key], iso_dct[atm2_key])
-            forw_tsg = ts.graph(rcts_gra, frm_bnd_keys=[f_frm_bnd_key], brk_bnd_keys=[])
-            back_tsg = ts.graph(prds_gra, frm_bnd_keys=[], brk_bnd_keys=[b_brk_bnd_key])
-
-            # Create the reaction object
-            rxn = from_forward_reverse(
-                cla=ReactionClass.ADDITION,
-                ftsg=forw_tsg,
-                rtsg=back_tsg,
-                rcts_keys=list(map(graph.atom_keys, rct_gras)),
-                prds_keys=list(map(graph.atom_keys, prd_gras)),
+            b_brk_bnd_key0 = (iso_dct[atm1_key], iso_dct[atm2_key])
+            b_brk_bnd_keys = graph.equivalent_bonds(
+                prds_gra, b_brk_bnd_key0, stereo=False, dummy=False
             )
-            rxns.append(rxn)
+
+            for b_brk_bnd_key in b_brk_bnd_keys:
+                forw_tsg = ts.graph(
+                    rcts_gra, frm_bnd_keys=[f_frm_bnd_key], brk_bnd_keys=[]
+                )
+                back_tsg = ts.graph(
+                    prds_gra, frm_bnd_keys=[], brk_bnd_keys=[b_brk_bnd_key]
+                )
+
+                # Create the reaction object
+                rxn = from_forward_reverse(
+                    cla=ReactionClass.ADDITION,
+                    ftsg=forw_tsg,
+                    rtsg=back_tsg,
+                    rcts_keys=list(map(graph.atom_keys, rct_gras)),
+                    prds_keys=list(map(graph.atom_keys, prd_gras)),
+                )
+                rxns.append(rxn)
 
     return rxns
 
@@ -767,7 +776,6 @@ def find(rct_gras, prd_gras, stereo=False):
     all_rxns = []
     for finder_ in finders_:
         rxns = finder_(rct_gras, prd_gras)
-        rxns = unique(rxns)
         for rxn in rxns:
             if not stereo:
                 all_rxns.append(rxn)
@@ -776,7 +784,8 @@ def find(rct_gras, prd_gras, stereo=False):
                     rxn, rct_gras0, prd_gras0, shift_keys=True
                 )
                 all_rxns.extend(srxns)
-
+    # Check for uniqueness *after* stereochemistry is assigned
+    all_rxns = unique(all_rxns)
     return tuple(all_rxns)
 
 
