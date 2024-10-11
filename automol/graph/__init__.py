@@ -46,6 +46,11 @@ from ._2conv import (
     ts_geometry_from_reactants,
 )
 
+# # super species groups
+from ._3super_func_group import (
+    SuperFunctionalGroup,
+    classify_species,
+)
 # submodules:
 from .base import ts, vmat
 
@@ -363,9 +368,13 @@ from .base._11stereo import (
 from .base._func_group import (
     FunctionalGroup,
     alcohol_groups,
+    alkoxy_OC_groups,
     aldehyde_groups,
+    alkane_sites,
     alkene_sites,
     alkyne_sites,
+    propyne_sites,
+    allene_sites,
     amide_groups,
     bonds_of_order,
     bonds_of_type,
@@ -382,9 +391,19 @@ from .base._func_group import (
     ketone_groups,
     methyl_groups,
     aromatic_groups,
+    benzene_groups,
     phenyl_groups,
     benzyl_groups,
     cyclopentadienyl_groups,
+    cyclopentadiene_groups,
+    cyclopentadienone_groups,
+    fulvene_groups,
+    phenoxy_groups,
+    allyl_groups,
+    allyl_groups_lowestspin,
+    cyclopentenyl_groups,
+    c5h5o_groups,
+    furan_groups,
     neighbors_of_type,
     nitro_groups,
     peroxy_groups,
@@ -690,9 +709,13 @@ __all__ = [
     "is_hydrocarbon_species",
     "is_radical_species",
     # # finders for reactive sites and groups
+    "alkane_sites",
     "alkene_sites",
     "alkyne_sites",
+    "propyne_sites",
+    "allene_sites",
     "alcohol_groups",
+    "alkoxy_OC_groups",
     "peroxy_groups",
     "hydroperoxy_groups",
     "ether_groups",
@@ -707,9 +730,19 @@ __all__ = [
     "thiol_groups",
     "methyl_groups",
     "aromatic_groups",
+    "benzene_groups",
     "phenyl_groups",
     "benzyl_groups",
     "cyclopentadienyl_groups",
+    "cyclopentadiene_groups",
+    "cyclopentadienone_groups",
+    "fulvene_groups",
+    "phenoxy_groups",
+    "allyl_groups",
+    "allyl_groups_lowestspin",
+    "cyclopentenyl_groups",
+    "c5h5o_groups",
+    "furan_groups",
     "radical_dissociation_products",
     # # helper functions
     "bonds_of_type",
@@ -743,4 +776,7 @@ __all__ = [
     "svg_string",
     "ipywidget",
     "perturb_geometry_planar_dihedrals",
+    # # species classification
+    "SuperFunctionalGroup",
+    "classify_species",
 ]
