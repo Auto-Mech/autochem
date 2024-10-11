@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy
 
 from ...util import dict_
+from ...util.ring import edges
 from ._00core import (
     AtomKey,
     AtomKeys,
@@ -53,7 +54,6 @@ from ._02algo import (
     shortest_path_between_atoms,
 )
 
-
 # # core functions
 def kekule(gra, max_stereo_overlap=True):
     """One low-spin kekule graph, ignoring current bond orders
@@ -70,18 +70,33 @@ def kekule(gra, max_stereo_overlap=True):
     """
     ste_bkeys = bond_stereo_keys(gra)
     nbkeys_dct = bonds_neighbor_bond_keys(gra, group=False)
-
     def _count_stereo_double_bonds(gra):
         good_bkeys = good_stereo_bond_keys_from_kekule(
             gra, ste_bkeys=ste_bkeys, nbkeys_dct=nbkeys_dct
         )
         return len(good_bkeys)
 
+    def _count_ring_double_bonds(gra):
+        len_rng = 0
+        # extract rings and count alternate double bonds
+        # maximize the total N of alternate double bonds in the molecule
+        rngs_atm_keys = rings_atom_keys(gra)
+        for rng_atm_keys in rngs_atm_keys:
+            rng_bnd_keys = frozenset(map(frozenset, edges(rng_atm_keys)))
+            good_bkeys = good_stereo_bond_keys_from_kekule(
+            gra, ste_bkeys=rng_bnd_keys, nbkeys_dct=nbkeys_dct
+            )
+            len_rng += len(good_bkeys)
+        return len_rng
+            
     gras = kekules(gra)
+
     if not max_stereo_overlap:
         gra = next(iter(gras))
     else:
-        gra = max(gras, key=_count_stereo_double_bonds)
+        # prioritize aromaticity over stereo
+        gra = max(gras, key=lambda x: (_count_ring_double_bonds(x), 
+                                       _count_stereo_double_bonds(x)))
 
     return gra
 

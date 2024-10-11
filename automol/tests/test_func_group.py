@@ -62,6 +62,22 @@ CCOOC_GRA = automol.geom.graph(
     automol.chi.geometry(
         automol.smiles.chi('CC(=O)OC')))
 
+C6H5_GRA = automol.geom.graph(
+    automol.chi.geometry(
+        automol.smiles.chi('c1ccccc1')))
+
+AMN_GRA = automol.geom.graph(
+    automol.chi.geometry(
+        automol.smiles.chi('Cc1ccc2ccccc2c1')))
+
+INDENYL_GRA = automol.geom.graph(
+    automol.chi.geometry(
+        automol.smiles.chi('[CH]1C=Cc2ccccc12')))
+
+C12H8_GRA = automol.geom.graph(
+    automol.chi.geometry(
+        automol.smiles.chi('c1cc2cccc3C=Cc(c1)c23')))
+
 # GRAP = automol.geom.graph(
 #     automol.chi.geometry(
 #         automol.smiles.chi('C[N+](=O)[O-]')))
@@ -88,12 +104,49 @@ INI_FGRP_DCT = {
     automol.graph.FunctionalGroup.METHYL: (),
     automol.graph.FunctionalGroup.PHENYL: (),
     automol.graph.FunctionalGroup.AMINE: (),
+    automol.graph.FunctionalGroup.AROMATIC: (),
 }
 
 
 def test_functional_group_dct():
     """ test automol.graph.functional_group_dct
     """
+    ref_fgrps = INI_FGRP_DCT.copy()
+    ref_fgrps.update({
+        automol.graph.FunctionalGroup.ALKENE: ((6, 7), (10, 5), (1, 3)), 
+        automol.graph.FunctionalGroup.AROMATIC: ((0, 2, 8, 11, 9, 4), (1, 3, 8, 11, 10, 5)),
+        automol.graph.FunctionalGroup.PHENYL: ((8, 2, 0, 4, 9, 11),),
+     })
+    fgrps = automol.graph.functional_group_dct(C12H8_GRA)
+    assert fgrps == ref_fgrps
+    
+    ref_fgrps = INI_FGRP_DCT.copy()
+    ref_fgrps.update({
+        automol.graph.FunctionalGroup.AROMATIC: ((0, 1, 3, 5, 4, 2),),
+        automol.graph.FunctionalGroup.PHENYL: ((4, 5, 0, 2, 1, 3),),
+     })
+    fgrps = automol.graph.functional_group_dct(C6H5_GRA)
+    
+    assert fgrps == ref_fgrps
+    
+    ref_fgrps = INI_FGRP_DCT.copy()
+    ref_fgrps.update({
+        automol.graph.FunctionalGroup.METHYL: ((0, 12, 11, 13),),
+        automol.graph.FunctionalGroup.PHENYL: ((8, 7, 9, 10, 5, 6), (9, 10, 2, 4, 1, 3)),
+        automol.graph.FunctionalGroup.AROMATIC: ((5, 6, 9, 10, 7, 8), (1, 2, 4, 10, 9, 3)),
+     })
+    fgrps = automol.graph.functional_group_dct(AMN_GRA)
+    assert fgrps == ref_fgrps
+
+    ref_fgrps = INI_FGRP_DCT.copy()
+    ref_fgrps.update({
+        automol.graph.FunctionalGroup.ALKENE: ((2, 6),), 
+        automol.graph.FunctionalGroup.PHENYL: ((1, 4, 8, 7, 0, 3),),
+        automol.graph.FunctionalGroup.AROMATIC: ((0, 1, 4, 8, 7, 3),),
+     })
+    fgrps = automol.graph.functional_group_dct(INDENYL_GRA)
+
+    assert fgrps == ref_fgrps
 
     ref_fgrps = INI_FGRP_DCT.copy()
     ref_fgrps.update({
@@ -214,5 +267,5 @@ def test_unique_atoms():
 
 
 if __name__ == '__main__':
-    # test_functional_group_dct()
+    test_functional_group_dct()
     test_unique_atoms()

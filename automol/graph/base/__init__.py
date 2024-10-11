@@ -362,6 +362,10 @@ from ._func_group import nitro_groups
 from ._func_group import halide_groups
 from ._func_group import thiol_groups
 from ._func_group import methyl_groups
+from ._func_group import aromatic_groups
+from ._func_group import phenyl_groups
+from ._func_group import benzyl_groups
+from ._func_group import cyclopentadienyl_groups
 from ._func_group import radical_dissociation_products
 
 # # helper functions
@@ -687,6 +691,10 @@ __all__ = [
     "halide_groups",
     "thiol_groups",
     "methyl_groups",
+    "aromatic_groups",
+    "phenyl_groups",
+    "benzyl_groups",
+    "cyclopentadienyl_groups",
     "radical_dissociation_products",
     # # helper functions
     "bonds_of_type",
