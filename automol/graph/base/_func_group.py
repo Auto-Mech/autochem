@@ -26,19 +26,21 @@ from ._00core import (
 )
 from ._02algo import branches, isomorphism, rings_atom_keys
 from ._03kekule import (
-    kekule, 
-    kekules, 
+    kekule,
+    kekules,
     # kekules_bond_orders,
     radical_atom_keys,
-    radical_atom_keys_from_kekule, 
-    atom_hybridizations_from_kekule, 
-    kekules_bond_orders_collated
+    radical_atom_keys_from_kekule,
+    atom_hybridizations_from_kekule,
+    kekules_bond_orders_collated,
 )
 from ._08canon import from_local_stereo, to_local_stereo
+
 
 # # core functions
 class FunctionalGroup:
     """Functional groups"""
+
     ALKANE = "alkane"
     ALKENE = "alkene"
     ALKYNE = "alkyne"
@@ -77,6 +79,7 @@ class FunctionalGroup:
     CPTOYL = "cyclopentadienonyl"
     FURAN = "furan"
 
+
 def functional_group_count_dct(gra):
     """Return a dictionary that contains a count of the number
     of each of the functional groups in a species.
@@ -102,8 +105,7 @@ def functional_group_dct(gra):
     # Convert to explicit kekule graph for the functions to work
     gra = kekule(explicit(gra))
     # rings to exclude
-    c6_rings = ring_by_size_and_hyb(
-        gra, hyb = 2, ring_size = 6, accept_notspX = 2)
+    c6_rings = ring_by_size_and_hyb(gra, hyb=2, ring_size=6, accept_notspX=2)
     # Build a dictionary by calling all the functional group functions
     # Certain smaller groups are removed when they are a part of larger groups
     aromatic_grps = aromatic_groups(gra)
@@ -117,11 +119,27 @@ def functional_group_dct(gra):
     furan_grps = furan_groups(gra)
     allene_grps = allene_sites(gra, filterlst=allyl_grps)
     propyne_grps = propyne_sites(gra)
-    alkane_grps = alkane_sites(gra, filterlst=fulv_grps + cpdone_grps + cptyl_grps + 
-                               c5h5o_grps + furan_grps +
-                               cpdyl_grps + c6_rings + allyl_grps + propyne_grps)
-    alkene_grps = alkene_sites(gra, filterlst=cpdyl_grps + cptyl_grps + c5h5o_grps +
-                               c6_rings + allyl_grps + allene_grps)
+    alkane_grps = alkane_sites(
+        gra,
+        filterlst=fulv_grps
+        + cpdone_grps
+        + cptyl_grps
+        + c5h5o_grps
+        + furan_grps
+        + cpdyl_grps
+        + c6_rings
+        + allyl_grps
+        + propyne_grps,
+    )
+    alkene_grps = alkene_sites(
+        gra,
+        filterlst=cpdyl_grps
+        + cptyl_grps
+        + c5h5o_grps
+        + c6_rings
+        + allyl_grps
+        + allene_grps,
+    )
     alkyne_grps = alkyne_sites(gra, filterlst=allyl_grps + allene_grps)
     alkoxy_grps = alkoxy_groups(gra)
     peroxy_grps = peroxy_groups(gra)
@@ -134,13 +152,13 @@ def functional_group_dct(gra):
     alcohol_grps = alcohol_groups(gra, filterlst=carbox_acid_grps)
     aldehyde_grps = aldehyde_groups(gra, filterlst=carbox_acid_grps)
     ketone_grps = ketone_groups(gra, filterlst=carbox_acid_grps + ester_grps)
-    alkoxy_oc_grps =alkoxy_OC_groups(gra, filterlst=aromatic_grps + alcohol_grps)
+    alkoxy_oc_grps = alkoxy_OC_groups(gra, filterlst=aromatic_grps + alcohol_grps)
     # amine_grps = amine_groups(gra)
     amide_grps = amide_groups(gra)
     nitro_grps = nitro_groups(gra)
     halide_grps = halide_groups(gra)
     thiol_grps = thiol_groups(gra)
-    methyl_grps = methyl_groups(gra, filterlst = propyne_grps)
+    methyl_grps = methyl_groups(gra, filterlst=propyne_grps)
     benzene_grps = benzene_groups(gra)
     phenyl_grps = phenyl_groups(gra)
     amine_grps = amine_groups(gra)
@@ -218,13 +236,13 @@ def alkane_sites(gra, filterlst=()):
     :rtype: tuple
     """
     hyb_dct = atom_hybridizations_from_kekule(gra)
-    non_sp3 = tuple([atm for atm in hyb_dct.keys() if 3 != hyb_dct[atm]])
+    non_sp3 =  tuple(atm for atm in hyb_dct if hyb_dct[atm] != 3)
     cc1_bnds = bonds_of_type(gra, symb1="C", symb2="C", mbond=1)
-    cc1_bnds =  _filter_idxs(cc1_bnds, filterlst=filterlst)
+    cc1_bnds = _filter_idxs(cc1_bnds, filterlst=filterlst)
     # delete bond if both are non-sp3 carbons
     # maybe classify according to : primary, secondary, tertiary?
-    cc1_bnds = tuple([bnd for bnd in cc1_bnds 
-                      if not all(atm in non_sp3 for atm in bnd)])
+    cc1_bnds = tuple(bnd for bnd in cc1_bnds
+                     if not all(atm in non_sp3 for atm in bnd))
     return cc1_bnds
 
 
@@ -235,8 +253,8 @@ def alkene_sites(gra, filterlst=()):
     :type gra: molecular graph data structure
     :rtype: tuple
     """
-    cc2_bnds = bonds_of_type(gra, symb1="C", symb2="C", mbond=2)    
-    cc2_bnds =  _filter_idxs(cc2_bnds, filterlst=filterlst)
+    cc2_bnds = bonds_of_type(gra, symb1="C", symb2="C", mbond=2)
+    cc2_bnds = _filter_idxs(cc2_bnds, filterlst=filterlst)
     return cc2_bnds
 
 
@@ -249,7 +267,7 @@ def alkyne_sites(gra, filterlst=()):
     """
     cc3_bnds = bonds_of_type(gra, symb1="C", symb2="C", mbond=3)
     cc3_bnds = _filter_idxs(cc3_bnds, filterlst=filterlst)
-    
+
     return cc3_bnds
 
 
@@ -260,10 +278,11 @@ def allene_sites(gra, filterlst=()):
     :type gra: molecular graph data structure
     :rtype: tuple
     """
-    cc2_bnds = bonds_of_type(gra, symb1="C", symb2="C", mbond=2)    
+    cc2_bnds = bonds_of_type(gra, symb1="C", symb2="C", mbond=2)
     double_bonds = _filter_idxs(cc2_bnds, filterlst=filterlst)
 
     return adjacent_grps(gra, double_bonds, double_bonds)
+
 
 def propyne_sites(gra):
     """determine the location of propyne groups
@@ -277,7 +296,7 @@ def propyne_sites(gra):
     # check adjacent groups among those tested
     return adjacent_grps(gra, single_bonds, triple_bonds)
 
-    
+
 def alcohol_groups(gra, filterlst=()):
     """Determine the location of alcohol groups. The locations are
     specified as tuple-of-tuple of idxs indicating the C-O-H atoms
@@ -291,7 +310,8 @@ def alcohol_groups(gra, filterlst=()):
     alc_grps = two_bond_idxs(gra, symb1="C", cent="O", symb2="H")
     alc_grps = _filter_idxs(alc_grps, filterlst=filterlst)
     # return only the OH group
-    alc_grps = tuple([(atms[1], atms[2]) for atms in alc_grps])
+    alc_grps = tuple((atms[1], atms[2]) for atms in alc_grps)
+    #tuple([(atms[1], atms[2]) for atms in alc_grps])
     return alc_grps
 
 
@@ -319,6 +339,7 @@ def alkoxy_groups(gra):
 
     return alkox_grps
 
+
 def alkoxy_OC_groups(gra, filterlst=()):
     """Determine the location of alkoxy groups O-R. The locations are
     specified as tuple-of-tuple of idxs indicating the O-C atoms
@@ -341,6 +362,7 @@ def alkoxy_OC_groups(gra, filterlst=()):
             alkox_grps += ((o_idx, c_idx),)
     alkox_grps = _filter_idxs(alkox_grps, filterlst=filterlst)
     return alkox_grps
+
 
 def peroxy_groups(gra):
     """Determine the location of peroxy groups. The locations are
@@ -619,9 +641,9 @@ def methyl_groups(gra, filterlst=()):
         c_z, h_z = ch_z
         if c_x == c_y and c_x == c_z:
             methyl_grps += ((c_x, h_x, h_y, h_z),)
-            
+
     methyl_grps = _filter_idxs(methyl_grps, filterlst=filterlst)
-    
+
     return methyl_grps
 
 
@@ -695,7 +717,7 @@ def phenyl_groups(gra):
     :rtype: tuple(int)
     """
 
-    # A1-R: aromatic ring with sigma radical
+    # A1-R: aromatic ring with sigma radical
 
     phenyl_grps = ()
     aro_grps = aromatic_groups(gra)
@@ -705,19 +727,8 @@ def phenyl_groups(gra):
             # one of the carbons must have up to 2 neighbors / 2 bonds
             bd_keys = atoms_bond_keys(gra)
             if any(len(bd_keys[atm]) == 2 for atm in aro_grp):
-                 phenyl_grps += (aro_grp,) 
-                 
-    # old function; limited, only finds phenyl-like substituents like in biphenyl
-    """
-    phenyl_grps = tuple()
-    rngs_atm_keys = rings_atom_keys(gra)
-    srt_rngs_atm_keys = [sorted(atm_keys) for atm_keys in rngs_atm_keys]
-    cc2_grps = bonds_of_type(gra, symb1="C", symb2="C", mbond=2)
-    for cc2_x, cc2_y, cc2_z in itertools.combinations(cc2_grps, r=3):
-        if sorted(cc2_x + cc2_y + cc2_z) in srt_rngs_atm_keys:
-            phenyl_grps += ((cc2_x + cc2_y + cc2_z),)
-    """
-    
+                phenyl_grps += (aro_grp,)
+
     return phenyl_grps
 
 
@@ -736,9 +747,9 @@ def benzene_groups(gra):
         if not is_radical_species(gra):
             benz_grps = aro_grps
 
-    return benz_grps   
-    
-    
+    return benz_grps
+
+
 def benzyl_groups(gra):
     """Determine location of benzyl groups as keys of heavy atoms
     Args:
@@ -751,25 +762,27 @@ def benzyl_groups(gra):
     all_bd_ords = kekules_bond_orders_collated(gra)
     # get sp2 rings
     arom_grps = aromatic_groups(gra)
-    cpdyl_grps = ring_by_size_and_hyb(
-        gra, hyb = 2, ring_size = 5, accept_notspX = 1)
+    cpdyl_grps = ring_by_size_and_hyb(gra, hyb=2, ring_size=5, accept_notspX=1)
     all_sp2_rings = tuple(itertools.chain(*arom_grps + cpdyl_grps))
     # check that the lateral group is a C, NOT part of an aromatic ring
     # AND that it can resonate on the bond with the ring
     # ngb_atms_dct = atoms_neighbor_atom_keys(gra)
-    
+
     for aro_grp in arom_grps:
         for atm in aro_grp:
-            sub_atm = [natm for natm in neighbors_of_type(gra, atm, "C") 
-                       if natm not in all_sp2_rings]
+            sub_atm = [
+                natm
+                for natm in neighbors_of_type(gra, atm, "C")
+                if natm not in all_sp2_rings
+            ]
             if len(sub_atm) > 0:
                 bd_ords = all_bd_ords[frozenset({atm, sub_atm[0]})]
-                if 1 in bd_ords and 2 in bd_ords: 
+                if 1 in bd_ords and 2 in bd_ords:
                     # can be of both order 1 and 2: resonant
                     bzyl_grps += (aro_grp + (sub_atm[0],),)
-                    # add atom to the aromatic group 
+                    # add atom to the aromatic group
                     # # => this will define the benzyl group
-                   
+
     return bzyl_grps
 
 
@@ -783,11 +796,9 @@ def cyclopentenyl_groups(gra):
     """
     cptyl_grps = tuple()
     # 5-membered rings with at least 1 double bond
-    cpd_rings = ring_by_size_and_hyb(
-        gra, hyb = 2, ring_size = 5, accept_notspX = 3)
+    cpd_rings = ring_by_size_and_hyb(gra, hyb=2, ring_size=5, accept_notspX=3)
     # 5-membered rings with at least 3 sp3 carbons
-    cpt_rings = ring_by_size_and_hyb(
-        gra, hyb = 3, ring_size = 5, accept_notspX = 2)
+    cpt_rings = ring_by_size_and_hyb(gra, hyb=3, ring_size=5, accept_notspX=2)
     # intersection
     cpd_rings_new = tuple(set(cpd_rings).intersection(cpt_rings))
     # allyl groups
@@ -795,36 +806,35 @@ def cyclopentenyl_groups(gra):
     # if ring has allyl-like resonance: it will be cptyl
     for ring in cpd_rings_new:
         # controlla che sia subset
-        if any([set(allyl_grp).issubset(ring) for allyl_grp in allyl_grps]):
-            cptyl_grps += (ring, )
-            
+        if any(set(allyl_grp).issubset(ring) for allyl_grp in allyl_grps):
+            cptyl_grps += (ring,)
+
     return cptyl_grps
 
 
 def c5h5o_groups(gra):
     """Determine location of c5h5o-like groups as keys of heavy atoms
     e.g., CYC5H5O InChI=1S/C5H5O/c6-5-3-1-2-4-5/h1-3H,4H2
-    
+
     Args:
     param gra: molecular graph (kekule)
     type gra: tuple(dct)
     rtype: tuple(tuple) with non-H keys
     """
-    
-    #5-MEMBERED RINGS WITH AT LEAST ONE DOUBLE BOND
-    #LATERAL GROUP IS OXYGEN AND IT NEEDS TO RESONATE WITH THE REST OF THE RING
-    #OXYGEN WILL BE IDENTIFIED AS RADICAL IN THE REST OF THE STRUCTURE
-            
+
+    # 5-MEMBERED RINGS WITH AT LEAST ONE DOUBLE BOND
+    # LATERAL GROUP IS OXYGEN AND IT NEEDS TO RESONATE WITH THE REST OF THE RING
+    # OXYGEN WILL BE IDENTIFIED AS RADICAL IN THE REST OF THE STRUCTURE
+
     # multiple kekules to check for resonance
     all_bd_ords = kekules_bond_orders_collated(gra)
     # get sp2 rings
-    cpd_rings = ring_by_size_and_hyb(
-        gra, hyb = 2, ring_size = 5, accept_notspX = 3)
+    cpd_rings = ring_by_size_and_hyb(gra, hyb=2, ring_size=5, accept_notspX=3)
     # check that the lateral group is a O
     # AND that it can resonate on the bond with the ring
-    
+
     c5h5o_grps = resonant_oxygens(gra, cpd_rings, all_bd_ords)
-                    
+
     return c5h5o_grps
 
 
@@ -837,10 +847,9 @@ def cyclopentadienyl_groups(gra):
     rtype: tuple(tuple) with non-H keys
     """
     cpdyl_grps = ()
-   
+
     # get c5-memebered rings with at least two double bonds
-    cpd_rings = ring_by_size_and_hyb(
-        gra, hyb = 2, ring_size = 5, accept_notspX = 1)
+    cpd_rings = ring_by_size_and_hyb(gra, hyb=2, ring_size=5, accept_notspX=1)
 
     # radicals- exclude those on atoms involved in double bonds
     # so you are automatically excluding also sigma radicals as in C12H7
@@ -849,15 +858,15 @@ def cyclopentadienyl_groups(gra):
     pi_rad_keys = [rad for rad in all_rad_keys if hyb_dct[rad] != 2]
     # checks all implied in: c5 ring with at least 4 double bonds,
     # and check on radical that is not sigma
-    # 1) resonance stabilization 
+    # 1) resonance stabilization
     # 2) radical can be on the ring
     # 3) radical is not sigma
-    
+
     for cpdyl_rng in cpd_rings:
         can_be_pi_rad = any(atm in pi_rad_keys for atm in cpdyl_rng)
         if can_be_pi_rad:
             cpdyl_grps += (cpdyl_rng,)
-   
+
     return cpdyl_grps
 
 
@@ -867,33 +876,46 @@ def allyl_groups(gra):
     check all resonant structures
     warning: in aromatic radicals, relatively unstable structures can also arise
     (e.g., in phenyl can also have an allylic-like form)
-    if you want only the most stable resonance structure analyzed, use allyl_groups_lowestspin
+    if you want only the most stable resonance structure analyzed, 
+    use allyl_groups_lowestspin
     Args:
     param gra: molecular graph (kekule)
     type gra: tuple(dct)
     rtype: tuple(tuple) with non-H keys
-    
+
     """
+
     def pairwise_bd_ords_check(bds_ords, ngb_rads):
-        """ check pairwise bonds of type single-double, and sigle has a res. radical on it
-        """
+        """check pairwise bonds of type single-double, 
+        and sigle has a res. radical on it"""
         flag = False
         for i, ord0 in enumerate(bds_ords[0]):
             bds_ords1 = bds_ords[1]
             ngb_rads0, ngb_rads1 = ngb_rads
-            # one single and one double bond, where the rad on the single bond is resonant
-            if ord0 == 1 and ngb_rads0[i] == 1 and bds_ords1[i] == 2 and ngb_rads1[i] == 0 :
+            # one single and one double bond,
+            # where the rad on the single bond is resonant
+            if (
+                ord0 == 1
+                and ngb_rads0[i] == 1
+                and bds_ords1[i] == 2
+                and ngb_rads1[i] == 0
+            ):
                 flag = True
-            elif ord0 == 2 and ngb_rads0[i] == 0 and ngb_rads1[i] == 1 and bds_ords1[i] == 1:
+            elif (
+                ord0 == 2
+                and ngb_rads0[i] == 0
+                and ngb_rads1[i] == 1
+                and bds_ords1[i] == 1
+            ):
                 flag = True
-                
+
         return flag
-    
+
     all_rad_keys = radical_atom_keys(gra)
     # exclude radicals immediately
     if len(all_rad_keys) == 0:
         return ()
-    
+
     allyl_grps = ()
     kgras = kekules(gra)
     kgra_rads = []
@@ -904,46 +926,45 @@ def allyl_groups(gra):
         kgra_rads.append([rad for rad in rad_dct if hyb_dct[rad] == 3])
     all_bd_ords = kekules_bond_orders_collated(gra)
 
-    carbons = atom_keys(gra, symb = "C")
+    carbons = atom_keys(gra, symb="C")
     # list of whether the carbon is a radical in each res. structure
     all_carb_israd = ()
     for carb in carbons:
-        all_carb_israd += (tuple([1 if carb in kgra_rad else 0 for kgra_rad in kgra_rads ]), )
-        
+        all_carb_israd += (
+            tuple(1 if carb in kgra_rad else 0 for kgra_rad in kgra_rads),
+        )
+
     for carb in carbons:
         # carbon neighbors
         ngbs = atom_neighbor_atom_keys(gra, carb, symb="C")
         if len(ngbs) < 2:
             continue
 
-        res_allyl_atoms = (carb, )
+        res_allyl_atoms = (carb,)
         bds_ords = []
         ngb_rads = []
         for ngb in ngbs:
             bd_ords = all_bd_ords[frozenset({carb, ngb})]
-            if 1 in bd_ords and 2 in bd_ords: 
+            if 1 in bd_ords and 2 in bd_ords:
                 res_allyl_atoms += (ngb,)
                 bds_ords.append(bd_ords)
                 ngb_rads.append(all_carb_israd[ngb])
 
-        if len(res_allyl_atoms) == 3:     
+        if len(res_allyl_atoms) == 3:
             flag = pairwise_bd_ords_check(bds_ords, ngb_rads)
- 
-        elif len(res_allyl_atoms) == 4: 
+
+        elif len(res_allyl_atoms) == 4:
             bds_ords_comb = list(itertools.combinations(bds_ords, 2))
             ngb_rads_comb = list(itertools.combinations(ngb_rads, 2))
             flags = []
             for bds_ords, ngb_rads in zip(bds_ords_comb, ngb_rads_comb):
                 flags.append(pairwise_bd_ords_check(bds_ords, ngb_rads))
-            if True in flags:
-                flag = True
-            else:
-                flag = False
+            flag = bool(True in flags)
         else:
             continue
-        if flag == True:
-            allyl_grps += (res_allyl_atoms, )  
-                      
+        if flag is True:
+            allyl_grps += (res_allyl_atoms,)
+
     return allyl_grps
 
 
@@ -956,7 +977,7 @@ def allyl_groups_lowestspin(gra, filterlst=()):
     param gra: molecular graph (kekule)
     type gra: tuple(dct)
     rtype: tuple(tuple) with non-H keys
-    
+
     """
     allyl_grps = ()
     # hyb dct
@@ -968,24 +989,31 @@ def allyl_groups_lowestspin(gra, filterlst=()):
     rad_dct = [rad for rad in rad_dct if hyb_dct[rad] == 3]
 
     # restrict to sp2 carbons in the middle of allyl group (sp2, not radical)
-    sp2carbons = [carb for carb in atom_keys(gra, symb = "C") 
-                  if hyb_dct[carb] == 2 and carb not in rad_dct]
+    sp2carbons = [
+        carb
+        for carb in atom_keys(gra, symb="C")
+        if hyb_dct[carb] == 2 and carb not in rad_dct
+    ]
     for carb in sp2carbons:
         # carbon neighbors
         ngbs = atom_neighbor_atom_keys(gra, carb, symb="C")
         if len(ngbs) < 2:
             continue
 
-        res_allyl_atoms = (carb, )
+        res_allyl_atoms = (carb,)
         for ngb in ngbs:
-            if (bd_ords[frozenset({carb, ngb})] == 2 and ngb not in rad_dct or
-                bd_ords[frozenset({carb, ngb})] == 1 and ngb in rad_dct):
+            if (
+                bd_ords[frozenset({carb, ngb})] == 2
+                and ngb not in rad_dct
+                or bd_ords[frozenset({carb, ngb})] == 1
+                and ngb in rad_dct
+            ):
                 res_allyl_atoms += (ngb,)
-                
+
         if len(res_allyl_atoms) >= 3:
-                allyl_grps += (res_allyl_atoms, )
-                
-    allyl_grps =  _filter_idxs(allyl_grps, filterlst=filterlst)      
+            allyl_grps += (res_allyl_atoms,)
+
+    allyl_grps = _filter_idxs(allyl_grps, filterlst=filterlst)
     return allyl_grps
 
 
@@ -997,13 +1025,11 @@ def cyclopentadiene_groups(gra):
     rtype: tuple(tuple) with non-H keys
     """
     cpd_grps = ()
-   
+
     # get 5-memebered rings with at least two double bonds
-    cpd_rings = ring_by_size_and_hyb(
-        gra, hyb = 2, ring_size = 5, accept_notspX = 1)
+    cpd_rings = ring_by_size_and_hyb(gra, hyb=2, ring_size=5, accept_notspX=1)
     # needs at least 1 sp3 atom
-    cpt_rings = ring_by_size_and_hyb(
-        gra, hyb = 3, ring_size = 5, accept_notspX = 4)
+    cpt_rings = ring_by_size_and_hyb(gra, hyb=3, ring_size=5, accept_notspX=4)
     # intersection between these lists
     cpd_rings = tuple(set(cpd_rings).intersection(cpt_rings))
     # all atoms in ring have to be carbons
@@ -1019,6 +1045,7 @@ def cyclopentadiene_groups(gra):
 
     return cpd_grps
 
+
 def furan_groups(gra):
     """Determine location of furan-like groups as keys of heavy atoms
     Args:
@@ -1027,10 +1054,9 @@ def furan_groups(gra):
     rtype: tuple(tuple) with non-H keys
     """
     c5_grps = ()
-   
+
     # get 5-memebered rings with at least two double bonds
-    c5_rings = ring_by_size_and_hyb(
-        gra, hyb = 2, ring_size = 5, accept_notspX = 1)
+    c5_rings = ring_by_size_and_hyb(gra, hyb=2, ring_size=5, accept_notspX=1)
     # all atoms in ring have to be carbons
     atm_symb_dct = atom_symbols(gra)
     # exclude ring if it has radicals in it
@@ -1045,16 +1071,16 @@ def furan_groups(gra):
 
     return c5_grps
 
-def C5_dbl_bond(gra, side = 'CH2'):
-    """ searches for cyclopentadienone-like or fulvene-like structures
-        side (str, optional): side group to search for. Defaults to 'CH2'.
+
+def C5_dbl_bond(gra, side="CH2"):
+    """searches for cyclopentadienone-like or fulvene-like structures
+    side (str, optional): side group to search for. Defaults to 'CH2'.
     """
     c5_dbl_grps = ()
-   
+
     # get 5-memebered rings with at least two double bonds
     # need all carbon atoms to be sp2
-    cpd_rings = ring_by_size_and_hyb(
-        gra, hyb = 2, ring_size = 5, accept_notspX = 0)
+    cpd_rings = ring_by_size_and_hyb(gra, hyb=2, ring_size=5, accept_notspX=0)
     # all atoms in ring have to be carbons
     atm_symb_dct = atom_symbols(gra)
     # exclude ring if it has radicals in it
@@ -1070,8 +1096,11 @@ def C5_dbl_bond(gra, side = 'CH2'):
                 # check that first atom of lateral substituent is an oxygen
                 sub_atm = neighbors_of_type(gra, atm_rng, "O")
             elif side == "CH2":
-                sub_atm = [natm for natm in neighbors_of_type(gra, atm_rng, "C")
-                            if len(neighbors_of_type(gra, natm, "H")) == 2]
+                sub_atm = [
+                    natm
+                    for natm in neighbors_of_type(gra, atm_rng, "C")
+                    if len(neighbors_of_type(gra, natm, "H")) == 2
+                ]
             if len(sub_atm) > 0:
                 c5_dbl_grps += (cpd_rng + (sub_atm[0],),)
     return c5_dbl_grps
@@ -1085,22 +1114,23 @@ def cyclopentadienone_groups(gra):
     type gra: tuple(dct)
     rtype: tuple(tuple) with non-H keys
     """
-    cpdo_grps = C5_dbl_bond(gra, side = "O")
-   
+    cpdo_grps = C5_dbl_bond(gra, side="O")
+
     return cpdo_grps
 
 
 def fulvene_groups(gra):
     """Determine location of fulvalene-like groups as keys of heavy atoms
-       cpd rings with all sp2 carbons and first atom of one lateral group is an sp2 carbon
-       
+       cpd rings with all sp2 carbons and first atom of 
+       one lateral group is an sp2 carbon
+
     Args:
     param gra: molecular graph (kekule)
     type gra: tuple(dct)
     rtype: tuple(tuple) with non-H keys
     """
-    flvl_grps = C5_dbl_bond(gra, side = "CH2")
-   
+    flvl_grps = C5_dbl_bond(gra, side="CH2")
+
     return flvl_grps
 
 
@@ -1119,7 +1149,6 @@ def phenoxy_groups(gra):
     # AND that it can resonate on the bond with the ring
     phoxy_grps = resonant_oxygens(gra, arom_grps, all_bd_ords)
 
-                   
     return phoxy_grps
 
 
@@ -1130,9 +1159,8 @@ def aromatic_groups(gra):
     type gra: tuple(dct)
     rtype: tuple(tuple) with non-H keys
     """
-    arom_grps = ring_by_size_and_hyb(
-        gra, hyb = 2, ring_size = 6)
-   
+    arom_grps = ring_by_size_and_hyb(gra, hyb=2, ring_size=6)
+
     return arom_grps
 
 
@@ -1148,11 +1176,11 @@ def thiol_groups(gra):
     return two_bond_idxs(gra, symb1="C", cent="S", symb2="H")
 
 
-def ring_by_size_and_hyb(gra, hyb = 2, ring_size = 6, accept_notspX = 0):
-    """ Determine location of rings with atoms with h
+def ring_by_size_and_hyb(gra, hyb=2, ring_size=6, accept_notspX=0):
+    """Determine location of rings with atoms with h
         hybridization hyb, of size ring_size, with up to accept_notspX
         atoms with "wrong" hybridization
-        
+
     Args:
     param gra: molecular graph (kekule)
     type gra: tuple(dct)
@@ -1168,10 +1196,11 @@ def ring_by_size_and_hyb(gra, hyb = 2, ring_size = 6, accept_notspX = 0):
     hyb_dct = atom_hybridizations_from_kekule(gra)
     ring_grps = ()
     for rng_keys in rng_keys_lst:
-        if (len(rng_keys) == ring_size and 
-            sum(hyb_dct[k] == hyb for k in rng_keys) >= (ring_size - accept_notspX)):
+        if len(rng_keys) == ring_size and sum(hyb_dct[k] == hyb for k in rng_keys) >= (
+            ring_size - accept_notspX
+        ):
             ring_grps += (rng_keys,)
-                 
+
     return ring_grps
 
 
@@ -1198,7 +1227,7 @@ def ring_substituents(gra):
     """
     rngs_subst_gras = {}
     rngs_atm_keys = rings_atom_keys(gra)
-    func_grp_dct = functional_group_dct(gra) #find all possible functional groups
+    func_grp_dct = functional_group_dct(gra)  # find all possible functional groups
     atm_symb_dct = atom_symbols(gra)
     ngb_atms_dct = atoms_neighbor_atom_keys(gra)
     for rng_keys in rngs_atm_keys:
@@ -1212,7 +1241,9 @@ def ring_substituents(gra):
                 idented = False
                 for grp, grp_idx_lst in func_grp_dct.items():
                     for idx_lst in grp_idx_lst:
-                        if satm in idx_lst and atm: # if substituent is in the identified group: add
+                        if (
+                            satm in idx_lst and atm
+                        ):  # if substituent is in the identified group: add
                             if grp == FunctionalGroup.HALIDE:
                                 groups += (atm_symb_dct[satm],)
                             else:
@@ -1229,43 +1260,45 @@ def ring_substituents(gra):
 
 # # helper functions
 def adjacent_grps(gra, grps1, grps2):
-    """ check if grp1 and grp2 are adjacent
-        by detecting an atom in common
-        return grps of bonded atoms without redundancy
+    """check if grp1 and grp2 are adjacent
+    by detecting an atom in common
+    return grps of bonded atoms without redundancy
     """
-    heavy_atms = list(implicit(gra)[0].keys()) # keep only heavy atoms
+    heavy_atms = list(implicit(gra)[0].keys())  # keep only heavy atoms
     grps = ()
     if len(grps1) > 0 and len(grps2) > 0:
         for grp1 in grps1:
-            grp1 = tuple([atm for atm in grp1 if atm in heavy_atms])
+            grp1 = tuple(atm for atm in grp1 if atm in heavy_atms)
             for grp2 in grps2:
-                grp2 = tuple([atm for atm in grp2 if atm in heavy_atms])
+                grp2 = tuple(atm for atm in grp2 if atm in heavy_atms)
                 if len(tuple(set(grp1).intersection(grp2))) > 0 and grp1 != grp2:
                     grpadd = tuple(set(grp1 + grp2))
                     if grpadd not in grps:
-                        grps += (grpadd, )
-                    
+                        grps += (grpadd,)
+
     return grps
+
 
 def resonant_oxygens(gra, grps, all_bd_ords):
     """find lateral oxygens resonant with the grps
-        gra: species graph
-        grps: groups to be checked for oxygen resonance
-        all_bd_ords: bond orders for all kekule structures
+    gra: species graph
+    grps: groups to be checked for oxygen resonance
+    all_bd_ords: bond orders for all kekule structures
     """
     res_grps = ()
     for grp in grps:
         for atm in grp:
-            sub_atm = [natm for natm in neighbors_of_type(gra, atm, "O")]
+            sub_atm = list(neighbors_of_type(gra, atm, "O"))
             if len(sub_atm) > 0:
                 bd_ords = all_bd_ords[frozenset({atm, sub_atm[0]})]
-                if 1 in bd_ords and 2 in bd_ords: 
+                if 1 in bd_ords and 2 in bd_ords:
                     # can be of both order 1 and 2: resonant
                     res_grps += (grp + (sub_atm[0],),)
-                    # add atom to the aromatic group 
+                    # add atom to the aromatic group
                     # # => this will define the phenoxy group
-    return res_grps              
-                    
+    return res_grps
+
+
 def bonds_of_type(gra, symb1, symb2, mbond=1):
     """Determine the indices of all a specific bond
     specified by atom type and bond order.
@@ -1478,11 +1511,15 @@ def _bond_idx_to_symb(idxs, idx_symb_dct):
     """
     return tuple((idx_symb_dct[idx1], idx_symb_dct[idx2]) for (idx1, idx2) in idxs)
 
+
 def _filter_idxs(idxs_lst, filterlst=()):
     """Filter out a tuple"""
     filterlst = tuple(itertools.chain(*filterlst))
-    filtered_lst = tuple([bnd for bnd in idxs_lst if not any(atm in filterlst for atm in bnd)])
+    filtered_lst = tuple(
+        bnd for bnd in idxs_lst if not any(atm in filterlst for atm in bnd)
+    )
     return filtered_lst
+
 
 def _filter_idxs_old(idxs_lst, filterlst=()):
     """Filter out a tuple"""
