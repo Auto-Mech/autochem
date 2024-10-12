@@ -346,10 +346,14 @@ from ._func_group import is_hydrocarbon_species
 from ._func_group import is_radical_species
 
 # # finders for reactive sites and groups
+from ._func_group import alkane_sites
 from ._func_group import alkene_sites
 from ._func_group import alkyne_sites
+from ._func_group import propyne_sites
+from ._func_group import allene_sites
 from ._func_group import alcohol_groups
 from ._func_group import peroxy_groups
+from ._func_group import alkoxy_OC_groups
 from ._func_group import hydroperoxy_groups
 from ._func_group import ether_groups
 from ._func_group import cyclic_ether_groups
@@ -363,9 +367,19 @@ from ._func_group import halide_groups
 from ._func_group import thiol_groups
 from ._func_group import methyl_groups
 from ._func_group import aromatic_groups
+from ._func_group import benzene_groups
 from ._func_group import phenyl_groups
 from ._func_group import benzyl_groups
 from ._func_group import cyclopentadienyl_groups
+from ._func_group import cyclopentadiene_groups
+from ._func_group import cyclopentadienone_groups
+from ._func_group import fulvene_groups
+from ._func_group import phenoxy_groups
+from ._func_group import allyl_groups
+from ._func_group import allyl_groups_lowestspin
+from ._func_group import cyclopentenyl_groups
+from ._func_group import c5h5o_groups
+from ._func_group import furan_groups
 from ._func_group import radical_dissociation_products
 
 # # helper functions
@@ -675,9 +689,13 @@ __all__ = [
     "is_hydrocarbon_species",
     "is_radical_species",
     # # finders for reactive sites and groups
+    "alkane_sites",
     "alkene_sites",
     "alkyne_sites",
+    "propyne_sites",
+    "allene_sites",
     "alcohol_groups",
+    "alkoxy_OC_groups",
     "peroxy_groups",
     "hydroperoxy_groups",
     "ether_groups",
@@ -692,9 +710,19 @@ __all__ = [
     "thiol_groups",
     "methyl_groups",
     "aromatic_groups",
+    "benzene_groups",
     "phenyl_groups",
     "benzyl_groups",
     "cyclopentadienyl_groups",
+    "cyclopentadiene_groups",
+    "cyclopentadienone_groups",
+    "fulvene_groups",
+    "phenoxy_groups",
+    "allyl_groups",
+    "allyl_groups_lowestspin",
+    "cyclopentenyl_groups",
+    "c5h5o_groups",
+    "furan_groups",
     "radical_dissociation_products",
     # # helper functions
     "bonds_of_type",
