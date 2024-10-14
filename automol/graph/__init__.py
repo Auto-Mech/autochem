@@ -244,6 +244,8 @@ from .base._02algo import (
     spiro_atom_keys,
     spiros,
     subgraph_isomorphism,
+    largest_common_fragment_isomorphism,
+    common_fragments_isomorphisms,
     unique,
 )
 
@@ -557,6 +559,8 @@ __all__ = [
     "unique",
     "sequence_isomorphism",
     "subgraph_isomorphism",
+    "largest_common_fragment_isomorphism",
+    "common_fragments_isomorphisms",
     "equivalent_atoms",
     "equivalent_bonds",
     "are_equivalent_atoms",

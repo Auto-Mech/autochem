@@ -175,6 +175,8 @@ from ._02algo import isomorphic
 from ._02algo import unique
 from ._02algo import sequence_isomorphism
 from ._02algo import subgraph_isomorphism
+from ._02algo import largest_common_fragment_isomorphism
+from ._02algo import common_fragments_isomorphisms
 from ._02algo import equivalent_atoms
 from ._02algo import equivalent_bonds
 from ._02algo import are_equivalent_atoms
@@ -537,6 +539,8 @@ __all__ = [
     "unique",
     "sequence_isomorphism",
     "subgraph_isomorphism",
+    "largest_common_fragment_isomorphism",
+    "common_fragments_isomorphisms",
     "equivalent_atoms",
     "equivalent_bonds",
     "are_equivalent_atoms",

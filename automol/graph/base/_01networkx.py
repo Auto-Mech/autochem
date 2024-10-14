@@ -117,3 +117,21 @@ def weighted_maximal_matching(nxg, edge_attrib_name):
     ret = networkx.max_weight_matching(nxg, weight=edge_attrib_name)
     bnd_keys = frozenset(map(frozenset, ret))
     return bnd_keys
+
+
+def largest_common_fragment_isomorphism(nxg1, nxg2):
+    """ find the largest isomorphism dictionary between
+        two networkx graphs
+    """
+    isma = networkx.algorithms.isomorphism.ISMAGS(
+        nxg1, nxg2, node_match=operator.eq, edge_match=operator.eq)
+    return dict(next(isma.largest_common_subgraph()))
+
+
+def common_fragments_isomorphisms(nxg1, nxg2):
+    """ find all isomorphism dictionaries between
+        two networkx graphs
+    """
+    isma = networkx.algorithms.isomorphism.ISMAGS(
+        nxg1, nxg2, node_match=operator.eq, edge_match=operator.eq)
+    return tuple(map(dict, isma.largest_common_subgraph()))

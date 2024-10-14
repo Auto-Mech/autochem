@@ -57,6 +57,7 @@ from ._3find import additions
 from ._3find import insertions
 from ._3find import substitutions
 from ._3find import find
+from ._3find import arbitrary_reactions
 # TS geometries
 from ._4struc import with_structures
 from ._4struc import reverse
@@ -168,6 +169,7 @@ __all__ = [
     'insertions',
     'substitutions',
     'find',
+    'arbitrary_reactions'
     # TS geometries
     'with_structures',
     'reverse',
