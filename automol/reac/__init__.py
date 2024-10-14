@@ -169,7 +169,7 @@ __all__ = [
     'insertions',
     'substitutions',
     'find',
-    'arbitrary_reactions'
+    'arbitrary_reactions',
     # TS geometries
     'with_structures',
     'reverse',
