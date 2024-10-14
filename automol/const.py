@@ -16,12 +16,14 @@ class ReactionClass(str, enum.Enum):
     HOMOLYT_SCISSION = "homolytic scission"
     RING_FORM_SCISSION = "ring forming scission"
     ELIMINATION = "elimination"
+    UNCLASSIFIED_UNIMOL = "unclassified_unimol"
     # Bimolecular reactions
     HYDROGEN_ABSTRACTION = "hydrogen abstraction"
     ADDITION = "addition"
     INSERTION = "insertion"
     DOUBLE_INSERTION = "double_insertion"
     SUBSTITUTION = "substitution"
+    UNCLASSIFIED_BIMOL = "unclassified_bimol"
 
     def __str__(self):
         """Convert a reaction class object to a string.

@@ -808,3 +808,240 @@ def _partial_hydrogen_abstraction(qh_gra, q_gra):
                 rets.append((qh_q_atm_key, qh_h_atm_key, q_q_atm_key))
 
     return rets
+
+
+def arbitrary_reactions(
+    rct_gras, prd_gras, max_brk=2, max_frm=2, min_brk=0, min_frm=0, max_trans=3):
+    """find all transformations consistent with these reactants and products
+
+    :param rct_gras: graphs for the reactants without overlapping keys
+    :param prd_gras: graphs for the products without overlapping keys
+    :param max_brk: (int) maximum number of breakable bonds
+    :param max_frm: (int) maximum number of forming bonds
+    :param min_brk: (int) minimum number of breakable bonds
+    :param min_frm: (int) minimum number of forming bonds
+    :param max_trans: (int) maximum number of combined transformations
+    :returns: the isomorphism dictionary between reactants and products
+        alongwith the lists of breaking bond keys and forming keys
+    :rtype: tuple[dict, tuple[frozenset], tuple[frozenset]
+    """
+    def _set_bimol_direction(rct_gras, prd_gras):
+        # we can reduce dimensionality of bXfy matrix if it is
+        # not unimolecular, by enforcing that there is a forming
+        # bond between species of bimoleculars
+        rct_gras, _ = graph.standard_keys_for_sequence(rct_gras)
+        prd_gras, _ = graph.standard_keys_for_sequence(prd_gras)
+
+        bimol_dir = len(rct_gras) - len(prd_gras)
+        # swap reaction direction to have more reactants than products
+        if bimol_dir < 0:
+            prd_gra = graph.union_from_sequence(rct_gras)
+            rct_gra = graph.union_from_sequence(prd_gras)
+        else:
+            rct_gra = graph.union_from_sequence(rct_gras)
+            prd_gra = graph.union_from_sequence(prd_gras)
+
+        return bimol_dir, rct_gra, prd_gra
+
+    def _greatest_overlap():
+        # largest_common_fragment_isomorphism doesn't always
+        # return the best overlap, this function has different
+        # constraints
+        common_fragments = graph.common_fragments_isomorphisms(rct_gra, prd_gra)
+        stable_key_pairs = {}
+        stable_bnd_keys = ()
+        stable_atm_keys = ()
+        stable_rct_gra = ()
+        stable_prd_gra = ()
+        overlap_perc = -1
+        if common_fragments:
+            stable_key_pairs = common_fragments[0]
+        for common_iso_dct in common_fragments:
+            if len(common_iso_dct) < len(stable_key_pairs):
+                break
+            # # does it have to be the longest, or can we exclude all?
+            # subgras = graph.connected_components(
+            #     graph.subgraph(rct_gra, stable_key_pairs.keys()))
+            # longest_subgra = max(subgras, key=lambda x: len(x[0]))
+            longest_subgra = graph.subgraph(rct_gra, common_iso_dct.keys())
+            common_atm_keys = graph.atom_keys(longest_subgra)
+            common_bnd_keys = graph.bond_keys(longest_subgra)
+            # atom keys are only truely common if they have the same bonds
+            # in the reactants and products and there is no radical
+            true_common_atm_keys = []
+            for key in common_atm_keys:
+                if key in graph.unsaturated_atom_keys(rct_gra):
+                    continue
+                adj_atms = graph.atom_neighbor_atom_keys(rct_gra, key)
+                if all(adj_atm in common_iso_dct.keys() for adj_atm in adj_atms):
+                    prd_adj_atms = [common_iso_dct[adj_atm] for adj_atm in adj_atms]
+                    if set(prd_adj_atms) == set(graph.atom_neighbor_atom_keys(
+                            prd_gra, common_iso_dct[key])):
+                        true_common_atm_keys.append(key)
+
+            # set the hydrogens to explicit so we can break/form them,
+            # but not if they are bound to a common atm
+            common_rct_gra = graph.explicit(
+                rct_gra, atm_keys=set(
+                    graph.atom_keys(rct_gra))-set(true_common_atm_keys))
+            common_prd_gra = graph.explicit(
+                prd_gra,
+                atm_keys=set(graph.atom_keys(prd_gra))-set(
+                    [common_iso_dct[atm] for atm in true_common_atm_keys]))
+
+            # get the overlapping fragment (the graph from the common atm keys)
+            shared_rct_gra = graph.subgraph(rct_gra, atm_keys=set(true_common_atm_keys))
+            shared_bnd_keys = graph.bond_keys(shared_rct_gra)
+            true_common_bnd_keys = frozenset(
+                [key for key in shared_bnd_keys if len(
+                    graph.unsaturated_atom_keys(common_rct_gra) & key) == 0])
+
+            cur_overlap_perc = len(common_bnd_keys)/len(
+                graph.bond_keys(graph.implicit(common_rct_gra)))
+            if overlap_perc < cur_overlap_perc:
+                overlap_perc = cur_overlap_perc
+                stable_key_pairs = common_iso_dct
+                stable_bnd_keys = true_common_bnd_keys
+                stable_atm_keys = true_common_atm_keys
+                stable_rct_gra = common_rct_gra
+                stable_prd_gra = common_prd_gra
+        return (
+            overlap_perc, stable_key_pairs, stable_bnd_keys,
+            stable_atm_keys, stable_rct_gra, stable_prd_gra)
+
+    def _edge_connects_different_groups(frm_bnd):
+        # Iterate over all pairs of groups
+        atom_sets = [set(group) for group in connected_keys]
+        for i, atom_set_i in enumerate(atom_sets):
+            for j in range(i + 1, len(atom_sets)):
+                if (frm_bnd & atom_set_i) and (frm_bnd & atom_sets[j]):
+                    return True
+                if (frm_bnd & atom_sets[j]) and (frm_bnd & atom_set_i):
+                    return True
+        return False
+
+    def _multiple_transitions_per_atom(bnd_lst):
+        flat_bnds = [atm for bnd in bnd_lst for atm in bnd]
+        return len(flat_bnds) - len(set(flat_bnds))
+
+    def _radical_is_involved(frm_bnd_lst, brk_bnd_lst):
+        # include adjacent atoms to radical for beta-scission etc
+        # rad_pos_lst = graph.radical_atom_keys(gra, sing_res=False)
+        frm_bnd_set_flat = frozenset().union(*frm_bnd_lst)
+        brk_bnd_set_flat = frozenset().union(*brk_bnd_lst)
+        return (
+            len(frm_bnd_set_flat & rad_incl_set) +
+            len(brk_bnd_set_flat & rad_incl_set))
+
+    inv_dct = {}
+    frm_bnd_combo = ()
+    brk_bnd_combo = ()
+    bimol_dir, rct_gra, prd_gra = _set_bimol_direction(
+        rct_gras, prd_gras)
+
+    # find the overlap between the two species
+    (
+        overlap_perc,
+        stable_key_pairs,
+        stable_bnd_keys,
+        stable_atm_keys,
+        stable_rct_gra,
+        stable_prd_gra
+    ) = _greatest_overlap()
+    print('overlap', overlap_perc)
+    print('stable_bnd_keys', stable_bnd_keys)
+    print('stable_key_pairs', stable_key_pairs)
+
+    if overlap_perc > 0.3 or len(list(stable_key_pairs.keys())) > 6:
+        # Get some info for checks later
+        # (1) identify sites near the radical
+        # (2) identify connected components of bimol well
+        ngb_dct = graph.atoms_neighbor_atom_keys(stable_rct_gra)
+        rad_pos_lst = graph.unsaturated_atom_keys(stable_rct_gra)
+        rad_incl_set = rad_pos_lst.union(frozenset({
+            adj_atm for rad_atm in rad_pos_lst
+            for adj_atm in ngb_dct[rad_atm]
+            if graph.atom_symbols(stable_rct_gra)[adj_atm] != 'H'}))
+        if abs(bimol_dir) != 0:
+            connected_keys = graph.connected_components_atom_keys(stable_rct_gra)
+
+        # build list of breakable bonds
+        bnd_keys = graph.bond_keys(stable_rct_gra)
+        brk_bnd_keys = [
+             key for key in bnd_keys
+             if key not in stable_bnd_keys]
+
+        # build list of formable bonds
+        # ... all possible formations between atoms
+        # ... but only including one of each equivalent atom
+        # ... where they are only considered equivalent if
+        # ... bound to the same atom, aka C1-C2=C3-C4 won't
+        # ... have C2 and C3 equiv but will have all Hs on C1
+        # ... as equiv, we can adjust it to need just one
+        # ... same neighbor if we want to equivalate methyl groups etc
+        frm_atm_keys_w_dups = graph.atom_keys(stable_rct_gra)
+        frm_atm_keys = ()
+        for atm in frm_atm_keys_w_dups:
+            atm_ngbs = ngb_dct[atm]
+            equiv_atms = [
+                equiv_atm for equiv_atm in graph.equivalent_atoms(stable_rct_gra, atm)
+                if ngb_dct[equiv_atm] == atm_ngbs]
+            if not any(eq_atm in frm_atm_keys for eq_atm in equiv_atms):
+                frm_atm_keys += (atm,)
+        frm_bnd_keys = [
+            frozenset({frm1_key, frm2_key})
+            for frm1_key, frm2_key in itertools.combinations(frm_atm_keys, 2)
+            if (
+                frozenset({frm1_key, frm2_key}) not in bnd_keys
+            )]
+
+        # get allowed combinations of NUMBER of breaking/forming bonds
+        max_brk = min(max_brk, len(brk_bnd_keys))
+        max_frm = min(max_frm, len(frm_bnd_keys))
+        brk_frm_combos = itertools.product(
+                range(min_brk, max_brk + 1), range(min_frm, max_frm + 1))
+        brk_frm_combos = sorted(brk_frm_combos, key=lambda x: sum(x))
+        num_checks = 0
+        for (num_brk, num_frm) in brk_frm_combos:
+            if num_brk + num_frm > max_trans:
+                continue
+            # loop over forming bond key combinations
+            for pot_frm_bnd_combo in itertools.combinations(frm_bnd_keys, num_frm):
+                if inv_dct:
+                    break
+
+                frm_bnd_combo = pot_frm_bnd_combo
+                if _multiple_transitions_per_atom(frm_bnd_combo):
+                    continue
+                if abs(bimol_dir) != 0 and not any(_edge_connects_different_groups(
+                        frm_bnd) for frm_bnd in frm_bnd_combo):
+                    continue
+
+                # loop over breaking bond key combinations
+                for brk_bnd_combo in itertools.combinations(brk_bnd_keys, num_brk):
+                    if _multiple_transitions_per_atom(brk_bnd_combo):
+                        continue
+                    if not _radical_is_involved(frm_bnd_combo, brk_bnd_combo):
+                        continue
+
+                    num_checks += 1
+                    pot_rct_gra = graph.remove_bonds(stable_rct_gra, brk_bnd_combo)
+                    pot_rct_gra = graph.add_bonds(pot_rct_gra, frm_bnd_combo)
+                    inv_dct = graph.isomorphism(
+                        pot_rct_gra, stable_prd_gra, stereo=False)
+                    if inv_dct:
+                        if bimol_dir < 0:
+                            # reverse back
+                            tmp_frm_bnd_combo =  tuple(frozenset(
+                                inv_dct[atm] for atm in bnd) for bnd in brk_bnd_combo)
+                            brk_bnd_combo =  tuple(frozenset(
+                                inv_dct[atm] for atm in bnd) for bnd in frm_bnd_combo)
+                            frm_bnd_combo = tmp_frm_bnd_combo
+                            inv_dct = {value: key for key, value in inv_dct.items()}
+                        print(
+                            'found! breaking',
+                             brk_bnd_combo,
+                            'forming',
+                            frm_bnd_combo)
+                        break
+    return inv_dct, frm_bnd_combo, brk_bnd_combo

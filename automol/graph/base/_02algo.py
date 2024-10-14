@@ -1213,3 +1213,35 @@ def has_reacting_ring(tsg) -> bool:
     :rtype: bool
     """
     return bool(forming_rings_atom_keys(tsg) or breaking_rings_atom_keys(tsg))
+
+
+def  largest_common_fragment_isomorphism(gra1, gra2):
+    """ What is the largest fragment that is in both graphs?
+
+    :param gra1: first species or ts graph
+    :type gra1: automol graph data structure
+    :param gra2: second species or ts graph
+    :type gra2: automol graph data structure
+    :returns: isomorphism dictionary that relates the keys
+        from the first graph to the second graph for 
+        the keys of the largest overlapping fragment
+    :rtype: dict
+    """
+    return _01networkx.largest_common_fragment_isomorphism(
+        *map(_01networkx.from_graph, (gra1, gra2)))
+
+
+def  common_fragments_isomorphisms(gra1, gra2):
+    """ What are all possible fragments that are in both graphs?
+
+    :param gra1: first species or ts graph
+    :type gra1: automol graph data structure
+    :param gra2: second species or ts graph
+    :type gra2: automol graph data structure
+    :returns: isomorphism dictionaries that relate the keys
+        from the first graph to the second graph for 
+        the keys of the overlapping fragments
+    :rtype: tuple[dict]
+    """
+    return _01networkx.common_fragments_isomorphisms(
+        *map(_01networkx.from_graph, (gra1, gra2)))
