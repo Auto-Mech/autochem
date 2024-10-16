@@ -829,8 +829,6 @@ def arbitrary_reactions(
         # we can reduce dimensionality of bXfy matrix if it is
         # not unimolecular, by enforcing that there is a forming
         # bond between species of bimoleculars
-        rct_gras, _ = graph.standard_keys_for_sequence(rct_gras)
-        prd_gras, _ = graph.standard_keys_for_sequence(prd_gras)
 
         bimol_dir = len(rct_gras) - len(prd_gras)
         # swap reaction direction to have more reactants than products
