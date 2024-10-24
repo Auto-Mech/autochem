@@ -1,5 +1,6 @@
 """ core functionality
 """
+
 import itertools
 
 import numpy

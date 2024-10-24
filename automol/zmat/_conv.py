@@ -10,30 +10,44 @@ from ..graph import base as graph_base
 from ..util import ZmatConv
 from .base import (
     conversion_info,
+    dihedral_angle_coordinates,
     distance_coordinates,
+    dummy_keys,
+    dummy_source_dict,
     key_matrix,
     name_matrix,
+    neighbor_keys,
     string,
     symbols,
     value_matrix,
 )
+from .base import (
+    keys as zmatrix_keys,
+)
 
 
 # # conversions
-def graph(zma, stereo=True, dummy=False):
-    """Convert a Z-Matrix to a molecular graph
+def graph(zma, stereo: bool = True, dummy: bool = False, zmat_bonds: bool = False):
+    """Convert a Z-Matrix to a molecular graph.
 
     :param zma: Z-Matrix
     :type zma: automol Z-Matrix data structure
+    :param stereo: Calculate stereochemistry?
     :param dummy: parameter to include dummy atoms
-    :type dummy: bool
+    :param zmat_bonds: Include only bonds that are in the z-matrix?
     :rtype: (automol molecular geometry data structure, dict[int, int])
     """
-
     geo = geometry(zma, dummy=True)
     if not dummy:
         geo = geom.without_dummy_atoms(geo)
+
     gra = geom.graph(geo, stereo=stereo)
+
+    if zmat_bonds:
+        all_bkeys = graph_base.bond_keys(gra)
+        zma_bkeys = set(map(frozenset, distance_coordinates(zma).values()))
+        gra = graph_base.remove_bonds(gra, all_bkeys - zma_bkeys, stereo=stereo)
+        gra = graph_base.add_bonds(gra, zma_bkeys - all_bkeys)
 
     return gra
 
@@ -353,3 +367,58 @@ def total_repulsion_energy(zma, model: str = "exp6") -> float:
     """
     geo = geometry(zma)
     return geom.total_repulsion_energy(geo, model=model)
+
+
+def dummy_coordinate_names(
+    zma: object, with_lin_frag_dih: bool = True
+) -> tuple[str, ...]:
+    """Obtain names of all coordinates associated with dummy atoms
+    defined in the V-Matrix.
+
+    When one of two fragments is linear, the dihedral off of the dummy atom controlling
+    their relative orientation is a bad coordinate and should be frozen along with other
+    dummy coordinates. To include such coordinates in the list of dummy coordinates, set
+    `with_lin_frag_dih = True`.
+
+    :param vma: V-Matrix
+    :param with_lin_frag_dih: Return linear fragment dihedrals along with the other
+        dummy coordinates?
+    :return: Name of coordinates
+    """
+    name_mat = numpy.array(name_matrix(zma))
+    dum_keys = dummy_keys(zma)
+    dum_names = []
+    for dum_key in dum_keys:
+        for col_idx in range(3):
+            dum_name = next(
+                filter(lambda x: x is not None, name_mat[dum_key:, col_idx])
+            )
+            dum_names.append(dum_name)
+
+    # If requested, add in linear fragment dihedrals, if present
+    if with_lin_frag_dih:
+        geo = geometry(zma, dummy=True)
+        keys = zmatrix_keys(zma)
+        dum_keys = dummy_keys(zma)
+        src_dct = dummy_source_dict(zma, dir_=False)
+        nkeys_dct = neighbor_keys(zma)
+        dih_dct = dihedral_angle_coordinates(zma)
+
+        for dum_key in dum_keys:
+            src_key = src_dct.get(dum_key)
+            src_nkeys = nkeys_dct.get(src_key) | {src_key}
+            frag1_keys = (frozenset(keys[:src_key]) | src_nkeys) - {dum_key}
+            frag2_keys = (frozenset(keys[src_key:]) | src_nkeys) - {dum_key}
+            has_lin_frag = any(
+                geom.is_linear(geo, idxs=ks) for ks in (frag1_keys, frag2_keys)
+            )
+            if has_lin_frag:
+                bad_dih_name = next(
+                    (n for n, c in dih_dct.items() if c[-1] == dum_key), None
+                )
+                if bad_dih_name not in dum_names and bad_dih_name is not None:
+                    dum_names.append(bad_dih_name)
+
+    dum_names = tuple(dum_names)
+
+    return dum_names

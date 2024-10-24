@@ -4,6 +4,7 @@
 
 import functools
 import itertools
+from collections.abc import Sequence
 from typing import List, Optional
 
 import more_itertools as mit
@@ -406,7 +407,7 @@ def is_diatomic(geo):
     return count(geo) == 2
 
 
-def is_linear(geo, tol=2.0 * phycon.DEG2RAD):
+def is_linear(geo, tol=2.0 * phycon.DEG2RAD, idxs: Sequence[int] | None = None):
     """Determine if the molecular geometry is linear.
 
     :param geo: molecular geometry
@@ -415,6 +416,7 @@ def is_linear(geo, tol=2.0 * phycon.DEG2RAD):
     :type tol: float
     :rtype: bool
     """
+    geo = geo if idxs is None else subgeom(geo, idxs)
 
     ret = True
 
