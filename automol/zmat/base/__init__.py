@@ -10,6 +10,7 @@ from ...vmat import symbols
 from ...vmat import key_matrix
 from ...vmat import name_matrix
 from ...vmat import count
+from ...vmat import keys
 from ...vmat import atom_indices
 from ...vmat import coordinate_key_matrix
 from ...vmat import coordinates
@@ -23,7 +24,6 @@ from ...vmat import distance_names
 from ...vmat import central_angle_names
 from ...vmat import dihedral_angle_names
 from ...vmat import angle_names
-from ...vmat import dummy_coordinate_names
 from ...vmat import standard_names
 from ...vmat import standard_name_matrix
 from ...vmat import distance_coordinate_name
@@ -79,6 +79,7 @@ __all__ = [
     'key_matrix',
     'name_matrix',
     'count',
+    'keys',
     'atom_indices',
     'coordinate_key_matrix',
     'coordinates',
@@ -92,7 +93,6 @@ __all__ = [
     'central_angle_names',
     'dihedral_angle_names',
     'angle_names',
-    'dummy_coordinate_names',
     'standard_names',
     'standard_name_matrix',
     # core functions

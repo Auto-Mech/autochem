@@ -83,12 +83,10 @@ def test__atom_indices():
 
 def test__coordinates():
     """ test vmat.angle_names
-        test vmat.dummy_coordinate_names
     """
 
     names = vmat.names(C5H8O_VMA)
     angle_names = vmat.angle_names(C5H8O_VMA)
-    dummy_coord_names = vmat.dummy_coordinate_names(C5H8O_VMA)
 
     assert names == ('R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9',
                      'R10', 'R11', 'R12', 'R13', 'R14', 'R15', 'A2', 'A3',
@@ -99,7 +97,6 @@ def test__coordinates():
                            'A9', 'A10', 'A11', 'A12', 'A13', 'A14',
                            'A15', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8',
                            'D9', 'D10', 'D11', 'D12', 'D13', 'D14', 'D15')
-    assert dummy_coord_names == ('R8', 'A8', 'D8', 'R10', 'A10', 'D10')
 
 
 def test__standardize():

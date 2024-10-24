@@ -150,6 +150,16 @@ def count(vma: VMatrix) -> int:
     return len(symbols(vma))
 
 
+def keys(vma: VMatrix) -> tuple[int, ...]:
+    """Get the list of z-matrix keys.
+
+    :param vma: V-Matrix
+    :type vma: Automol V-Matrix data structure
+    :return: Number of rows
+    """
+    return tuple(range(count(vma)))
+
+
 def atom_indices(vma: VMatrix, symb: Symbol, match: bool = True) -> tuple[int]:
     """Obtain the indices of a atoms of a particular type in the v-matrix.
 
@@ -458,31 +468,7 @@ def dummy_keys(zma: VMatrix) -> tuple[Key, ...]:
     :param zma: Z-Matrix
     :return: Key to dummy atoms
     """
-    keys = tuple(key for key, sym in enumerate(symbols(zma)) if sym == "X")
-    return keys
-
-
-def dummy_coordinate_names(vma: VMatrix) -> tuple[Name, ...]:
-    """Obtain names of all coordinates associated with dummy atoms
-    defined in the V-Matrix.
-
-    :param vma: V-Matrix
-    :return: Name of coordinates
-    """
-    symbs = symbols(vma)
-    name_mat = numpy.array(name_matrix(vma))
-    dummy_keys = [idx for idx, sym in enumerate(symbs) if not ptab.to_number(sym)]
-    dummy_names = []
-    for dummy_key in dummy_keys:
-        for col_idx in range(3):
-            dummy_name = next(
-                filter(lambda x: x is not None, name_mat[dummy_key:, col_idx])
-            )
-            dummy_names.append(dummy_name)
-
-    dummy_names = tuple(dummy_names)
-
-    return dummy_names
+    return tuple(key for key, sym in enumerate(symbols(zma)) if not ptab.to_number(sym))
 
 
 def dummy_source_dict(
@@ -711,11 +697,11 @@ def string(vma: VMatrix, one_indexed: bool = False) -> str:
 
     def _line_string(row_idx):
         line_str = f"{symbs[row_idx]:<2s} "
-        keys = key_mat[row_idx]
+        keys_ = key_mat[row_idx]
         names_ = name_mat[row_idx]
         line_str += " ".join(
             [
-                f"{keys[col_idx]:>d} {names_[col_idx]:>5s} "
+                f"{keys_[col_idx]:>d} {names_[col_idx]:>5s} "
                 for col_idx in range(min(row_idx, 3))
             ]
         )
