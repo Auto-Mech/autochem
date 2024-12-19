@@ -9,9 +9,8 @@ from collections.abc import Sequence
 
 import more_itertools as mit
 import pyparsing as pp
-from pyparsing import pyparsing_common as ppc
-
 from phydat import ptab
+from pyparsing import pyparsing_common as ppc
 
 from ..util import dict_
 
@@ -89,7 +88,6 @@ def normalized(fml: Formula) -> Formula:
     :return: The formula, without `None` values
     """
     fml = {ptab.to_symbol(k): int(v) for k, v in fml.items() if v}
-    assert all(v > 0 for v in fml.values()), f"Invalid formula: {fml}"
     return fml
 
 
@@ -102,6 +100,9 @@ def match(fml1: Formula, fml2: Formula) -> bool:
     :param fml2: Another chemical formula
     :return: `True` if so, `False` if not
     """
+    fml1 = normalized(fml1)
+    fml2 = normalized(fml2)
+
     excl_symbs1 = dict_.keys_by_value(fml1, lambda x: x < 0)
     excl_symbs2 = dict_.keys_by_value(fml2, lambda x: x < 0)
     excl_symbs = excl_symbs1 | excl_symbs2
