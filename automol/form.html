@@ -313,6 +313,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.join_sequence"><code class="docutils literal notranslate"><span class="pre">join_sequence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.match"><code class="docutils literal notranslate"><span class="pre">match()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.sort_vector"><code class="docutils literal notranslate"><span class="pre">sort_vector()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.sorted_sequence"><code class="docutils literal notranslate"><span class="pre">sorted_sequence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.sorted_symbols"><code class="docutils literal notranslate"><span class="pre">sorted_symbols()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.sorted_symbols_in_sequence"><code class="docutils literal notranslate"><span class="pre">sorted_symbols_in_sequence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.string"><code class="docutils literal notranslate"><span class="pre">string()</span></code></a></li>
@@ -560,7 +561,7 @@ as {‘O’: 2, ‘H’: -1} where the -1 indicates a wildcard stoichiometry.</p
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fml_str</strong> – stochiometric chemical formula string</p></li>
+<li><p><strong>fml</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#int" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span>) – stochiometric chemical formula string</p></li>
 <li><p><strong>symbs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/typing.html#typing.Optional" title="(in Python v3.12)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span>) – atomic symbols in the desired sort order (optional)</p></li>
 </ul>
 </dd>
@@ -569,6 +570,23 @@ as {‘O’: 2, ‘H’: -1} where the -1 indicates a wildcard stoichiometry.</p
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Sorted vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="automol.form.sorted_sequence">
+<span class="sig-prename descclassname"><span class="pre">automol.form.</span></span><span class="sig-name descname"><span class="pre">sorted_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#automol.form.sorted_sequence" title="Link to this definition">#</a></dt>
+<dd><p>Sort a sequence of formulas based on Hill-sorting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fmls</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#int" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>] | <a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – A sequence of formulas</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3.12/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3.12/library/functions.html#int" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The sorted formulas in the sequence</p>
 </dd>
 </dl>
 </dd></dl>
@@ -785,6 +803,7 @@ a hydrogen abstraction reaction can be sorted as RH + Q =&gt; R + QH.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.join_sequence"><code class="docutils literal notranslate"><span class="pre">join_sequence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.match"><code class="docutils literal notranslate"><span class="pre">match()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.sort_vector"><code class="docutils literal notranslate"><span class="pre">sort_vector()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.sorted_sequence"><code class="docutils literal notranslate"><span class="pre">sorted_sequence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.sorted_symbols"><code class="docutils literal notranslate"><span class="pre">sorted_symbols()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.sorted_symbols_in_sequence"><code class="docutils literal notranslate"><span class="pre">sorted_symbols_in_sequence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automol.form.string"><code class="docutils literal notranslate"><span class="pre">string()</span></code></a></li>
