@@ -37,4 +37,5 @@ jobs:
       - name: Test
         run: |
           pixi run pytest -n auto -v automol
+          pixi run pytest -v autochem
           pixi run pytest -v autoreact
