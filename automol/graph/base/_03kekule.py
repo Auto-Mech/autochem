@@ -362,7 +362,8 @@ def linear_segment_cap_keys(
     """
     err_msg = f"gra = {gra}\n  lin_keys = {lin_keys}\n  extend = {extend}"
 
-    lin_nkeys_dct = linear_atoms_neighbor_atom_keys(gra, dummy=True)
+    lin_nkeys_dct = atoms_neighbor_atom_keys(gra)
+    lin_nkeys_dct.update(linear_atoms_neighbor_atom_keys(gra, dummy=True))
     lin_keys = frozenset(lin_nkeys_dct.keys()) if lin_keys is None else lin_keys
 
     # 1. Get graphs for each linear segment
@@ -399,8 +400,8 @@ def linear_segment_cap_keys(
         ext_nkey2s = lin_nkeys_dct[end_key2] - excl_keys
 
         # Split up neighbor keys if this is a single-atom segment
-        if end_key1 == end_key2:
-            assert len(ext_nkey1s) == 2, f"{err_msg}\n  ext_nkey1s = {ext_nkey1s}"
+        if end_key1 == end_key2 and len(ext_nkey1s) > 1:
+            assert len(ext_nkey2s) == 0, f"{err_msg}\n  ext_nkey1s = {ext_nkey1s}"
             ext_nkeys = sorted(ext_nkey1s)
             ext_nkey1s = ext_nkeys[:1]
             ext_nkey2s = ext_nkeys[1:]
