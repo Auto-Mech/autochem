@@ -2,6 +2,7 @@
 describe all meaningful attributes of the reaction required
 for electronic structure and kinetic calculations.
 """
+
 import dataclasses
 import enum
 
@@ -52,17 +53,17 @@ class ReactionClass(str, enum.Enum):
             # Unimolecular reactions
             cls.HYDROGEN_MIGRATION: cls.HYDROGEN_MIGRATION,
             cls.BETA_SCISSION: cls.ADDITION,
-            cls.HOMOLYT_SCISSION: None,
-            cls.RING_FORM_SCISSION: None,
+            cls.HOMOLYT_SCISSION: cls.UNCLASSIFIED,
+            cls.RING_FORM_SCISSION: cls.UNCLASSIFIED,
             cls.ELIMINATION: cls.INSERTION,
             # Bimolecular reactions
             cls.HYDROGEN_ABSTRACTION: cls.HYDROGEN_ABSTRACTION,
             cls.ADDITION: cls.BETA_SCISSION,
             cls.INSERTION: cls.ELIMINATION,
-            cls.DOUBLE_INSERTION: None,
+            cls.DOUBLE_INSERTION: cls.UNCLASSIFIED,
             cls.SUBSTITUTION: cls.SUBSTITUTION,
             # Other
-            cls.UNCLASSIFIED: None,
+            cls.UNCLASSIFIED: cls.UNCLASSIFIED,
         }
         return reverse_dct[cls(value)]
 
