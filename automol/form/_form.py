@@ -155,7 +155,7 @@ def join_sequence(fmls: Formula) -> int:
     :param fml: Stochiometric chemical formula
     :return: Sum of the formulas
     """
-    return normalized(functools.reduce(join, map(normalized, fmls)))
+    return normalized(functools.reduce(join, map(normalized, fmls), {}))
 
 
 def sorted_symbols_in_sequence(fmls: Sequence[Formula]) -> tuple[str, ...]:
