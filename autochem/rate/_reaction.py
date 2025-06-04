@@ -9,7 +9,7 @@ import altair
 import pydantic
 
 from ..unit_ import UnitsData
-from ..util import chemkin
+from ..util import chemkin, plot
 from ..util.type_ import Scalable, Scalers
 from . import data
 from .data import ArrheniusRateFit, Rate_, RateFit
@@ -201,13 +201,16 @@ def display(
     :param y_label: Y-axis label
     :return: Chart
     """
-    return rxn.rate.display(
-        others=[o.rate for o in others],
-        others_labels=others_labels,
+    for rxn_ in others:
+        assert rxn.rate.order == rxn_.rate.order, f"{rxn.rate} !~ {rxn_.rate}"
+
+    return plot.arrhenius(
+        ks=[rxn.rate, *(o.rate for o in others)],
+        labels=[label, *others_labels],
         T_range=T_range,
         P=P,
+        order=rxn.rate.order,
         units=units,
-        label=label,
         x_label=x_label,
         y_label=y_label,
     )
