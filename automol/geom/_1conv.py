@@ -1,5 +1,4 @@
-""" Level 4 geometry functions
-"""
+"""Level 4 geometry functions"""
 
 import functools
 import itertools
@@ -9,9 +8,8 @@ from typing import Dict, Optional
 import numpy
 import pyparsing as pp
 from numpy.typing import ArrayLike
-from pyparsing import pyparsing_common as ppc
-
 from phydat import phycon
+from pyparsing import pyparsing_common as ppc
 
 from .. import vmat
 from ..extern import molfile, py3dmol_, rdkit_
@@ -220,9 +218,9 @@ def zmatrix_with_conversion_info(geo, gra=None, zc_: ZmatConv = None):
         # if it replicates without reordering
         gra = graph_base.apply_zmatrix_conversion(orig_gra, zc_)
         vma, zkeys = graph_base.vmat.vmatrix(gra)
-        assert list(zkeys) == sorted(
-            zkeys
-        ), f"Failed to replicate z-matrix conversion:\n{zc_}\n{geo}"
+        assert list(zkeys) == sorted(zkeys), (
+            f"Failed to replicate z-matrix conversion:\n{zc_}\n{geo}"
+        )
     else:
         # Build an initial z-matrix conversion data structure to put dummies on linear
         # atoms
@@ -420,7 +418,7 @@ def _connected_inchi_with_graph_stereo(ich, gra, nums):
         for atm1_key, atm2_key in ste_keys:
             par = ste_dct[frozenset({atm1_key, atm2_key})]
 
-            blyr_strs.append(f"{atm1_key+1}-{atm2_key+1}{'+' if par else '-'}")
+            blyr_strs.append(f"{atm1_key + 1}-{atm2_key + 1}{'+' if par else '-'}")
 
         # After forming the b-layer string, generate the new InChI
         blyr_str = ",".join(blyr_strs)
@@ -566,7 +564,12 @@ def rdkit_molecule(geo, gra=None, stereo=True):
 
 
 def py3dmol_view(
-    geo, gra=None, view=None, image_size: int = 400, mode: Optional[ArrayLike] = None
+    geo,
+    gra=None,
+    view=None,
+    label: bool = False,
+    image_size: int = 400,
+    mode: Optional[ArrayLike] = None,
 ):
     """Get a py3DMol view of this molecular geometry.
 
@@ -576,6 +579,7 @@ def py3dmol_view(
     :type gra: automol graph data structure, optional
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
+    :param label: Whether to display atom labels
     :param image_size: The image size, if creating a new view, defaults to 400
     :param mode: A vibrational mode or molecular motion to visualize
     :return: A 3D view containing the molecule
@@ -591,16 +595,33 @@ def py3dmol_view(
         )
 
     gra = graph(geo, stereo=False) if gra is None else gra
-    mlf_str, _ = molfile_with_atom_mapping(gra, geo, dummy=True, bond_order=False)
-    return py3dmol_.view_molecule_from_molfile(
+    mlf_str, key_dct = molfile_with_atom_mapping(gra, geo, dummy=True, bond_order=False)
+    view = py3dmol_.view_molecule_from_molfile(
         mlf_str, view=view, image_size=image_size
     )
+
+    # Add labels, if requested
+    if label:
+        for mlf_key, gra_key in key_dct.items():
+            view.addLabel(
+                gra_key,
+                {
+                    "backgroundOpacity": 0.0,
+                    "fontColor": "black",
+                    "alignment": "center",
+                    "inFront": True,
+                },
+                {"index": mlf_key - 1},
+            )
+
+    return view
 
 
 def display(
     geo,
     gra=None,
     view=None,
+    label: bool = False,
     image_size=400,
     vis_bkeys: Optional[tuple[tuple[int, int]]] = None,
     mode: Optional[ArrayLike] = None,
@@ -613,6 +634,7 @@ def display(
     :type gra: automol graph data structure
     :param view: An existing 3D view to append to, defaults to None
     :type view: py3Dmol.view, optional
+    :param label: Whether to display atom labels
     :param image_size: The image size, if creating a new view, defaults to 400
     :param vis_bkeys: Only visualize these bonds, by key
     :param mode: A vibrational mode or molecular motion to visualize
@@ -631,7 +653,9 @@ def display(
         gra = graph_base.remove_bonds(gra, all_bkeys - vis_bkeys, stereo=False)
         gra = graph_base.add_bonds(gra, vis_bkeys - all_bkeys)
 
-    view = py3dmol_view(geo, gra=gra, view=view, image_size=image_size, mode=mode)
+    view = py3dmol_view(
+        geo, gra=gra, view=view, label=label, image_size=image_size, mode=mode
+    )
 
     if ts_:
         for frm_bkey in graph_base.ts.forming_bond_keys(tsg):
