@@ -1,5 +1,5 @@
 """
-    Core functions defining the geometry data type
+Core functions defining the geometry data type
 """
 
 import functools
@@ -21,8 +21,9 @@ AXIS_DCT = {"x": 0, "y": 1, "z": 2}
 
 CHAR = pp.Char(pp.alphas)
 SYMBOL = pp.Combine(CHAR + pp.Opt(CHAR))
+XYZ = ppc.fnumber * 3
 XYZ_LINE = pp.Group(
-    SYMBOL + pp.Group(ppc.fnumber * 3) + pp.Suppress(... + pp.LineEnd())
+    SYMBOL("symb") + XYZ("xyz") + pp.Opt(XYZ)("mode") + pp.Suppress(... + pp.LineEnd())
 )
 XYZ_LINES = pp.delimitedList(XYZ_LINE, delim=pp.LineStart())
 
@@ -228,13 +229,30 @@ def from_string(geo_str, angstrom=True):
     :type angstrom: bool
     :rtype: automol geometry data structure
     """
-    rows = (pp.Suppress(...) + XYZ_LINES).parseString(geo_str).asList()
-
-    symbs, xyzs = zip(*rows) if rows else ([], [])
-
+    results = (pp.Suppress(...) + XYZ_LINES).parse_string(geo_str)
+    symbs = [r.get("symb") for r in results] if results else []
+    xyzs = [r.get("xyz") for r in results] if results else []
     geo = from_data(symbs, xyzs, angstrom=angstrom)
-
     return geo
+
+
+def from_string_with_mode(geo_str, angstrom=True):
+    """Read a Cartesian molecular geometry from a string comprised
+    of just the atomic symbols and coordinates.
+
+    :param geo_str: string containing the geometry
+    :type geo_str: str
+    :param angstrom: parameter to control coordinate conversion to Angstrom
+    :type angstrom: bool
+    :rtype: automol geometry data structure
+    """
+    results = (pp.Suppress(...) + XYZ_LINES).parse_string(geo_str)
+    symbs = [r.get("symb") for r in results] if results else []
+    xyzs = [r.get("xyz") for r in results] if results else []
+    mode = [r.get("mode") for r in results] if results else []
+    mode = numpy.array(mode)
+    geo = from_data(symbs, xyzs, angstrom=angstrom)
+    return geo, mode
 
 
 def from_xyz_string(xyz_str):
@@ -255,6 +273,26 @@ def from_xyz_string(xyz_str):
     assert natms == count(geo), f"XYZ string with inconsistent count: {xyz_str}"
 
     return geo
+
+
+def from_xyz_string_with_mode(xyz_str):
+    """Read a Cartesian molecular geometry from a string that matches the
+    format of a string of a standard .xyz file.
+
+    :param xyz_str: string obtained from reading the .xyz file
+    :type xyz_str: str
+    :rtype: automol geometry data structure
+    """
+    lines = xyz_str.splitlines()
+    natms = int(lines.pop(0).strip())
+    lines.pop(0)
+
+    geo_str = "\n".join(lines)
+    geo, mode = from_string_with_mode(geo_str, angstrom=True)
+
+    assert natms == count(geo), f"XYZ string with inconsistent count: {xyz_str}"
+
+    return geo, mode
 
 
 def xyz_string_comment(xyz_str):
@@ -1097,6 +1135,25 @@ def round_(geo, decimals=6):
     symbs = symbols(geo)
     xyzs = numpy.round(coordinates(geo), decimals=decimals)
     return from_data(symbs, xyzs)
+
+
+def displace(geo, disp_xyzs, angstrom=False):
+    """Displace a molecular geometry along a particular mode.
+
+    :param geo: molecular geometry
+    :type geo: automol molecular geometry data structure
+    :param disp_xyzs: Displacement coordinates
+    :param idxs: indices of atoms whose coordinates are to be translated
+    :type idxs: tuple(int)
+    :param angstrom: whether or not the translation is in angstrom
+    :type angstrom: bool
+    :rtype: automol molecular geometry data structure
+    """
+    disp_xyzs = numpy.reshape(disp_xyzs, (-1, 3))
+    symbs = symbols(geo)
+    xyzs = coordinates(geo, angstrom=angstrom)
+    xyzs = numpy.add(xyzs, disp_xyzs)
+    return from_data(symbs, xyzs, angstrom=angstrom)
 
 
 def translate(geo, xyz, idxs=None, angstrom=False):
