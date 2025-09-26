@@ -31,7 +31,7 @@ def fake_vdw_frequencies(*geos):
 
     fake_geo = fake_vdw_geometry(*geos)
     nfake = sum(map(_external_mode_count, geos)) - _external_mode_count(fake_geo)
-    return tuple(10.0 * (i + 1) for i in range(nfake))
+    return tuple(200.0 for _ in range(nfake))
 
 
 # Combines by elec levels
