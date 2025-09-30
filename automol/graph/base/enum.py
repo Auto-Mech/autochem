@@ -1,6 +1,7 @@
 """Functions for enumerating reactions."""
 
 import itertools
+import warnings
 from collections.abc import Sequence
 
 from rdkit import Chem
@@ -124,7 +125,12 @@ def products(smarts: str, gra: object) -> list[object]:
     :returns: Products graphs
     """
     assert gra == explicit(gra), f"Graph must be explicit\ngra = {gra}"
-    assert gra == without_stereo(gra), f"Cannot handle stereochemistry\ngra = {gra}"
+    gra_without_stereo = without_stereo(gra)
+    if gra != gra_without_stereo:
+        msg = f"Stereochemistry will be ignored:\n{gra}"
+        warnings.warn(msg, stacklevel=2)
+        gra = gra_without_stereo
+
     kgrs = kekules(gra)
     return list(
         itertools.chain.from_iterable(products_from_kekule(smarts, kgr) for kgr in kgrs)
