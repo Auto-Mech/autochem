@@ -35,6 +35,14 @@ Ou = "OX1"
 
 
 # Reaction enumeration
+class GroupSmarts:
+    """SMARTS reaction templates for enumeration."""
+
+    qooh_instability = f"[{Cr}:1][O:2][O:3][H:4]"
+    resonant_qooh_instability = f"[*:5]=[*:6][{Cr}:1][O:2][O:3][H:4]"
+
+
+# Reaction enumeration
 class ReactionSmarts:
     """SMARTS reaction templates for enumeration."""
 
@@ -64,6 +72,34 @@ class ReactionSmarts:
     resonant_qooh_instability = (
         f"[*:5]=[*:6][{Cr}:1][O:2][O:3][H:4]>>[*:5]=[*:6][C:1]=[O:2].[O:3][H:4]"
     )
+
+
+def has_group_match(smarts: str, gra: object) -> bool:
+    """Enumerate groups matching a SMARTS string.
+
+    :param smarts: SMARTS pattern for the reaction
+    :param gra: Molecular graph representing the reactants
+    :return: Graphs
+    """
+    gra = explicit(gra)
+    kgrs = kekules(gra)
+    return any(
+        itertools.chain.from_iterable(
+            group_match_from_kekule(smarts, kgr) for kgr in kgrs
+        )
+    )
+
+
+def group_match_from_kekule(smarts: str, kgr: object) -> list[list[int]]:
+    """Enumerate matches for a given SMARTS reaction template.
+
+    :param smarts: SMARTS pattern for the reaction
+    :param gra: Molecular graph
+    :returns: Products graphs
+    """
+    group = Chem.MolFromSmarts(smarts)
+    rdm = to_rdkit(kgr, exp=True, label=True)
+    return list(map(list, rdm.GetSubstructMatches(group)))
 
 
 def reactions(smarts: str, gra: object, symeq: bool = False) -> list[object]:
