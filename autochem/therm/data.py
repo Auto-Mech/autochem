@@ -279,6 +279,18 @@ class Therm(BaseTherm):
             coords={coord_key: coord_vals},
         )
 
+    def __call__(self, T: ArrayLike) -> NDArray[np.float64]:
+        """Evaluate partition function."""
+        Z0: NDArray[np.float64] = (
+            self.data_set["Z0"]
+            .sel(  # noqa: N806
+                {Key.T: T},
+                method="ffill",
+            )
+            .data
+        )
+        return np.exp(Z0)
+
     # Thermodynamic function data points
     def temperature_data(self) -> NDArray[np.float64]:
         """Get temperature data."""

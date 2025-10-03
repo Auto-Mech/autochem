@@ -32,7 +32,7 @@ class Key:
 NAN = pp.Keyword("***").set_parse_action(pp.replace_with(np.nan))
 NUMBERS = pp.OneOrMore(ppc.number, stop_on=pp.LineEnd())
 NUMBERS_ = pp.OneOrMore(ppc.number | NAN, stop_on=pp.LineEnd())
-ID = pp.Combine(pp.Char("WP") + pp.Word(pp.nums))
+ID = pp.Word(pp.alphanums)
 CHAN = ID(Key.id1) + pp.Literal("->") + ID(Key.id2)
 TEMP_LINE = pp.Suppress(pp.Literal(r"P\T")) + NUMBERS
 RATE_LINE = ppc.number + NUMBERS_
