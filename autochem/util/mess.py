@@ -22,8 +22,7 @@ class MessOutputChannelParseResults(pydantic.BaseModel):
 class Key:
     """Pyparsing token keys."""
 
-    id1 = "id1"
-    id2 = "id2"
+    eq = "eq"
     T = "T"
     data = "data"
     high = "high"
@@ -33,7 +32,7 @@ NAN = pp.Keyword("***").set_parse_action(pp.replace_with(np.nan))
 NUMBERS = pp.OneOrMore(ppc.number, stop_on=pp.LineEnd())
 NUMBERS_ = pp.OneOrMore(ppc.number | NAN, stop_on=pp.LineEnd())
 ID = pp.Word(pp.alphanums)
-CHAN = ID(Key.id1) + pp.Literal("->") + ID(Key.id2)
+CHAN = pp.Combine(ID + pp.Literal("->") + pp.Opt(ID))
 TEMP_LINE = pp.Suppress(pp.Literal(r"P\T")) + NUMBERS
 RATE_LINE = ppc.number + NUMBERS_
 RATE_LINES = pp.OneOrMore(pp.Group(RATE_LINE))
@@ -46,14 +45,21 @@ def parse_output_channel(mess_chan_out: str) -> MessOutputChannelParseResults:
     :param mess_chan_out: MESS output for one channel
     :return: Parse results
     """
-    expr = pp.Opt(CHAN) + TEMP_LINE(Key.T) + RATE_LINES(Key.data) + HIGH_LINE(Key.high)
-    res = expr.parse_string(mess_chan_out)
-    data = res.get(Key.data)
+    expr = (
+        pp.Opt(CHAN)(Key.eq)
+        + TEMP_LINE(Key.T)
+        + RATE_LINES(Key.data)
+        + HIGH_LINE(Key.high)
+    )
+    res = expr.parse_string(mess_chan_out).as_dict()
+    data = res[Key.data]
+    eq: str = res[Key.eq]
+    id1, id2 = eq.split("->")
     return MessOutputChannelParseResults(
-        T=res.get(Key.T).as_list(),
+        T=res[Key.T],
         P=[row[0] for row in data],
         k_data=[row[1:] for row in data],
-        k_high=res.get(Key.high),
-        id1=res.get(Key.id1),
-        id2=res.get(Key.id2),
+        k_high=res[Key.high],
+        id1=id1,
+        id2=id2,
     )
