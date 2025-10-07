@@ -157,7 +157,7 @@ def nan_array_to_none(arr: ArrayLike | None) -> NDArray | None:
     return None if arr is None or np.all(np.isnan(arr)) else arr
 
 
-def negative_rates_to_none(arr: ArrayLike | None) -> NDArray | None:
+def drop_invalid_rates(arr: ArrayLike | None) -> NDArray | None:
     """Replace negative rates with None.
 
     :param arr: Array or None
@@ -166,7 +166,13 @@ def negative_rates_to_none(arr: ArrayLike | None) -> NDArray | None:
     if arr is None:
         return None
     arr = np.array(arr, copy=True)
-    arr[arr < 0] = np.nan
+    # Define masks for negative value *and adjacent values in the same row*
+    neg = arr < 0
+    left = np.roll(neg, 1, axis=-1)
+    right = np.roll(neg, -1, axis=-1)
+    left[:, 0] = right[:, -1] = False
+    # Set these values to nan
+    arr[neg | left | right] = np.nan
     return arr
 
 
@@ -175,12 +181,8 @@ class Rate(BaseRate):
 
     T: list[float]
     P: list[float]
-    k_data: Annotated[NDArray_, BeforeValidator(negative_rates_to_none)]
-    k_high: Annotated[
-        list[float] | None,
-        BeforeValidator(nan_array_to_none),
-        BeforeValidator(negative_rates_to_none),
-    ] = None
+    k_data: Annotated[NDArray_, BeforeValidator(drop_invalid_rates)]
+    k_high: Annotated[list[float] | None, BeforeValidator(nan_array_to_none)] = None
 
     # Private attributes
     type_: ClassVar[str] = "data"
