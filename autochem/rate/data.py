@@ -275,6 +275,22 @@ class Rate(BaseRate):
             k_data=self.k_data[:, not_nan],
         )
 
+    def high_pressure_values(self) -> NDArray[np.float128]:
+        """Return high-pressure rate values."""
+        k_max = np.array(self(T=self.T, P=max(self.P)))
+        return np.array(self.k_high) if self.k_high else k_max
+
+    def is_pressure_dependent(self, tol: float = 0.2) -> bool:
+        """Determine whether or not the rate is pressure dependent.
+
+        :param tol: Threshold for determining pressure dependence
+        :return: `True` if it is, otherwise `False`
+        """
+        k_low = np.array(self(T=self.T, P=min(self.P)))
+        k_high = self.high_pressure_values()
+        diff = np.abs(k_low - k_high) / k_low
+        return bool(np.any(diff > tol))
+
 
 class RateFit(BaseRate):
     """Rate fit abstract base classs."""
@@ -362,6 +378,10 @@ class ArrheniusRateFit(RateFit):
         ok = np.isfinite(v)
         M = M[ok, :]  # noqa: N806
         v = v[ok]
+
+        if len(v) < 3:
+            msg = f"Cannot fit with fewer than 3 data points: {v}"
+            raise ValueError(msg)
 
         (lnA, b, E), *_ = np.linalg.lstsq(M, v, rcond=1e-24)  # noqa: N806
         return cls(order=order, A=np.exp(lnA), b=b, E=E)
