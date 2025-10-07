@@ -2,7 +2,7 @@
 
 import abc
 import warnings
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Annotated, ClassVar
 
 import altair as alt
@@ -860,4 +860,80 @@ def from_chemkin_parse_results(
         efficiencies=efficiencies,
         order=order,
         units=units,
+    )
+
+
+# Display
+def display(  # noqa: PLR0913
+    rate_: BaseRate | Sequence[BaseRate],
+    *,
+    T_range: tuple[float, float] = (400, 1250),  # noqa: N803
+    P: float = 1,  # noqa: N803
+    units: UnitsData | None = None,
+    label: str | Sequence[str] | None = None,
+    color: str | Sequence[str] | None = None,
+    x_label: str = "1000/𝑇",  # noqa: RUF001
+    y_label: str = "𝑘",  # noqa: RUF001
+) -> alt.Chart:
+    """Display one or more reaction rates on an Arrhenius plot.
+
+    :param rxn_: Reaction rate(s)
+    :param T_range: Temperature range, defaults to (400, 1250)
+    :param P: Pressure
+    :param label_: Label(s), defaults to None
+    :param color_: Color(s), defaults to None
+    :param x_label: X-axis label
+    :param y_label: Y-axis label
+    """
+    rates = [rate_] if isinstance(rate_, BaseRate) else rate_
+    labels = [label] if isinstance(label, str) else label
+    colors = [color] if isinstance(color, str) else color
+    rate0, *rates_ = rates
+    for other_rates in rates_:
+        assert rate0.order == other_rates.order, f"{rate0} !~ {other_rates}"
+    order = rate0.order
+
+    nr = len(rates)
+    labels = labels or ([f"k{i + 1}" for i in range(nr)] if nr > 1 else None)
+
+    def make_chart(
+        ixs: Sequence[int],
+        rates: Sequence[BaseRate],
+        labels: Sequence[str] | None,
+        colors: Sequence[str] | None,
+        mark: str,
+    ) -> alt.Chart:
+        rates_ = [rates[i] for i in ixs]
+        labels_ = None if labels is None else [labels[i] for i in ixs]
+        colors_ = None if colors is None else [colors[i] for i in ixs]
+        (T, *Ts), ks = zip(  # noqa: N806
+            *(r.plot_data(T_range=T_range, P=P, units=units) for r in rates_),
+            strict=True,
+        )
+        for T_ in Ts:  # noqa: N806
+            assert np.allclose(T, T_), f"{T} !~ {T_}"
+        return plot.arrhenius(
+            ks=ks,
+            T=T,
+            order=order,
+            units=units,
+            labels=labels_,
+            colors=colors_,
+            x_label=x_label,
+            y_label=y_label,
+            mark=mark,
+        )
+
+    charts = []
+    for mark in (plot.Mark.line, plot.Mark.point):
+        ixs = [i for i, r in enumerate(rates) if r.plot_mark == mark]
+        if ixs:
+            chart = make_chart(
+                ixs, rates=rates, labels=labels, colors=colors, mark=mark
+            )
+            charts.append(chart)
+
+    chart, *others = charts
+    return (
+        chart if not others else alt.layer(*charts).resolve_scale(color="independent")
     )
