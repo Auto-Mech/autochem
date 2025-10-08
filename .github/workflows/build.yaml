@@ -29,6 +29,7 @@ jobs:
       - name: Upload
         if: ${{ github.ref_name == 'dev' && github.repository_owner == 'Auto-Mech'}}
         run: |
-          pixi run upload
+          pixi run -e build upload
         env:
           ANACONDA_API_KEY: ${{ secrets.ANACONDA_API_KEY }}
+        continue-on-error: true
