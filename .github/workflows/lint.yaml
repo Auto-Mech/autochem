@@ -23,4 +23,4 @@ jobs:
       # Lint
       - name: Lint
         run: |
-          pixi run lint
+          pixi run -e lint lint

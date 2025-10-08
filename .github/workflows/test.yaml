@@ -23,4 +23,4 @@ jobs:
       # Test
       - name: Test
         run: |
-          pixi run test
+          pixi run -e test test

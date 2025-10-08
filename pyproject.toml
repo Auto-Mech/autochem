@@ -8,7 +8,10 @@ dependencies = []
 requires-python = ">= 3.11"
 
 [dependency-groups]
-dev = ["jupyter", "lefthook", "mypy", "myst-parser", "pylint", "pytest", "pytest-xdist[psutil]", "ruff", "sphinx", "sphinx-autodoc-typehints", "sphinx-book-theme"]
+test = ["pytest", "pytest-xdist[psutil]"]
+lint = ["lefthook", "mypy", "pylint", "ruff"]
+docs = ["myst-parser", "sphinx", "sphinx-autodoc-typehints", "sphinx-book-theme"]
+dev = ["jupyter"]
 
 [build-system]
 build-backend = "hatchling.build"
@@ -71,21 +74,32 @@ rdkit = ">=2025.9.1"
 scipy = ">=1.12"
 xarray = ">=2023.8"
 
-[tool.pixi.environments]
-dev = ["dev"]
+[tool.pixi.feature.build.dependencies]
+rattler-build = ">=0.47.1"
 
-[tool.pixi.feature.dev.tasks]
-pre-commit = "lefthook run pre-commit --all-files"
-pre-push = "lefthook run pre-push --all-files"
-lint = { depends-on = ["pre-commit", "pre-push"] }
+[tool.pixi.environments]
+test = ["test"]
+lint = ["lint"]
+docs = ["docs"]
+build = ["build"]
+dev = ["test", "lint", "docs", "build", "dev"]
+
+[tool.pixi.feature.test.tasks]
 test-automol = "pytest -n auto -v automol"
 test-autochem = "pytest -v autochem"
 test-autoreact = "pytest -v autoreact"
 test = { depends-on = ["test-automol", "test-autochem", "test-autoreact"] }
-upload = "rattler-build upload anaconda -o Auto-Mech"
 
-[tool.pixi.feature.dev.dependencies]
-rattler-build = ">=0.47.1"
+[tool.pixi.feature.lint.tasks]
+pre-commit = "lefthook run pre-commit --all-files"
+pre-push = "lefthook run pre-push --all-files"
+lint = { depends-on = ["pre-commit", "pre-push"] }
+
+[tool.pixi.feature.docs.tasks]
+build-docs = { cmd = "make html", cwd = "docs" }
+
+[tool.pixi.feature.build.tasks]
+upload = "rattler-build upload anaconda -o Auto-Mech *.conda"
 
 # Ruff configurations
 [tool.ruff]

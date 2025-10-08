@@ -23,8 +23,7 @@ jobs:
       # Docs
       - name: Build docs
         run: |
-          cd docs
-          pixi run -e dev make html
+          pixi run -e docs build-docs
 
       - name: Upload docs
         uses: actions/upload-artifact@v4
