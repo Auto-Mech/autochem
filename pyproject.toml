@@ -14,31 +14,60 @@ dev = ["jupyter", "lefthook", "mypy", "myst-parser", "pylint", "pytest", "pytest
 build-backend = "hatchling.build"
 requires = ["hatchling"]
 
+# Hatchling configurations
 [tool.hatch.build.targets.sdist]
 include = ["autochem", "automol", "autoreact", "phydat", "molsym"]
 
 [tool.hatch.build.targets.wheel]
 include = ["autochem", "automol", "autoreact", "phydat", "molsym"]
 
+# Pixi configurations
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["linux-64"]
+preview = ["pixi-build"]
 
+#   - Build
+[tool.pixi.package] 
+name = "autochem"
+
+[tool.pixi.package.build] 
+backend = { name = "pixi-build-python", version = "==0.3.2" }
+
+[tool.pixi.package.host-dependencies] 
+hatchling = "==1.26.3"
+
+[tool.pixi.package.run-dependencies] 
+altair = ">=5.5.0"
+ipython = ">=8.15"
+more-itertools = ">=10.8.0"
+networkx = ">=3.3"
+numpy = ">=1.26"
+pint = ">=0.25"
+py3dmol = ">=2.5.3"
+pyparsing = ">=3.2.5"
+pyyaml = ">=6.0.3"
+qcelemental = ">=0.29.0"
+rdkit = ">=2025.9.1"
+scipy = ">=1.12"
+xarray = ">=2023.8"
+
+#   - Other
 [tool.pixi.pypi-dependencies]
 autochem = { path = ".", editable = true }
 
 [tool.pixi.dependencies]
-altair = ">=5.5.0,<6"
+altair = ">=5.5.0"
 ipython = ">=8.15"
-more-itertools = ">=10.8.0,<11"
+more-itertools = ">=10.8.0"
 networkx = ">=3.3"
 numpy = ">=1.26"
-pint = ">=0.25,<0.26"
-py3dmol = ">=2.5.3,<3"
-pyparsing = ">=3.2.5,<4"
-pyyaml = ">=6.0.3,<7"
-qcelemental = ">=0.29.0,<0.30"
-rdkit = ">=2025.9.1,<2026"
+pint = ">=0.25"
+py3dmol = ">=2.5.3"
+pyparsing = ">=3.2.5"
+pyyaml = ">=6.0.3"
+qcelemental = ">=0.29.0"
+rdkit = ">=2025.9.1"
 scipy = ">=1.12"
 xarray = ">=2023.8"
 
@@ -53,6 +82,10 @@ test-automol = "pytest -n auto -v automol"
 test-autochem = "pytest -v autochem"
 test-autoreact = "pytest -v autoreact"
 test = { depends-on = ["test-automol", "test-autochem", "test-autoreact"] }
+upload = "rattler-build upload anaconda -o Auto-Mech"
+
+[tool.pixi.feature.dev.dependencies]
+rattler-build = ">=0.47.1"
 
 # Ruff configurations
 [tool.ruff]
