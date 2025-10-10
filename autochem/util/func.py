@@ -39,3 +39,30 @@ def normalize_values(
     """
     shape = sum(map(np.shape, args), ())
     return np.reshape(vals, shape).astype(dtype)
+
+
+def translation_indices(
+    args1: Sequence[ArrayLike], args2: Sequence[ArrayLike]
+) -> tuple[tuple[NDArray, ...], tuple[NDArray, ...]]:
+    """Get indices for translating values between functions.
+
+    Given function data `vals1` and `vals2` defined over arguments `args1` and
+    `args2`, respectively, this provides the translation between matching
+    arguments.
+
+    For example, one could use the data from `vals2` to set the data in `vals1`:
+
+        ix1, ix2 = translation_indices(args1, args2)
+        vals1[ix1] = vals2[ix2]
+
+    :param args1: Arguments
+    :param args2: Arguments
+    :return: Indices for args1, indices for args2
+    """
+    ix_pairs = []
+    for arg1, arg2 in zip(args1, args2, strict=True):
+        arg2_, arg1_ = np.meshgrid(arg2, arg1)
+        ix_pairs.append(np.nonzero(np.isclose(arg1_, arg2_)))
+
+    ix1s, ix2s = zip(*ix_pairs, strict=True)
+    return np.ix_(*ix1s), np.ix_(*ix2s)
