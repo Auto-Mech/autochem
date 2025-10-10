@@ -10,7 +10,6 @@ import more_itertools as mit
 import numpy as np
 import pint
 import pydantic
-import xarray
 from numpy.polynomial import chebyshev
 from numpy.typing import ArrayLike, NDArray
 from pydantic import BeforeValidator
@@ -18,7 +17,7 @@ from pydantic_core import core_schema
 
 from .. import unit_
 from ..unit_ import UNITS, C, D, Dimension, UnitManager, Units, UnitsData, const
-from ..util import chemkin, mess, plot
+from ..util import arrh, chemkin, func, mess, plot
 from ..util.type_ import Frozen, NDArray_, Scalable, Scalers, SubclassTyped
 from . import blend
 from .blend import BlendingFunction_
@@ -62,36 +61,6 @@ class BaseRate(UnitManager, Frozen, Scalable, SubclassTyped, abc.ABC):
         :param units: Input units and desired output units
         :return: Value(s)
         """
-
-    def process_input(
-        self,
-        T: ArrayLike,  # noqa: N803
-        P: ArrayLike,  # noqa: N803
-    ) -> tuple[NDArray[np.float128], NDArray[np.float128]]:
-        """Normalize rate constant input.
-
-        :param T: Temperature(s)
-        :param P: Pressure(s)
-        :return: Temperature(s) and pressure(s)
-        """
-        T = np.array(T, dtype=np.float128)  # noqa: N806
-        P = np.array(P, dtype=np.float128)  # noqa: N806
-        T, P = np.meshgrid(T, P)  # noqa: N806
-        return T, P
-
-    def process_output(
-        self,
-        kTP: ArrayLike,  # noqa: N803
-        T: ArrayLike,  # noqa: N803
-        P: ArrayLike,  # noqa: N803
-    ) -> NDArray[np.float128]:
-        """Normalize rate constant output, clipping unphyiscal negative values.
-
-        :param ktp: Rate constant values
-        :return: Rate constant values
-        """
-        kTP = np.reshape(kTP, np.shape(T) + np.shape(P))  # noqa: N806
-        return np.where(np.less_equal(kTP, 0), np.nan, kTP)
 
     @property
     def plot_mark(self) -> str:
@@ -198,16 +167,6 @@ class Rate(BaseRate):
     }
 
     @property
-    def data_array(self) -> xarray.DataArray:
-        """Return data as an xarray.DataArray."""
-        P = self.P  # noqa: N806
-        k_data = self.k_data
-        if self.k_high is not None:
-            P = np.append(self.P, np.inf)  # noqa: N806
-            k_data = np.vstack((self.k_data, self.k_high))
-        return xarray.DataArray(data=k_data, coords={Key.P: P, Key.T: self.T})
-
-    @property
     def plot_mark(self) -> str:
         """Plot mark to use in altair."""
         return plot.Mark.point
@@ -217,7 +176,7 @@ class Rate(BaseRate):
         T_range: tuple[float, float] = (400, 1250),  # noqa: N803
         P: float = 1,  # noqa: N803
         units: UnitsData | None = None,
-    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    ) -> tuple[NDArray, NDArray]:
         """Display as an Arrhenius plot.
 
         :param T_range: Temperature range
@@ -238,21 +197,18 @@ class Rate(BaseRate):
         T: ArrayLike,  # noqa: N803
         P: ArrayLike = 1,  # noqa: N803
         units: UnitsData | None = None,  # noqa: ARG002
-    ) -> NDArray[np.float128]:
+    ) -> NDArray:
         """Evaluate rate constant."""
-        kTP: NDArray[np.float128] = self.data_array.sel(  # noqa: N806
-            {Key.T: T, Key.P: P},
-            method="ffill",
-        ).data
-        return self.process_output(kTP, T, P)
+        interp_ = arrh.interpolator(self.T, self.P, self.k_data)
+        return interp_(T, P)
 
     def __add__(self, other: "Rate") -> "Rate":
         """Add rates."""
         assert self.order == other.order, f"{self} !~ {other}"
         T, ixT1, ixT2 = np.intersect1d(self.T, other.T, return_indices=True)  # noqa: N806
         P, ixP1, ixP2 = np.intersect1d(self.P, other.P, return_indices=True)  # noqa: N806
-        k_data1 = self.k_data[np.ix_(ixP1, ixT1)]
-        k_data2 = other.k_data[np.ix_(ixP2, ixT2)]
+        k_data1 = self.k_data[np.ix_(ixT1, ixP1)]
+        k_data2 = other.k_data[np.ix_(ixT2, ixP2)]
         k_data = np.add(k_data1, k_data2)
 
         k_high = None
@@ -269,13 +225,30 @@ class Rate(BaseRate):
         :return: Rate
         """
         k_data = self.k_data
-        k_all = k_data if self.k_high is None else np.vstack((k_data, self.k_high))
+        k_all = (
+            k_data if self.k_high is None else np.column_stack((k_data, self.k_high))
+        )
         not_nan = np.all(np.isfinite(k_all), axis=0)
         return self.__class__(
             order=self.order,
             T=np.array(self.T)[not_nan],
             P=self.P,
             k_data=self.k_data[:, not_nan],
+        )
+
+    def fill_nan(self, nan: float = 0.0) -> "Rate":
+        """Return a copy of the rate with NaNs replaced with a value.
+
+        :return: Rate
+        """
+        k_data = np.nan_to_num(self.k_data, nan=nan)
+        k_high = (
+            None
+            if self.k_high is None
+            else np.nan_to_num(self.k_high, nan=nan).tolist()
+        )
+        return self.__class__(
+            order=self.order, T=self.T, P=self.P, k_data=k_data, k_high=k_high
         )
 
     def high_pressure_values(self) -> NDArray[np.float128]:
@@ -293,6 +266,14 @@ class Rate(BaseRate):
         k_high = self.high_pressure_values()
         diff = np.abs(k_low - k_high) / k_low
         return bool(np.any(diff > tol))
+
+    def fittable_pressures(self) -> list[float]:
+        """Determine pressures with enough data points to fit.
+
+        :return: Pressures
+        """
+        count = np.sum(np.isfinite(self.k_data), axis=0)
+        return np.array(self.P)[count >= 3].tolist()
 
 
 class RateFit(BaseRate):
@@ -351,10 +332,10 @@ class ArrheniusRateFit(RateFit):
         units: UnitsData | None = None,  # noqa: ARG002
     ) -> NDArray[np.float128]:
         """Evaluate rate constant."""
-        T_, _ = self.process_input(T, P)  # noqa: N806
+        T_, _ = func.normalize_arguments((T, P))  # noqa: N806
         R = const.value(C.gas, UNITS)  # noqa: N806
         kTP = self.A * (T_**self.b) * np.exp(-self.E / (R * T_))  # noqa: N806
-        return self.process_output(kTP, T, P)
+        return func.normalize_values(kTP, (T, P))
 
     @classmethod
     @unit_.manage_units([D.temperature, D.rate_constant])
@@ -420,7 +401,7 @@ class FalloffRateFit(RateFit, abc.ABC):  # type: ignore[misc]
         units: UnitsData | None = None,  # noqa: ARG002
     ) -> NDArray[np.float128]:
         """Evaluate rate constant."""
-        T_, P_ = self.process_input(T, P)  # noqa: N806
+        T_, P_ = func.normalize_arguments((T, P))  # noqa: N806
         P_r = self.effective_reduced_pressure(T_, P_)  # noqa: N806
         if self.activated:
             k_low, _ = self.arrhenius_functions
@@ -428,7 +409,7 @@ class FalloffRateFit(RateFit, abc.ABC):  # type: ignore[misc]
         else:
             _, k_high = self.arrhenius_functions
             kTP = k_high(T_) * P_r / (1 + P_r) * self.function(T_, P_r)  # noqa: N806
-        return self.process_output(kTP, T, P)
+        return func.normalize_values(kTP, (T, P))
 
     @property
     def arrhenius_functions(
@@ -514,7 +495,7 @@ class PlogRateFit(RateFit):
         units: UnitsData | None = None,  # noqa: ARG002
     ) -> NDArray[np.float128]:
         """Evaluate rate constant for a single pressure."""
-        T_, P_ = self.process_input(T, P)  # noqa: N806
+        T_, P_ = func.normalize_arguments((T, P))  # noqa: N806
         P0 = self.nearest_pressure(P_, which=0)  # noqa: N806
         P1 = self.nearest_pressure(P_, which=1)  # noqa: N806
         kT0 = self.nearest_arrhenius_values(T_, P_, which=0)  # noqa: N806
@@ -530,7 +511,7 @@ class PlogRateFit(RateFit):
         elif P_ == P0:
             kTP = kT0  # noqa: N806
 
-        return self.process_output(kTP, T, P)
+        return func.normalize_values(kTP, (T, P))
 
     @property
     def arrhenius_functions(self) -> list[ArrheniusRateFit]:
@@ -675,7 +656,7 @@ class ChebRateFit(RateFit):
 
         # AVC: I don't understand why I need to transpose the coefficient matrix here
         kTP = chebyshev.chebgrid2d(T_r, P_r, self.coeffs.T)  # noqa: N806
-        return self.process_output(kTP, T, P)
+        return func.normalize_values(kTP, (T, P))
 
 
 Rate_ = Annotated[
@@ -780,7 +761,7 @@ def from_mess_channel_output_parse_results(
         order=order,
         T=res.T,
         P=res.P,
-        k_data=res.k_data,
+        k_data=np.transpose(res.k_data),
         k_high=res.k_high,
         units={"substance": "molec"},
     )
