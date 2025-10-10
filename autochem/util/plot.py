@@ -87,6 +87,7 @@ def arrhenius(  # noqa: PLR0913
     assert mark in MARKS, f"{mark} not in {MARKS}"
     color_cycle = LINE_COLOR_CYCLE if mark == Mark.line else POINT_COLOR_CYCLE
 
+    ks = np.where(np.less_equal(ks, 0), np.nan, ks)
     nk, nT = np.shape(ks)  # noqa: N806
     colors = colors or list(itertools.islice(itertools.cycle(color_cycle), nk))
     keep_legend = labels is not None

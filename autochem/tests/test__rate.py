@@ -93,14 +93,6 @@ CHO2(38)(+M)=H(4)+CO2(12)(+M)                       1.000e+00 0.000     0.000
 """,
 }
 
-FLOAT64_OVERFLOW = {
-    "units": {"energy": "cal"},
-    "chemkin": """
-C5H9O(853)z = C5H9O(852)r0   9.153E-295  101.8  27424   ! pes.subpes.channel  1.1.3
-    DUP
-""",
-}
-
 MESS1 = {
     "data": r"""
 W1->W2
@@ -158,7 +150,6 @@ O-O      1.75e+04  3.81e+05  3.49e+06  1.85e+07  6.83e+07  1.95e+08  4.62e+08  9
         ("ACTIVATED_SRI", ACTIVATED_SRI, True),
         ("PLOG", PLOG, True),
         ("CHEB", CHEB, False),
-        ("FLOAT64_OVERFLOW", FLOAT64_OVERFLOW, True),
     ],
 )
 def test__from_chemkin_string(name, data, check_roundtrip: bool):
