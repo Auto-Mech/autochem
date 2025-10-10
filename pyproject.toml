@@ -94,6 +94,7 @@ test = { depends-on = ["test-automol", "test-autochem", "test-autoreact"] }
 pre-commit = "lefthook run pre-commit --all-files"
 pre-push = "lefthook run pre-push --all-files"
 lint = { depends-on = ["pre-commit", "pre-push"] }
+format = "ruff format"
 
 [tool.pixi.feature.docs.tasks]
 build-docs = { cmd = "make html", cwd = "docs" }
