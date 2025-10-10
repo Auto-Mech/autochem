@@ -160,19 +160,22 @@ def nan_array_to_none(arr: ArrayLike | None) -> NDArray | None:
 def drop_invalid_rates(arr: ArrayLike | None) -> NDArray | None:
     """Replace negative rates with None.
 
+    Drop invalid rates up to one past the last negative temperature.
+
     :param arr: Array or None
     :return: Array or None
     """
     if arr is None:
         return None
     arr = np.array(arr, copy=True)
-    # Define masks for negative value *and adjacent values in the same row*
-    neg = arr < 0
-    left = np.roll(neg, 1, axis=-1)
-    right = np.roll(neg, -1, axis=-1)
-    left[:, 0] = right[:, -1] = False
-    # Set these values to nan
-    arr[neg | left | right] = np.nan
+    # Define mask to select up to one past the last negative value per row
+    axis = 1
+    shape = arr.shape
+    col_idxs = np.broadcast_to(np.arange(shape[axis]), shape)
+    neg_idx = np.max(np.where(arr < 0, col_idxs, -2), axis=axis)
+    mask = col_idxs <= np.expand_dims(neg_idx, axis=axis) + 1
+    # Set those values to nan
+    arr[mask] = np.nan
     return arr
 
 
