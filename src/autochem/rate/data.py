@@ -138,11 +138,11 @@ def drop_invalid_rates(arr: ArrayLike | None) -> NDArray | None:
         return None
     arr = np.array(arr, copy=True)
     # Define mask to select up to one past the last negative value per row
-    axis = 1
+    axis = 0
     shape = arr.shape
-    col_idxs = np.broadcast_to(np.arange(shape[axis]), shape)
-    neg_idx = np.max(np.where(arr < 0, col_idxs, -2), axis=axis)
-    mask = col_idxs <= np.expand_dims(neg_idx, axis=axis) + 1
+    row_idxs = np.expand_dims(np.arange(shape[axis]), axis=1)
+    neg_idx = np.max(np.where(arr < 0, row_idxs, -2), axis=axis)
+    mask = row_idxs <= (np.expand_dims(neg_idx, axis=axis) + 1)
     # Set those values to nan
     arr[mask] = np.nan
     return arr
