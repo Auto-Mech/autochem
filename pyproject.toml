@@ -1,6 +1,6 @@
 [project]
 name = "autochem"
-version = "2025.10.0"
+version = "2025.10.1"
 description = "Cheminformatics libraries used by the AutoMech project"
 readme = "README.md"
 authors = [{name = "avcopan", email = "avcopan@gmail.com"}]
@@ -18,11 +18,8 @@ build-backend = "hatchling.build"
 requires = ["hatchling"]
 
 # Hatchling configurations
-[tool.hatch.build.targets.sdist]
-include = ["autochem", "automol", "autoreact", "phydat", "molsym"]
-
 [tool.hatch.build.targets.wheel]
-include = ["autochem", "automol", "autoreact", "phydat", "molsym"]
+packages = ["src/automol", "src/autochem", "src/autoreact", "src/molsym", "src/phydat"]
 
 # Pixi configurations
 [tool.pixi.workspace]
@@ -85,9 +82,9 @@ build = ["build"]
 dev = ["test", "lint", "docs", "build", "dev"]
 
 [tool.pixi.feature.test.tasks]
-test-automol = "pytest -n auto -v automol"
-test-autochem = "pytest -v autochem"
-test-autoreact = "pytest -v autoreact"
+test-automol = "pytest -n auto -v src/automol"
+test-autochem = "pytest -v src/autochem"
+test-autoreact = "pytest -v src/autoreact"
 test = { depends-on = ["test-automol", "test-autochem", "test-autoreact"] }
 
 [tool.pixi.feature.lint.tasks]
