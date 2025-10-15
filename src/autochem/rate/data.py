@@ -256,15 +256,31 @@ class Rate(BaseRate):
         k_max = np.array(self(T=self.T, P=max(self.P)))
         return np.array(self.k_high) if self.k_high else k_max
 
-    def is_pressure_dependent(self, tol: float = 0.2) -> bool:
+    def is_pressure_dependent(
+        self, T: Sequence[float] | None = None, tol: float = 0.2
+    ) -> bool:
         """Determine whether or not the rate is pressure dependent.
 
         :param tol: Threshold for determining pressure dependence
         :return: `True` if it is, otherwise `False`
         """
-        k_low = np.array(self(T=self.T, P=min(self.P)))
-        k_high = self.high_pressure_values()
-        diff = np.abs(k_low - k_high) / k_low
+        T_ = self.T if T is None else T
+        data = self(T=T_, P=self.P)
+
+        # Mask of valid (non-NaN) entries
+        mask = ~np.isnan(data)
+        dim0 = np.arange(data.shape[0])
+        dim1 = np.arange(data.shape[1])
+
+        # Indices of first and last valid values per row
+        idx_lo = np.where(mask, dim1, np.inf).argmin(axis=1)
+        idx_hi = np.where(mask, dim1, -np.inf).argmax(axis=1)
+
+        # Extract first and last values, handling rows with all-NaN
+        k_lo = np.where(mask.any(axis=1), data[dim0, idx_lo], np.nan)
+        k_hi = np.where(mask.any(axis=1), data[dim0, idx_hi], np.nan)
+
+        diff = np.abs(k_lo - k_hi) / k_lo
         return bool(np.any(diff > tol))
 
     def fittable_pressures(self) -> list[float]:
