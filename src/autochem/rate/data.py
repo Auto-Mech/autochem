@@ -275,6 +275,16 @@ class Rate(BaseRate):
         count = np.sum(np.isfinite(self.k_data), axis=0)
         return np.array(self.P)[count >= 3].tolist()
 
+    def drop_unfittable_pressures(self) -> "Rate":
+        """Drop unfittable pressures."""
+        count = np.sum(np.isfinite(self.k_data), axis=0)
+        mask = count >= 3
+        k_data = self.k_data[:, mask]
+        P = np.array(self.P)[mask].tolist()
+        return self.__class__(
+            order=self.order, T=self.T, P=P, k_data=k_data, k_high=self.k_high
+        )
+
 
 class RateFit(BaseRate):
     """Rate fit abstract base classs."""
