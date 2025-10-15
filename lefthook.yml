@@ -2,12 +2,12 @@ pre-commit:
   parallel: true
   commands:
     ruff-linter:
-      run: ruff check --select I --fix
+      run: pixi run -e lint ruff check --select I --fix
     run-format:
-      run: ruff format --check
+      run: pixi run -e lint ruff format --check
 
 pre-push:
   commands:
     # old:
     pylint-linter:
-      run: pylint --rcfile=.pylintrc automol
+      run: pixi run -e lint pylint --rcfile=.pylintrc automol
