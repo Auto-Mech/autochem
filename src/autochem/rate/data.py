@@ -404,6 +404,7 @@ class ArrheniusRateFit(RateFit):
         cls,
         T: ArrayLike,  # noqa: N803
         k: ArrayLike,
+        A_fill: float | None = None,
         order: int = 1,
         units: UnitsData | None = None,  # noqa: ARG003
     ) -> "ArrheniusRateFit":
@@ -411,6 +412,8 @@ class ArrheniusRateFit(RateFit):
 
         :param T: Temperatures
         :param k: Rates
+        :param A_fill: Optional dummy parameter for unfittable rates
+            (Otherwise, an error will be thrown.)
         :return: Rate fit
         """
         T = np.array(T, dtype=np.float64)  # noqa: N806
@@ -425,8 +428,14 @@ class ArrheniusRateFit(RateFit):
         v = v[ok]
 
         if len(v) < 3:
-            msg = f"Cannot fit with fewer than 3 data points: {v}"
-            raise ValueError(msg)
+            if A_fill is None:
+                msg = (
+                    f"Cannot fit with fewer than 3 data points: {v}\n"
+                    "You can circumvent this by setting the A_fill parameter "
+                    "as a placeholder for unfittable rates."
+                )
+                raise ValueError(msg)
+            return cls(order=order, A=A_fill, b=0, E=0)
 
         (lnA, b, E), *_ = np.linalg.lstsq(M, v, rcond=1e-24)  # noqa: N806
         return cls(order=order, A=np.exp(lnA), b=b, E=E)
@@ -652,6 +661,7 @@ class PlogRateFit(RateFit):
         P: ArrayLike,  # noqa: N803
         k_data: ArrayLike,
         k_high: ArrayLike | None = None,
+        A_fill: float | None = None,
         order: int = 1,
         units: UnitsData | None = None,
     ) -> "PlogRateFit":
@@ -664,7 +674,7 @@ class PlogRateFit(RateFit):
         :return: Rate fit
         """
         k_data_fits = [
-            ArrheniusRateFit.fit(T=T, k=k, order=order, units=units)
+            ArrheniusRateFit.fit(T=T, k=k, A_fill=A_fill, order=order, units=units)
             for k in np.transpose(k_data)
         ]
         k_high_fit = None
