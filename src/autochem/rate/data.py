@@ -284,22 +284,57 @@ class Rate(BaseRate):
         return bool(np.any(diff > tol))
 
     def fittable_pressures(self) -> list[float]:
-        """Determine pressures with enough data points to fit.
+        """Identify pressures with enough data points to fit.
 
         :return: Pressures
         """
         count = np.sum(np.isfinite(self.k_data), axis=0)
         return np.array(self.P)[count >= 3].tolist()
 
+    def unfittable_pressures(self) -> list[float]:
+        """Identify pressures without enough data points to fit.
+
+        :return: Pressures
+        """
+        count = np.sum(np.isfinite(self.k_data), axis=0)
+        return np.array(self.P)[count < 3].tolist()
+
+    def drop_pressures(self, P: Sequence[float]) -> "Rate":
+        """Drop pressures.
+
+        :param P: Pressures to drop
+        :return: Rate object
+        """
+        P_orig = np.array(self.P)
+        P_orig_ = np.expand_dims(P_orig, axis=1)
+        P_drop_ = np.expand_dims(P, axis=0)
+        keep = ~np.any(np.isclose(P_orig_, P_drop_), axis=1)
+        P_keep = P_orig[keep].tolist()
+        k_data = self.k_data[:, keep].copy()
+        return self.__class__(
+            order=self.order, T=self.T, P=P_keep, k_data=k_data, k_high=self.k_high
+        )
+
+    def drop_temperatures(self, T: Sequence[float]) -> "Rate":
+        """Drop temperatures.
+
+        :param T: Temperatures to drop
+        :return: Rate object
+        """
+        T_orig = np.array(self.T)
+        T_orig_ = np.expand_dims(T_orig, axis=1)
+        T_drop_ = np.expand_dims(T, axis=0)
+        keep = ~np.any(np.isclose(T_orig_, T_drop_), axis=1)
+        T_keep = T_orig[keep].tolist()
+        k_data = self.k_data[keep, :].copy()
+        k_high = None if self.k_high is None else np.extract(keep, self.k_high).tolist()
+        return self.__class__(
+            order=self.order, T=T_keep, P=self.P, k_data=k_data, k_high=k_high
+        )
+
     def drop_unfittable_pressures(self) -> "Rate":
         """Drop unfittable pressures."""
-        count = np.sum(np.isfinite(self.k_data), axis=0)
-        mask = count >= 3
-        k_data = self.k_data[:, mask]
-        P = np.array(self.P)[mask].tolist()
-        return self.__class__(
-            order=self.order, T=self.T, P=P, k_data=k_data, k_high=self.k_high
-        )
+        return self.drop_pressures(self.unfittable_pressures())
 
 
 class RateFit(BaseRate):
