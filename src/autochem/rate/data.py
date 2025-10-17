@@ -312,7 +312,7 @@ class Rate(BaseRate):
 
         return np.all(np.isnan(self.k_data)).item()
 
-    def has_pressures(self, P: Sequence[float]) -> bool:
+    def has_pressure_data(self, P: Sequence[float]) -> bool:
         """Check for presence of pressures.
 
         :param P: Pressures
@@ -321,9 +321,30 @@ class Rate(BaseRate):
         if np.size(P) == 0:
             return True
 
-        P_test_ = np.expand_dims(np.array(P), axis=1)
-        P_have_ = np.expand_dims(np.array(self.P), axis=0)
-        return np.all(np.any(np.isclose(P_test_, P_have_), axis=1)).item()
+        P0_ = np.expand_dims(np.array(self.P), axis=0)
+        P_ = np.expand_dims(np.array(P), axis=1)
+        close_arr = np.isclose(P0_, P_)
+        if not np.all(np.any(close_arr, axis=1)).item():
+            return False
+        select = np.any(close_arr, axis=0)
+        isfinite = np.isfinite(self.k_data[:, select])
+        return np.all(np.any(isfinite, axis=0)).item()
+
+    def clear_pressures(self, P: Sequence[float]) -> "Rate":
+        """Drop pressures.
+
+        :param P: Pressures
+        :return: Rate
+        """
+        P_orig = np.array(self.P)
+        P_orig_ = np.expand_dims(P_orig, axis=1)
+        P_drop_ = np.expand_dims(P, axis=0)
+        drop = np.any(np.isclose(P_orig_, P_drop_), axis=1)
+        k_data = self.k_data.copy()
+        k_data[:, drop] = np.nan
+        return self.__class__(
+            order=self.order, T=self.T, P=self.P, k_data=k_data, k_high=self.k_high
+        )
 
     def drop_pressures(self, P: Sequence[float]) -> "Rate":
         """Drop pressures.
@@ -357,10 +378,6 @@ class Rate(BaseRate):
         return self.__class__(
             order=self.order, T=T_keep, P=self.P, k_data=k_data, k_high=k_high
         )
-
-    def drop_unfittable_pressures(self) -> "Rate":
-        """Drop unfittable pressures."""
-        return self.drop_pressures(self.unfittable_pressures())
 
     def clear(self) -> "Rate":
         """Return a cleared copy of the rate (all values set to NaN)."""
