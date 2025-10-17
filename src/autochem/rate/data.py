@@ -264,6 +264,9 @@ class Rate(BaseRate):
         :param tol: Threshold for determining pressure dependence
         :return: `True` if it is, otherwise `False`
         """
+        if self.is_empty():
+            return False
+
         T_ = self.T if T is None else T
         data = self(T=T_, P=self.P)
 
@@ -299,11 +302,34 @@ class Rate(BaseRate):
         count = np.sum(np.isfinite(self.k_data), axis=0)
         return np.array(self.P)[count < 3].tolist()
 
+    def is_empty(self) -> bool:
+        """Check whether rate is empty (all NaN or no values).
+
+        :return: Boolean
+        """
+        if np.size(self.k_data) == 0:
+            return True
+
+        return np.all(np.isnan(self.k_data)).item()
+
+    def has_pressures(self, P: Sequence[float]) -> bool:
+        """Check for presence of pressures.
+
+        :param P: Pressures
+        :return: Boolean
+        """
+        if np.size(P) == 0:
+            return True
+
+        P_test_ = np.expand_dims(np.array(P), axis=1)
+        P_have_ = np.expand_dims(np.array(self.P), axis=0)
+        return np.all(np.any(np.isclose(P_test_, P_have_), axis=1)).item()
+
     def drop_pressures(self, P: Sequence[float]) -> "Rate":
         """Drop pressures.
 
-        :param P: Pressures to drop
-        :return: Rate object
+        :param P: Pressures
+        :return: Rate
         """
         P_orig = np.array(self.P)
         P_orig_ = np.expand_dims(P_orig, axis=1)
@@ -335,6 +361,11 @@ class Rate(BaseRate):
     def drop_unfittable_pressures(self) -> "Rate":
         """Drop unfittable pressures."""
         return self.drop_pressures(self.unfittable_pressures())
+
+    def clear(self) -> "Rate":
+        """Return a cleared copy of the rate (all values set to NaN)."""
+        k_data = np.full_like(self.k_data, np.nan, dtype=float)
+        return self.model_copy(update={"k_data": k_data, "k_high": None})
 
 
 class RateFit(BaseRate):
