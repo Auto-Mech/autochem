@@ -367,6 +367,27 @@ class Rate(BaseRate):
         k_data = np.full_like(self.k_data, np.nan, dtype=float)
         return self.model_copy(update={"k_data": k_data, "k_high": None})
 
+    def merge_equivalent(self, other: "Rate", *, tol: float = 0.1) -> "Rate":
+        """Merge equivalent rates.
+
+        Matching rates are averaged. Mismatched rates are replaced with NaN.
+        Matches are determined based on a tolerance threshold.
+
+        :param other: Rate
+        :return: Rate
+        """
+        k_data_avg = (self.k_data + other.k_data) / 2
+        k_data_diff = np.abs(self.k_data - other.k_data)
+        match = (k_data_diff / k_data_avg) < tol
+        k_data = np.where(match, k_data_avg, np.nan)
+        k_high = None
+        if self.k_high and other.k_high:
+            k_high_avg = np.add(self.k_high, other.k_high) / 2
+            k_high_diff = np.abs(np.subtract(self.k_high, other.k_high))
+            match = (k_high_diff / k_high_avg) < tol
+            k_high = np.where(match, k_high_avg, np.nan).tolist()
+        return self.model_copy(update={"k_data": k_data, "k_high": k_high})
+
 
 class RateFit(BaseRate):
     """Rate fit abstract base classs."""
