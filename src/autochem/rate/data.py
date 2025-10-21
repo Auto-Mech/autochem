@@ -1019,6 +1019,7 @@ def display(  # noqa: PLR0913
     color: str | Sequence[str] | None = None,
     x_label: str = "1000/𝑇",  # noqa: RUF001
     y_label: str = "𝑘",  # noqa: RUF001
+    check_order: bool = True,
 ) -> alt.Chart:
     """Display one or more reaction rates on an Arrhenius plot.
 
@@ -1034,8 +1035,11 @@ def display(  # noqa: PLR0913
     labels = [label] if isinstance(label, str) else label
     colors = [color] if isinstance(color, str) else color
     rate0, *rates_ = rates
-    for other_rates in rates_:
-        assert rate0.order == other_rates.order, f"{rate0} !~ {other_rates}"
+    if check_order:
+        for other_rate in rates_:
+            if not rate0.order == other_rate.order:
+                msg = f"Mismatched reaction orders: {rate0} !~ {other_rate}"
+                raise ValueError(msg)
     order = rate0.order
 
     nr = len(rates)
