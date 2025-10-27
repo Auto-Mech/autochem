@@ -223,7 +223,7 @@ def fit_high(rxn: Reaction) -> Reaction:
     rxn = rxn.model_copy()
     rate = rxn.rate
     assert isinstance(rate, Rate), rate
-    rxn.rate = ArrheniusRateFit.fit(T=rate.T, k=rate.k_high, order=rate.order)
+    rxn.rate = ArrheniusRateFit.fit(Ts=rate.T, ks=rate.k_high, order=rate.order)
     return rxn
 
 
@@ -239,8 +239,8 @@ def fit_plog(rxn: Reaction, *, sanitize: bool = False) -> Reaction:
     if sanitize:
         rate = rate.without_nan()
     rxn.rate = PlogRateFit.fit(
-        T=rate.T,
-        P=rate.P,
+        Ts=rate.T,
+        Ps=rate.P,
         k_data=rate.k_data,
         k_high=rate.k_high,
         order=rate.order,
