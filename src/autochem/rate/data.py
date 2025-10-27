@@ -330,8 +330,13 @@ class Rate(BaseRate):
         isfinite = np.isfinite(self.k_data[:, select])
         return np.all(np.any(isfinite, axis=0)).item()
 
+    def clear_pressure_range(self, P0: float, P1: float) -> "Rate":
+        """Clear pressure range."""
+        P_mid = [p for p in self.P if P0 < p and p < P1]
+        return self.clear_pressures([P0, *P_mid, P1])
+
     def clear_pressures(self, P: Sequence[float]) -> "Rate":
-        """Drop pressures.
+        """Clear pressures.
 
         :param P: Pressures
         :return: Rate
