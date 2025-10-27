@@ -3,7 +3,7 @@
 import abc
 import warnings
 from collections.abc import Mapping, Sequence
-from typing import Annotated, ClassVar
+from typing import Annotated, ClassVar, Literal
 
 import altair as alt
 import more_itertools as mit
@@ -479,6 +479,10 @@ class ArrheniusRateFit(RateFit):
         T: ArrayLike,  # noqa: N803
         k: ArrayLike,
         A_fill: float | None = None,
+        bad_fit: Literal["fill"]
+        | Literal["warn"]
+        | Literal["raise"]
+        | Literal["ignore"] = "warn",
         order: int = 1,
         units: UnitsData | None = None,  # noqa: ARG003
     ) -> "ArrheniusRateFit":
@@ -488,6 +492,8 @@ class ArrheniusRateFit(RateFit):
         :param k: Rates
         :param A_fill: Optional dummy parameter for unfittable rates
             (Otherwise, an error will be thrown.)
+        :param bad_fit: How to handle bad fits that create floating point errors;
+            (Options: "fill", replace with the fill value, or numpy.seterr options)
         :return: Rate fit
         """
         T = np.array(T, dtype=np.float64)  # noqa: N806
@@ -512,7 +518,27 @@ class ArrheniusRateFit(RateFit):
             return cls(order=order, A=A_fill, b=0, E=0)
 
         (lnA, b, E), *_ = np.linalg.lstsq(M, v, rcond=1e-24)  # noqa: N806
-        return cls(order=order, A=np.exp(lnA), b=b, E=E)
+        obj = cls(order=order, A=np.exp(lnA), b=b, E=E)
+
+        if bad_fit == "fill":
+            try:
+                with np.errstate(all="raise"):
+                    obj(T=T)
+            except FloatingPointError as e:
+                if A_fill is not None:
+                    return cls(order=order, A=A_fill, b=0, E=0)
+
+                if A_fill is None:
+                    msg = f"{e}\nOption `bad_fit='fill'` was given, but no A_fill value was provided."
+                else:
+                    msg = f"{e}\nNote: You can handle errors using the `bad_fit` keyword argument."
+
+                raise FloatingPointError(msg)
+        else:
+            with np.errstate(all=bad_fit):
+                obj(T=T)
+
+        return obj
 
 
 class FalloffRateFit(RateFit, abc.ABC):  # type: ignore[misc]
@@ -736,6 +762,10 @@ class PlogRateFit(RateFit):
         k_data: ArrayLike,
         k_high: ArrayLike | None = None,
         A_fill: float | None = None,
+        bad_fit: Literal["fill"]
+        | Literal["warn"]
+        | Literal["raise"]
+        | Literal["ignore"] = "warn",
         order: int = 1,
         units: UnitsData | None = None,
     ) -> "PlogRateFit":
@@ -745,10 +775,21 @@ class PlogRateFit(RateFit):
         :param P: Temperatures
         :param k_data: Finite pressure rates
         :param k_high: High-pressure-limit rates
+        :param A_fill: Optional dummy parameter for unfittable rates
+            (Otherwise, an error will be thrown.)
+        :param bad_fit: How to handle bad fits that create floating point errors;
+            (Options: "fill", replace with the fill value, or numpy.seterr options)
         :return: Rate fit
         """
         k_data_fits = [
-            ArrheniusRateFit.fit(T=T, k=k, A_fill=A_fill, order=order, units=units)
+            ArrheniusRateFit.fit(
+                T=T,
+                k=k,
+                A_fill=A_fill,
+                bad_fit=bad_fit,
+                order=order,
+                units=units,
+            )
             for k in np.transpose(k_data)
         ]
         k_high_fit = None
