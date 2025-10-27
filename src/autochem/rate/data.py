@@ -476,8 +476,9 @@ class ArrheniusRateFit(RateFit):
     @unit_.manage_units([D.temperature, D.rate_constant])
     def fit(
         cls,
-        T: ArrayLike,  # noqa: N803
-        k: ArrayLike,
+        Ts: ArrayLike,  # noqa: N803
+        ks: ArrayLike,
+        *,
         A_fill: float | None = None,
         bad_fit: Literal["fill"]
         | Literal["warn"]
@@ -496,12 +497,12 @@ class ArrheniusRateFit(RateFit):
             (Options: "fill", replace with the fill value, or numpy.seterr options)
         :return: Rate fit
         """
-        T = np.array(T, dtype=np.float64)  # noqa: N806
+        T = np.array(Ts, dtype=np.float64)  # noqa: N806
         _1 = np.ones_like(T)
 
         R = unit_.const.value(C.gas, UNITS)  # noqa: N806
         M = np.column_stack([_1, np.log(T), -1 / (R * T)])  # noqa: N806
-        v = np.log(k)
+        v = np.log(ks)
 
         ok = np.isfinite(v)
         M = M[ok, :]  # noqa: N806
@@ -757,15 +758,17 @@ class PlogRateFit(RateFit):
     @unit_.manage_units([D.temperature, D.rate_constant])
     def fit(  # noqa: PLR0913
         cls,
-        T: ArrayLike,  # noqa: N803
-        P: ArrayLike,  # noqa: N803
+        Ts: Sequence[float],  # noqa: N803
+        Ps: Sequence[float],  # noqa: N803
         k_data: ArrayLike,
+        *,
         k_high: ArrayLike | None = None,
         A_fill: float | None = None,
         bad_fit: Literal["fill"]
         | Literal["warn"]
         | Literal["raise"]
         | Literal["ignore"] = "warn",
+        bad_fit_fill_pressures: Sequence[float] = (),
         order: int = 1,
         units: UnitsData | None = None,
     ) -> "PlogRateFit":
@@ -781,20 +784,26 @@ class PlogRateFit(RateFit):
             (Options: "fill", replace with the fill value, or numpy.seterr options)
         :return: Rate fit
         """
+        bad_fits = [
+            "fill" if np.any(np.isclose(p, bad_fit_fill_pressures)) else bad_fit
+            for p in Ps
+        ]
         k_data_fits = [
             ArrheniusRateFit.fit(
-                T=T,
-                k=k,
+                Ts=Ts,
+                ks=ks,
                 A_fill=A_fill,
-                bad_fit=bad_fit,
+                bad_fit=f,  # pyright: ignore[reportArgumentType]
                 order=order,
                 units=units,
             )
-            for k in np.transpose(k_data)
+            for ks, f in zip(np.transpose(k_data), bad_fits, strict=True)
         ]
         k_high_fit = None
         if k_high is not None:
-            k_high_fit = ArrheniusRateFit.fit(T=T, k=k_high, order=order, units=units)
+            k_high_fit = ArrheniusRateFit.fit(
+                Ts=Ts, ks=k_high, order=order, units=units
+            )
             msg = f"Currently not fitting high-pressure limit {k_high_fit}"
             warnings.warn(msg, stacklevel=2)
 
@@ -803,7 +812,7 @@ class PlogRateFit(RateFit):
             As=[f.A for f in k_data_fits],
             bs=[f.b for f in k_data_fits],
             Es=[f.E for f in k_data_fits],
-            Ps=P,
+            Ps=Ps,  # pyright: ignore[reportArgumentType]
         )
 
 
