@@ -438,6 +438,16 @@ class RateFit(BaseRate):
             return {k: v for k, v in value.items() if v is not None}
         return value
 
+    def is_cleared(self, A_fill: float) -> bool:
+        """Determine if this rate was cleared."""
+        msg = f"Cleared checking not implemented for {self.__class__.__name__}"
+        raise NotImplementedError(msg)
+
+    def is_partially_cleared(self, A_fill: float) -> bool:
+        """Determine if this rate was partially cleared."""
+        msg = f"Cleared checking not implemented for {self.__class__.__name__}"
+        raise NotImplementedError(msg)
+
 
 class ArrheniusRateFit(RateFit):
     """Arrhenius rate fit."""
@@ -540,6 +550,14 @@ class ArrheniusRateFit(RateFit):
                 obj(T=T)
 
         return obj
+
+    def is_cleared(self, A_fill: float) -> bool:
+        """Determine if this rate was cleared."""
+        return np.allclose([self.A, self.b, self.E], [A_fill, 0.0, 0.0], atol=0)
+
+    def is_partially_cleared(self, A_fill: float) -> bool:
+        """Determine if this rate was partially cleared."""
+        return self.is_cleared(A_fill=A_fill)
 
 
 class FalloffRateFit(RateFit, abc.ABC):  # type: ignore[misc]
@@ -814,6 +832,14 @@ class PlogRateFit(RateFit):
             Es=[f.E for f in k_data_fits],
             Ps=Ps,  # pyright: ignore[reportArgumentType]
         )
+
+    def is_cleared(self, A_fill: float) -> bool:
+        """Determine if this rate was cleared."""
+        return all(k.is_cleared(A_fill=A_fill) for k in self.arrhenius_functions)
+
+    def is_partially_cleared(self, A_fill: float) -> bool:
+        """Determine if this rate was partially cleared."""
+        return any(k.is_cleared(A_fill=A_fill) for k in self.arrhenius_functions)
 
 
 class ChebRateFit(RateFit):
