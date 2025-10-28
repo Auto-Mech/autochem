@@ -261,6 +261,9 @@ class Rate(BaseRate):
     ) -> bool:
         """Determine whether or not the rate is pressure dependent.
 
+        If data fittable data is only available for one pressure, the reaction
+        will be treated as pressure-dependent.
+
         :param tol: Threshold for determining pressure dependence
         :return: `True` if it is, otherwise `False`
         """
@@ -268,7 +271,8 @@ class Rate(BaseRate):
             return False
 
         T_ = self.T if T is None else T
-        data = self(T=T_, P=self.P)
+        P_ = self.fittable_pressures()
+        data = self(T=T_, P=P_)
 
         # Mask of valid (non-NaN) entries
         mask = ~np.isnan(data)
@@ -278,6 +282,9 @@ class Rate(BaseRate):
         # Indices of first and last valid values per row
         idx_lo = np.where(mask, dim1, np.inf).argmin(axis=1)
         idx_hi = np.where(mask, dim1, -np.inf).argmax(axis=1)
+
+        if np.all(idx_lo == idx_hi):
+            return True
 
         # Extract first and last values, handling rows with all-NaN
         k_lo = np.where(mask.any(axis=1), data[dim0, idx_lo], np.nan)
