@@ -59,20 +59,21 @@ class Mark:
 MARKS = (Mark.point, Mark.line)
 
 
-def arrhenius(  # noqa: PLR0913
-    ks: ArrayLike,
+def simple(
+    ks: Sequence[Sequence[float]],
     T: Sequence[float],  # noqa: N803
     *,
     order: int = 1,
     units: UnitsData | None = None,
     labels: Sequence[str] | None = None,
     colors: Sequence[str] | None = None,
-    x_label: str = "1000/𝑇",  # noqa: RUF001
-    y_label: str = "𝑘",  # noqa: RUF001
+    x_label: str | None = "𝑇",  # noqa: RUF001
+    y_label: str | None = "𝑘",  # noqa: RUF001
+    x_unit: str | None = None,
+    y_unit: str | None = None,
     mark: str = Mark.line,
-    domain: tuple[float, float] | None = None,
 ) -> alt.Chart:
-    """Display as an Arrhenius plot.
+    """Display as simple plot.
 
     :param others: Other rate constants
     :param others_labels: Labels for other rate constants
@@ -84,6 +85,91 @@ def arrhenius(  # noqa: PLR0913
     :param point: Whether to mark with points instead of a line
     :return: Chart
     """
+    x_label = "𝑇" if x_label is None else x_label
+    y_label = "𝑘" if y_label is None else y_label
+
+    assert mark in MARKS, f"{mark} not in {MARKS}"
+    color_cycle = LINE_COLOR_CYCLE if mark == Mark.line else POINT_COLOR_CYCLE
+
+    nk, nT = np.shape(ks)  # noqa: N806
+    colors = colors or list(itertools.islice(itertools.cycle(color_cycle), nk))
+    keep_legend = labels is not None
+    labels = labels or [f"k{i + 1}" for i in range(nk)]
+    assert len(T) == nT, f"{T} !~ {ks}"
+    assert len(labels) == nk, f"{labels} !~ {ks}"
+
+    # Process units
+    units = UNITS if units is None else Units.model_validate(units)
+    x_unit = unit_.pretty_string(units.temperature) if x_unit is None else x_unit
+    y_unit = (
+        unit_.pretty_string(units.rate_constant(order)) if y_unit is None else y_unit
+    )
+
+    # Add units to labels
+    if x_unit:
+        x_label = f"{x_label} ({x_unit})"
+
+    if y_unit:
+        y_label = f"{y_label} ({y_unit})"
+
+    # Gather data from functons
+    data_dct = dict(zip(labels, ks, strict=True))
+    data = pd.DataFrame({"x": T, **data_dct})
+
+    # Prepare encoding parameters
+    x = alt.X("x", title=x_label, scale=alt.Scale(zero=False))
+    y = alt.Y("value:Q", title=y_label)
+    color = (
+        alt.Color("key:N", scale=alt.Scale(domain=labels, range=colors))
+        if keep_legend
+        else alt.value(colors[0])
+    )
+
+    chart = alt.Chart(data)
+    chart = (
+        chart.mark_point(filled=True, opacity=1)
+        if mark == Mark.point
+        else chart.mark_line()
+    )
+
+    # Create chart
+    return chart.transform_fold(fold=list(data_dct.keys())).encode(
+        x=x,
+        y=y,
+        color=color,
+    )
+
+
+def arrhenius(  # noqa: PLR0913
+    ks: ArrayLike,
+    T: Sequence[float],  # noqa: N803
+    *,
+    order: int = 1,
+    units: UnitsData | None = None,
+    labels: Sequence[str] | None = None,
+    colors: Sequence[str] | None = None,
+    x_label: str | None = "1000/𝑇",  # noqa: RUF001
+    y_label: str | None = "𝑘",  # noqa: RUF001
+    x_unit: str | None = None,
+    y_unit: str | None = None,
+    mark: str = Mark.line,
+    domain: tuple[float, float] | None = None,
+) -> alt.Chart:
+    """Display as Arrhenius plot.
+
+    :param others: Other rate constants
+    :param others_labels: Labels for other rate constants
+    :param T_range: Temperature range
+    :param P: Pressure
+    :param units: Units
+    :param x_label: X-axis label
+    :param y_label: Y-axis label
+    :param point: Whether to mark with points instead of a line
+    :return: Chart
+    """
+    x_label = "1000/𝑇" if x_label is None else x_label
+    y_label = "𝑘" if y_label is None else y_label
+
     assert mark in MARKS, f"{mark} not in {MARKS}"
     color_cycle = LINE_COLOR_CYCLE if mark == Mark.line else POINT_COLOR_CYCLE
 
@@ -97,12 +183,17 @@ def arrhenius(  # noqa: PLR0913
 
     # Process units
     units = UNITS if units is None else Units.model_validate(units)
-    x_unit = unit_.pretty_string(units.temperature**-1)
-    y_unit = unit_.pretty_string(units.rate_constant(order))
+    x_unit = unit_.pretty_string(units.temperature**-1) if x_unit is None else x_unit
+    y_unit = (
+        unit_.pretty_string(units.rate_constant(order)) if y_unit is None else y_unit
+    )
 
     # Add units to labels
-    x_label = f"{x_label} ({x_unit})"
-    y_label = f"{y_label} ({y_unit})"
+    if x_unit:
+        x_label = f"{x_label} ({x_unit})"
+
+    if y_unit:
+        y_label = f"{y_label} ({y_unit})"
 
     # Gather data from functons
     data_dct = dict(zip(labels, ks, strict=True))

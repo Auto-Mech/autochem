@@ -136,7 +136,7 @@ def drop_invalid_rates(arr: ArrayLike | None) -> NDArray | None:
     """
     if arr is None:
         return None
-    arr = np.array(arr, copy=True)
+    arr = np.array(arr, dtype=float, copy=True)
     # Define mask to select up to one past the last negative value per row
     axis = 0
     shape = arr.shape
@@ -1121,9 +1121,12 @@ def display(  # noqa: PLR0913
     units: UnitsData | None = None,
     label: str | Sequence[str] | None = None,
     color: str | Sequence[str] | None = None,
-    x_label: str = "1000/𝑇",  # noqa: RUF001
-    y_label: str = "𝑘",  # noqa: RUF001
+    x_label: str | None = None,  # noqa: RUF001
+    y_label: str | None = None,  # noqa: RUF001
+    x_unit: str | None = None,  # noqa: RUF001
+    y_unit: str | None = None,  # noqa: RUF001
     check_order: bool = True,
+    plot_type: Literal["arrh"] | Literal["simple"] = "arrh",
 ) -> alt.Chart:
     """Display one or more reaction rates on an Arrhenius plot.
 
@@ -1149,6 +1152,8 @@ def display(  # noqa: PLR0913
     nr = len(rates)
     labels = labels or ([f"k{i + 1}" for i in range(nr)] if nr > 1 else None)
 
+    plot_ = plot.arrhenius if plot_type == "arrh" else plot.simple
+
     def make_chart(
         ixs: Sequence[int],
         rates: Sequence[BaseRate],
@@ -1165,7 +1170,7 @@ def display(  # noqa: PLR0913
         )
         for T_ in Ts:  # noqa: N806
             assert np.allclose(T, T_), f"{T} !~ {T_}"
-        return plot.arrhenius(
+        return plot_(
             ks=ks,
             T=T,
             order=order,
@@ -1174,6 +1179,8 @@ def display(  # noqa: PLR0913
             colors=colors_,
             x_label=x_label,
             y_label=y_label,
+            x_unit=x_unit,
+            y_unit=y_unit,
             mark=mark,
         )
 
