@@ -3,7 +3,7 @@
 import abc
 import warnings
 from collections.abc import Mapping, Sequence
-from typing import Annotated, ClassVar, Literal
+from typing import Annotated, ClassVar, Literal, Self
 
 import altair as alt
 import more_itertools as mit
@@ -165,6 +165,22 @@ class Rate(BaseRate):
         "k_data": D.rate_constant,
         "k_high": D.rate_constant,
     }
+
+    def __truediv__(self, other: "Rate" | ArrayLike) -> Self:
+        """Scalar division.
+
+        :param c: Scalar value to divide by
+        :return: Scaled object
+        """
+        if not isinstance(other, Rate):
+            return super().__truediv__(other)
+
+        k_data = self.k_data / other.k_data
+        k_high = None
+        if self.k_high is not None and other.k_high is not None:
+            k_high = np.true_divide(self.k_high, other.k_high).tolist()
+
+        return self.model_copy(deep=True, update={"k_data": k_data, "k_high": k_high})
 
     @property
     def plot_mark(self) -> str:
