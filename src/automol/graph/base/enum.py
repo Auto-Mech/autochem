@@ -51,6 +51,7 @@ class ReactionSmarts:
     h_migration = f"([{Ar}:1].[{A_}:2][H:3])>>([H:3][{A_}:1].[{Ar}:2])"
     h_migration_12 = f"[{Ar}:1][{As}:2][H:3]>>[H:3][{As}:1][{Ar}:2]"
     beta_scission = f"[{A_}:1]-!@[{A_}:2]-[{Ar}:3]>>([{Ar}:1]).([{A_}:2]=[{A_}:3])"
+    beta_scission_h = f"[H:1]-!@[{A_}:2]-[{Ar}:3]>>([H:1]).([{A_}:2]=[{A_}:3])"
     vinyl_beta_scission = (
         f"[{A_}:1]-!@[{A_}:2]=[{Ar}:3]>>([{Ar}:1]).([{A_}:2]#[{A_}:3])"
     )
