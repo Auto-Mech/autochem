@@ -89,7 +89,11 @@ def simple(
     y_label = "𝑘" if y_label is None else y_label
 
     assert mark in MARKS, f"{mark} not in {MARKS}"
-    color_cycle = LINE_COLOR_CYCLE if mark == Mark.line else POINT_COLOR_CYCLE
+    color_cycle = (
+        LINE_COLOR_CYCLE
+        if mark == Mark.line
+        else [*POINT_COLOR_CYCLE, *LINE_COLOR_CYCLE]
+    )
 
     nk, nT = np.shape(ks)  # noqa: N806
     colors = colors or list(itertools.islice(itertools.cycle(color_cycle), nk))
