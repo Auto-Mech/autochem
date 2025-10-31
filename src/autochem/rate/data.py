@@ -517,6 +517,7 @@ class ArrheniusRateFit(RateFit):
         | Literal["warn"]
         | Literal["raise"]
         | Literal["ignore"] = "warn",
+        validate: bool = True,
         order: int = 1,
         units: UnitsData | None = None,  # noqa: ARG003
     ) -> "ArrheniusRateFit":
@@ -554,7 +555,7 @@ class ArrheniusRateFit(RateFit):
         (lnA, b, E), *_ = np.linalg.lstsq(M, v, rcond=1e-24)  # noqa: N806
         obj = cls(order=order, A=np.exp(lnA), b=b, E=E)
 
-        if bad_fit == "fill":
+        if not validate or bad_fit == "fill":
             try:
                 with np.errstate(all="raise"):
                     obj(T=T)
@@ -810,6 +811,7 @@ class PlogRateFit(RateFit):
         | Literal["raise"]
         | Literal["ignore"] = "warn",
         bad_fit_fill_pressures: Sequence[float] = (),
+        validate: bool = True,
         order: int = 1,
         units: UnitsData | None = None,
     ) -> "PlogRateFit":
@@ -835,6 +837,7 @@ class PlogRateFit(RateFit):
                 ks=ks,
                 A_fill=A_fill,
                 bad_fit=f,  # pyright: ignore[reportArgumentType]
+                validate=validate,
                 order=order,
                 units=units,
             )
@@ -843,7 +846,7 @@ class PlogRateFit(RateFit):
         k_high_fit = None
         if k_high is not None:
             k_high_fit = ArrheniusRateFit.fit(
-                Ts=Ts, ks=k_high, order=order, units=units
+                Ts=Ts, ks=k_high, validate=validate, order=order, units=units
             )
             msg = f"Currently not fitting high-pressure limit {k_high_fit}"
             warnings.warn(msg, stacklevel=2)
