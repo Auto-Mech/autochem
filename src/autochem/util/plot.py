@@ -15,7 +15,7 @@ from ..unit_ import UNITS, Units, UnitsData
 class Color:
     """Color hex values."""
 
-    # Line colors:
+    # Core colors:
     blue = "#0066ff"
     red = "#ff0000"
     green = "#1ab73a"
@@ -23,17 +23,103 @@ class Color:
     purple = "#8533ff"
     pink = "#d0009a"
     yellow = "#ffcd00"
-    teal = "#00b3b3"  # bright cyan-green
-    lime = "#b6e300"  # light, vivid green-yellow
-    magenta = "#ff33cc"  # vibrant pink-purple
-    sky = "#33bbff"  # lighter blue variant
-    olive = "#808000"  # muted yellow-green
+    # Extra colors:
+    teal = "#008080"
+    cyan = "#00ffff"
+    magenta = "#ff00ff"
+    lime = "#00ff00"
+    navy = "#000080"
+    maroon = "#800000"
+    olive = "#808000"
+    coral = "#ff7f50"
+    gold = "#ffd700"
+    sky_blue = "#87ceeb"
+    violet = "#ee82ee"
+    indigo = "#4b0082"
+    salmon = "#fa8072"
+    mint = "#98ff98"
+    peach = "#ffdab9"
+    forest_green = "#228b22"
+    mustard = "#ffdb58"
+    steel_blue = "#4682b4"
+    plum = "#dda0dd"
+    ochre = "#cc7722"
     # Point colors:
     black = "#000000"
     gray = "#808080ff"
     light_gray = "#bfbfbfff"
     brown = "#916e6e"
-    brown2 = "#a0522d"  # earthy neutral
+    sienna = "#a0522d"
+
+    # ChatGPT generated colors:
+    # # --- Core colors (your originals) ---
+    # blue = "#0066ff"
+    # red = "#ff0000"
+    # green = "#1ab73a"
+    # orange = "#ef7810"
+    # purple = "#8533ff"
+    # pink = "#d0009a"
+    # yellow = "#ffcd00"
+    # black = "#000000"
+    # gray = "#808080"
+    # light_gray = "#bfbfbf"
+    # brown = "#916e6e"
+
+    # # --- Strong blues ---
+    # navy = "#003f5c"
+    # royal_blue = "#4169e1"
+    # sky_blue = "#1ca8dd"
+    # teal = "#008080"
+    # turquoise = "#00a0b0"
+
+    # # --- Strong reds / magentas ---
+    # crimson = "#dc143c"
+    # brick = "#b22222"
+    # carmine = "#960018"
+    # magenta = "#ff00ff"
+    # raspberry = "#b03060"
+
+    # # --- Oranges & yellows ---
+    # amber = "#ffbf00"
+    # burnt_orange = "#cc5500"
+    # gold = "#d4a017"
+    # ochre = "#c07a28"
+    # mustard = "#e1ad01"
+
+    # # --- Greens ---
+    # forest_green = "#228b22"
+    # emerald = "#50c878"
+    # lime_green = "#32cd32"
+    # olive = "#6b8e23"
+    # jade = "#00a86b"
+
+    # # --- Purples & violets ---
+    # indigo = "#4b0082"
+    # violet = "#7b68ee"
+    # plum = "#8e4585"
+    # mauve = "#7d5ba6"
+    # orchid = "#da70d6"
+
+    # # --- Cyans & aquas ---
+    # cyan = "#17becf"
+    # sea_green = "#20b2aa"
+    # steel_blue = "#4682b4"
+    # cerulean = "#007ba7"
+    # azure = "#007fff"
+
+    # # --- Earth tones & neutrals ---
+    # sienna = "#a0522d"
+    # copper = "#b87333"
+    # chocolate = "#7b3f00"
+    # slate_gray = "#708090"
+    # charcoal = "#36454f"
+
+    # # --- Extras for balance ---
+    # coral = "#ff7f50"
+    # maroon = "#800000"
+    # olive_drab = "#556b2f"
+    # midnight_blue = "#191970"
+    # royal_purple = "#7851a9"
 
 
 LINE_COLOR_CYCLE = [
@@ -45,10 +131,15 @@ LINE_COLOR_CYCLE = [
     Color.yellow,
     Color.orange,
     Color.teal,
-    Color.lime,
+    Color.cyan,
     Color.magenta,
-    Color.sky,
+    Color.lime,
+    Color.navy,
+    Color.maroon,
     Color.olive,
+    Color.coral,
+    Color.gold,
+    Color.sky_blue,
 ]
 
 
@@ -57,7 +148,6 @@ POINT_COLOR_CYCLE = [
     Color.gray,
     Color.light_gray,
     Color.brown,
-    Color.brown2,
 ]
 
 
