@@ -1243,9 +1243,7 @@ def display_p(  # noqa: PLR0913
     units: UnitsData | None = None,
     label: str | Sequence[str] | None = None,
     color: str | Sequence[str] | None = None,
-    x_label: str | None = None,  # noqa: RUF001
     y_label: str | None = None,  # noqa: RUF001
-    x_unit: str | None = None,  # noqa: RUF001
     y_unit: str | None = None,  # noqa: RUF001
     check_order: bool = True,
 ) -> alt.Chart:
@@ -1271,8 +1269,15 @@ def display_p(  # noqa: PLR0913
     order = rate0.order
 
     units = UNITS if units is None else Units.model_validate(units)
-    x_label = "𝑃"
-    x_unit = unit_.pretty_string(units.pressure) if x_unit is None else x_unit
+    x_unit = unit_.pretty_string(units.pressure)
+    x_label = f"𝑃 ({x_unit})"
+
+    y_label = "𝑘" if y_label is None else y_label
+    y_unit = (
+        unit_.pretty_string(units.rate_constant(order)) if y_unit is None else y_unit
+    )
+    if y_unit:
+        y_label = f"{y_label} ({y_unit})"
 
     nr = len(rates)
     labels = labels or ([f"k{i + 1}" for i in range(nr)] if nr > 1 else None)
@@ -1293,17 +1298,15 @@ def display_p(  # noqa: PLR0913
         )
         for P_ in Ps:  # noqa: N806
             assert np.allclose(P, P_), f"{P} !~ {P_}"
-        return plot.simple(
-            ks=ks,
-            T=P,
-            order=order,
-            units=units,
+        return plot.general(
+            y_data=ks,
+            x_data=P,
             labels=labels_,
             colors=colors_,
             x_label=x_label,
             y_label=y_label,
-            x_unit=x_unit,
-            y_unit=y_unit,
+            x_scale=alt.Scale(type="log"),
+            x_axis=alt.Axis(format=".1f", values=plot.log_scale_ticks(P_range)),
             mark=mark,
         )
 

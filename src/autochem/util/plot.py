@@ -158,7 +158,95 @@ class Mark:
     line = "line"
 
 
+def log_scale_ticks(val_range: tuple[float, float]) -> list[float]:
+    """Determine log scale ticks for a given range.
+
+    :param val_range: Range
+    :return: Ticks
+    """
+    val_min, val_max = val_range
+    log_min = np.floor(np.log10(val_min))
+    log_max = np.ceil(np.log10(val_max))
+    step = 1 if log_max - log_min > 4 else 0.5
+    vals = [np.pow(10.0, p) for p in np.arange(log_min, log_max + step, step=step)]
+    return vals
+
+
 MARKS = (Mark.point, Mark.line)
+
+
+def general(
+    y_data: Sequence[Sequence[float]],
+    x_data: Sequence[float],  # noqa: N803
+    *,
+    labels: Sequence[str] | None = None,
+    colors: Sequence[str] | None = None,
+    x_label: str | None = None,  # noqa: RUF001
+    y_label: str | None = None,  # noqa: RUF001
+    x_scale: alt.Scale | None = None,
+    y_scale: alt.Scale | None = None,
+    x_axis: alt.Axis | None = None,
+    y_axis: alt.Axis | None = None,
+    mark: str = Mark.line,
+) -> alt.Chart:
+    """Display as simple plot.
+
+    We should eventually be able to handle everything through this.
+
+    :param others: Other rate constants
+    :param others_labels: Labels for other rate constants
+    :param T_range: Temperature range
+    :param P: Pressure
+    :param x_label: X-axis label
+    :param y_label: Y-axis label
+    :param point: Whether to mark with points instead of a line
+    :return: Chart
+    """
+    x_label = "" if x_label is None else x_label
+    y_label = "" if y_label is None else y_label
+    x_scale_ = alt.Undefined if x_scale is None else x_scale
+    y_scale_ = alt.Undefined if y_scale is None else y_scale
+    x_axis_ = alt.Undefined if x_axis is None else x_axis
+    y_axis_ = alt.Undefined if y_axis is None else y_axis
+
+    assert mark in MARKS, f"{mark} not in {MARKS}"
+    color_cycle = (
+        LINE_COLOR_CYCLE
+        if mark == Mark.line
+        else [*POINT_COLOR_CYCLE, *LINE_COLOR_CYCLE]
+    )
+
+    nk, nT = np.shape(y_data)  # noqa: N806
+    colors = colors or list(itertools.islice(itertools.cycle(color_cycle), nk))
+    keep_legend = labels is not None
+    labels = labels or [f"k{i + 1}" for i in range(nk)]
+    assert len(x_data) == nT, f"{x_data} !~ {y_data}"
+    assert len(labels) == nk, f"{labels} !~ {y_data}"
+
+    # Gather data from functons
+    data_dct = dict(zip(labels, y_data, strict=True))
+    data = pd.DataFrame({"x": x_data, **data_dct})
+
+    # Prepare encoding parameters
+    x = alt.X("x", title=x_label, scale=x_scale_, axis=x_axis_)
+    y = alt.Y("value:Q", title=y_label, scale=y_scale_, axis=y_axis_)
+    color = (
+        alt.Color("key:N", scale=alt.Scale(domain=labels, range=colors))
+        if keep_legend
+        else alt.value(colors[0])
+    )
+
+    chart = alt.Chart(data)
+    chart = (
+        chart.mark_point(filled=True, opacity=1)
+        if mark == Mark.point
+        else chart.mark_line()
+    )
+
+    # Create chart
+    return chart.transform_fold(fold=list(data_dct.keys())).encode(
+        x=x, y=y, color=color
+    )
 
 
 def simple(
