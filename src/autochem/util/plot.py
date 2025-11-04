@@ -23,11 +23,17 @@ class Color:
     purple = "#8533ff"
     pink = "#d0009a"
     yellow = "#ffcd00"
+    teal = "#00b3b3"  # bright cyan-green
+    lime = "#b6e300"  # light, vivid green-yellow
+    magenta = "#ff33cc"  # vibrant pink-purple
+    sky = "#33bbff"  # lighter blue variant
+    olive = "#808000"  # muted yellow-green
     # Point colors:
     black = "#000000"
     gray = "#808080ff"
     light_gray = "#bfbfbfff"
     brown = "#916e6e"
+    brown2 = "#a0522d"  # earthy neutral
 
 
 LINE_COLOR_CYCLE = [
@@ -38,6 +44,11 @@ LINE_COLOR_CYCLE = [
     Color.pink,
     Color.yellow,
     Color.orange,
+    Color.teal,
+    Color.lime,
+    Color.magenta,
+    Color.sky,
+    Color.olive,
 ]
 
 
@@ -46,6 +57,7 @@ POINT_COLOR_CYCLE = [
     Color.gray,
     Color.light_gray,
     Color.brown,
+    Color.brown2,
 ]
 
 

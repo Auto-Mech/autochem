@@ -148,6 +148,14 @@ def drop_invalid_rates(arr: ArrayLike | None) -> NDArray | None:
     return arr
 
 
+def multiply_if_not_none(obj1: ArrayLike, obj2: ArrayLike) -> NDArray[np.float64]:
+    if obj1 is None:
+        return obj1
+    if obj2 is None:
+        return obj2
+    return np.multiply(obj1, obj2).tolist()
+
+
 class Rate(BaseRate):
     """Rate data."""
 
@@ -158,7 +166,10 @@ class Rate(BaseRate):
 
     # Private attributes
     type_: ClassVar[str] = "data"
-    _scalers: ClassVar[Scalers] = {"k_data": np.multiply, "k_high": np.multiply}
+    _scalers: ClassVar[Scalers] = {
+        "k_data": np.multiply,
+        "k_high": multiply_if_not_none,
+    }
     _dimensions: ClassVar[dict[str, Dimension]] = {
         "T": D.temperature,
         "P": D.pressure,
