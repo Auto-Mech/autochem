@@ -467,7 +467,53 @@ class Rate(BaseRate):
         return self.model_copy(update={"k_data": k_data, "k_high": k_high})
 
 
-class RateFit(BaseRate):
+class BoundedMixin(pydantic.BaseModel):
+    """Mixin to define bounded calculator."""
+
+    T_min: float | None = None
+    T_max: float | None = None
+
+    def in_bounds(
+        self,
+        T: ArrayLike,  # noqa: N803
+    ) -> NDArray[np.bool_]:
+        """Determine whether temperature(s) are in bounds.
+
+        :param T: Temperature(s)
+        :return: Boolean value(s)
+        """
+        T = np.array(T, dtype=np.float64)  # noqa: N806
+        greater_than_min = (
+            np.ones_like(T, dtype=bool) if self.T_min is None else self.T_min <= T
+        )
+        less_than_max = (
+            np.ones_like(T, dtype=bool) if self.T_max is None else self.T_max >= T
+        )
+        return greater_than_min & less_than_max
+
+    def all_in_bounds(
+        self,
+        T: ArrayLike,  # noqa: N803
+    ) -> bool:
+        """Determine whether all temperature(s) are in bounds.
+
+        :param T: Temperature(s)
+        :return: `True` if they are
+        """
+        return np.all(self.in_bounds(T)).item()
+
+    def assert_all_in_bounds(
+        self,
+        T: ArrayLike,  # noqa: N803
+    ) -> None:
+        """Assert that all temperature(s) are in bounds.
+
+        :param T: Temperature(s)
+        """
+        assert self.all_in_bounds(T), f"{self.T_min} !<= {T} !<= {self.T_max}"
+
+
+class RateFit(BaseRate, BoundedMixin):
     """Rate fit abstract base classs."""
 
     efficiencies: dict[str, float] = pydantic.Field(default_factory=dict)
@@ -534,6 +580,7 @@ class ArrheniusRateFit(RateFit):
     ) -> NDArray[np.float128]:
         """Evaluate rate constant."""
         T_, _ = func.normalize_arguments((T, P))  # noqa: N806
+        T_ = np.where(self.in_bounds(T_), T_, np.nan)
         R = const.value(C.gas, UNITS)  # noqa: N806
         kTP = self.A * (T_**self.b) * np.exp(-self.E / (R * T_))  # noqa: N806
         return func.normalize_values(kTP, (T, P))
@@ -1275,9 +1322,6 @@ def display_p(  # noqa: PLR0913
     )
     if y_unit:
         y_label = f"{y_label} ({y_unit})"
-
-    nr = len(rates)
-    labels = labels or ([f"k{i + 1}" for i in range(nr)] if nr > 1 else None)
 
     def make_chart(
         ixs: Sequence[int],

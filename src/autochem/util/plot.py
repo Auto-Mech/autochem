@@ -322,10 +322,10 @@ def general(
     # Prepare encoding parameters
     x = alt.X("x", title=x_label, scale=x_scale_, axis=x_axis_)
     y = alt.Y("value:Q", title=y_label, scale=y_scale_, axis=y_axis_)
-    color = (
-        alt.Color("key:N", scale=alt.Scale(domain=labels, range=colors))
-        if keep_legend
-        else alt.value(colors[0])
+    color = alt.Color(
+        "key:N",
+        scale=alt.Scale(domain=labels, range=colors),
+        legend=alt.Undefined if keep_legend else None,
     )
 
     chart = alt.Chart(data)
