@@ -1185,9 +1185,6 @@ def display(  # noqa: PLR0913
                 raise ValueError(msg)
     order = rate0.order
 
-    nr = len(rates)
-    labels = labels or ([f"k{i + 1}" for i in range(nr)] if nr > 1 else None)
-
     plot_ = plot.arrhenius if plot_type == "arrh" else plot.simple
 
     def make_chart(

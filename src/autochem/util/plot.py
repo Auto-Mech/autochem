@@ -462,10 +462,10 @@ def arrhenius(  # noqa: PLR0913
         scale=alt.Scale(type="log"),
         axis=log_scale_axis(y_range),
     )
-    color = (
-        alt.Color("key:N", scale=alt.Scale(domain=labels, range=colors))
-        if keep_legend
-        else alt.value(colors[0])
+    color = alt.Color(
+        "key:N",
+        scale=alt.Scale(domain=labels, range=colors),
+        legend=alt.Undefined if keep_legend else None,
     )
 
     chart = alt.Chart(data)
