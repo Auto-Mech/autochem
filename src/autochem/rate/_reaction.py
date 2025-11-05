@@ -294,7 +294,7 @@ def display(  # noqa: PLR0913
         labels_ = None if labels is None else [labels[i] for i in ixs]
         colors_ = None if colors is None else [colors[i] for i in ixs]
         (T, *Ts), ks = zip(  # noqa: N806
-            *(r.plot_data(T_range=T_range, P=P, units=units) for r in rates_),
+            *(r.plot_data(T=T_range, P=P, units=units) for r in rates_),
             strict=True,
         )
         for T_ in Ts:  # noqa: N806
