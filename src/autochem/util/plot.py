@@ -158,18 +158,76 @@ class Mark:
     line = "line"
 
 
+def log_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
+    """Generate a nice log scale axis.
+
+    :param val_range: Range
+    :return: Axis
+    """
+    max_exp = np.max(np.abs(np.log10(val_range)))
+    fmt = ".0e" if max_exp > 3 else alt.Undefined
+    label_expr = "(abs(round(log(datum.value) * LOG10E) - log(datum.value) * LOG10E) < 1e-5) ? datum.label : ''"
+    return alt.Axis(format=fmt, values=log_scale_ticks(val_range), labelExpr=label_expr)
+
+
 def log_scale_ticks(val_range: tuple[float, float]) -> list[float]:
     """Determine log scale ticks for a given range.
 
     :param val_range: Range
     :return: Ticks
     """
+    # Determine tick min and max
     val_min, val_max = val_range
-    log_min = np.floor(np.log10(val_min))
-    log_max = np.ceil(np.log10(val_max))
-    step = 1 if log_max - log_min > 4 else 0.5
-    vals = [np.pow(10.0, p) for p in np.arange(log_min, log_max + step, step=step)]
-    return vals
+    mant_min, exp_min = decompose_base10(val_min)
+    mant_max, exp_max = decompose_base10(val_max)
+    tick_min = recompose_base10(mant=np.floor(mant_min), exp=exp_min)
+    tick_max = recompose_base10(mant=np.ceil(mant_max), exp=exp_max)
+
+    # Add power of 10 steps in between
+    exp_start = exp_min + 1
+    exp_stop = exp_max
+    exp_count = exp_stop - exp_start + 1
+    tick_powers_of_10 = []
+    if exp_count > 0:
+        tick_powers_of_10 = np.logspace(
+            exp_start, exp_stop, num=exp_count, endpoint=True
+        )
+    ticks = [tick_min, *tick_powers_of_10, tick_max]
+
+    # If the scale is not too large, add intervening ticks
+    if exp_count < 4:
+        bounds = [*ticks, None]
+        ticks = []
+        for start, stop in itertools.pairwise(bounds):
+            ticks.append(start)
+            if stop is not None:
+                _, exp = decompose_base10(start)
+                vals = [recompose_base10(m, exp) for m in range(2, 10)]
+                vals = [v for v in vals if start < v and v < stop]
+                ticks.extend(vals)
+
+    return ticks
+
+
+def decompose_base10(val: float) -> tuple[float, int]:
+    """Decompose value into base-10 mantissa and exponent.
+
+    :param val: Value
+    :return: Mantissa and exponent
+    """
+    exp = np.floor(np.log10(val)).astype(int)
+    mant = val / (10.0**exp)
+    return mant, exp
+
+
+def recompose_base10(mant: float, exp: int) -> float:
+    """Recompose value from base-10 mantissa and exponent
+
+    :param mant: Mantissa
+    :param exp: Exponent
+    :return: Value
+    """
+    return mant * 10.0**exp
 
 
 MARKS = (Mark.point, Mark.line)
@@ -347,7 +405,6 @@ def arrhenius(  # noqa: PLR0913
     x_unit: str | None = None,
     y_unit: str | None = None,
     mark: str = Mark.line,
-    domain: tuple[float, float] | None = None,
 ) -> alt.Chart:
     """Display as Arrhenius plot.
 
@@ -394,26 +451,16 @@ def arrhenius(  # noqa: PLR0913
     data = pd.DataFrame({"x": np.divide(1000, T), **data_dct})
 
     # Determine exponent range
-    if domain is None:
-        vals_arr = np.array(list(data_dct.values()))
-        is_nan = np.isnan(vals_arr)
-        exp_arr = np.log10(vals_arr, where=~is_nan)
-        exp_arr[is_nan] = 0.0
-        exp_arr = np.rint(exp_arr).astype(int)
-        exp_max = np.max(exp_arr).item()
-        exp_min = np.min(exp_arr).item()
-        y_vals = [10**x for x in range(exp_min, exp_max + 2)]
-        domain = alt.Undefined
-    else:
-        y_vals = alt.Undefined
+    vals_arr = np.array(list(data_dct.values()))
+    y_range = (np.nanmin(vals_arr), np.nanmax(vals_arr))
 
     # Prepare encoding parameters
     x = alt.X("x", title=x_label, scale=alt.Scale(zero=False))
-    y = (
-        alt.Y("value:Q", title=y_label)
-        .scale(type="log", domain=domain)
-        .axis(format=".1e")
-        .axis(format=".1e", values=y_vals)
+    y = alt.Y(
+        "value:Q",
+        title=y_label,
+        scale=alt.Scale(type="log"),
+        axis=log_scale_axis(y_range),
     )
     color = (
         alt.Color("key:N", scale=alt.Scale(domain=labels, range=colors))

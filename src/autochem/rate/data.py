@@ -1306,7 +1306,7 @@ def display_p(  # noqa: PLR0913
             x_label=x_label,
             y_label=y_label,
             x_scale=alt.Scale(type="log"),
-            x_axis=alt.Axis(format=".1f", values=plot.log_scale_ticks(P_range)),
+            x_axis=plot.log_scale_axis(P_range),
             mark=mark,
         )
 
