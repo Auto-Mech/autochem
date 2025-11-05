@@ -158,6 +158,15 @@ class Mark:
     line = "line"
 
 
+def log_scale(val_range: tuple[float, float]) -> alt.Scale:
+    """Generate a log scale specification.
+
+    :param val_range: Rante
+    :return: Scale
+    """
+    return alt.Scale(type="log", domain=log_scale_domain(val_range))
+
+
 def log_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
     """Generate a nice log scale axis.
 
@@ -166,11 +175,15 @@ def log_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
     """
     max_exp = np.max(np.abs(np.log10(val_range)))
     fmt = ".0e" if max_exp > 3 else alt.Undefined
-    label_expr = "(abs(round(log(datum.value) * LOG10E) - log(datum.value) * LOG10E) < 1e-5) ? datum.label : ''"
+    vals = log_scale_values(val_range)
+    label_expr_condition = " ||\n".join(
+        f"(abs(datum.value - {v}) < 1e-5)" for v in vals
+    )
+    label_expr = f"({label_expr_condition}) ? datum.label : ''"
     return alt.Axis(format=fmt, values=log_scale_ticks(val_range), labelExpr=label_expr)
 
 
-def log_scale_ticks(val_range: tuple[float, float]) -> list[float]:
+def log_scale_domain(val_range: tuple[float, float]) -> tuple[float, float]:
     """Determine log scale ticks for a given range.
 
     :param val_range: Range
@@ -180,32 +193,53 @@ def log_scale_ticks(val_range: tuple[float, float]) -> list[float]:
     val_min, val_max = val_range
     mant_min, exp_min = decompose_base10(val_min)
     mant_max, exp_max = decompose_base10(val_max)
-    tick_min = recompose_base10(mant=np.floor(mant_min), exp=exp_min)
-    tick_max = recompose_base10(mant=np.ceil(mant_max), exp=exp_max)
+    start = recompose_base10(mant=np.floor(mant_min), exp=exp_min)
+    stop = recompose_base10(mant=np.ceil(mant_max), exp=exp_max)
+    return start, stop
+
+
+def log_scale_values(val_range: tuple[float, float]) -> list[float]:
+    """Determine log scale ticks for a given range.
+
+    :param val_range: Range
+    :return: Ticks
+    """
+    val_min, val_max = log_scale_domain(val_range)
+    _, exp_min = decompose_base10(val_min)
+    _, exp_max = decompose_base10(val_max)
 
     # Add power of 10 steps in between
     exp_start = exp_min + 1
     exp_stop = exp_max
     exp_count = exp_stop - exp_start + 1
-    tick_powers_of_10 = []
+    powers_of_10 = []
     if exp_count > 0:
-        tick_powers_of_10 = np.logspace(
+        powers_of_10 = np.logspace(
             exp_start, exp_stop, num=exp_count, endpoint=True
-        )
-    ticks = [tick_min, *tick_powers_of_10, tick_max]
+        ).tolist()
+    return [val_min, *powers_of_10, val_max]
+
+
+def log_scale_ticks(val_range: tuple[float, float]) -> list[float]:
+    """Determine log scale ticks for a given range.
+
+    :param val_range: Range
+    :return: Ticks
+    """
+    vals = log_scale_values(val_range)
+    if len(vals) > 5:
+        return vals
 
     # If the scale is not too large, add intervening ticks
-    if exp_count < 4:
-        bounds = [*ticks, None]
-        ticks = []
-        for start, stop in itertools.pairwise(bounds):
-            ticks.append(start)
-            if stop is not None:
-                _, exp = decompose_base10(start)
-                vals = [recompose_base10(m, exp) for m in range(2, 10)]
-                vals = [v for v in vals if start < v and v < stop]
-                ticks.extend(vals)
-
+    bounds = [*vals, None]
+    ticks = []
+    for start, stop in itertools.pairwise(bounds):
+        ticks.append(start)
+        if stop is not None:
+            _, exp = decompose_base10(start)
+            vals = [recompose_base10(m, exp) for m in range(2, 10)]
+            vals = [v for v in vals if start < v and v < stop]
+            ticks.extend(vals)
     return ticks
 
 
@@ -217,7 +251,7 @@ def decompose_base10(val: float) -> tuple[float, int]:
     """
     exp = np.floor(np.log10(val)).astype(int)
     mant = val / (10.0**exp)
-    return mant, exp
+    return float(mant), int(exp)
 
 
 def recompose_base10(mant: float, exp: int) -> float:
@@ -227,7 +261,7 @@ def recompose_base10(mant: float, exp: int) -> float:
     :param exp: Exponent
     :return: Value
     """
-    return mant * 10.0**exp
+    return float(mant * 10.0**exp)
 
 
 MARKS = (Mark.point, Mark.line)
@@ -459,7 +493,7 @@ def arrhenius(  # noqa: PLR0913
     y = alt.Y(
         "value:Q",
         title=y_label,
-        scale=alt.Scale(type="log"),
+        scale=log_scale(y_range),
         axis=log_scale_axis(y_range),
     )
     color = alt.Color(
