@@ -1,12 +1,14 @@
 """Plotting helpers."""
 
 import itertools
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 import altair as alt
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike
+from scipy.interpolate import CubicSpline
 
 from .. import unit_
 from ..unit_ import UNITS, Units, UnitsData
@@ -265,6 +267,27 @@ def recompose_base10(mant: float, exp: int) -> float:
 
 
 MARKS = (Mark.point, Mark.line)
+
+
+def transformed_spline_interpolator(
+    x_data: ArrayLike,
+    y_data: ArrayLike,
+    x_trans: Callable[[ArrayLike], ArrayLike] = lambda x: x,
+    y_trans: Callable[[ArrayLike], ArrayLike] = lambda y: y,
+    y_trans_inv: Callable[[ArrayLike], ArrayLike] = lambda y: y,
+) -> Callable[[Any], np.ndarray]:
+    """Generate an inerpolator from data.
+
+    :param y_data: Y data
+    :param x_data: X data
+    :return: Y interpolator
+    """
+    interp_trans_ = CubicSpline(x_trans(x_data), y_trans(y_data))
+
+    def interp_(x: Any) -> np.ndarray:
+        return np.asarray(y_trans_inv(interp_trans_(x_trans(x))))
+
+    return interp_
 
 
 def general(
