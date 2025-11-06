@@ -439,6 +439,7 @@ def arrhenius(  # noqa: PLR0913
     x_unit: str | None = None,
     y_unit: str | None = None,
     mark: str = Mark.line,
+    mark_kwargs: dict | None = None,
 ) -> alt.Chart:
     """Display as Arrhenius plot.
 
@@ -503,11 +504,12 @@ def arrhenius(  # noqa: PLR0913
     )
 
     chart = alt.Chart(data)
-    chart = (
-        chart.mark_point(filled=True, opacity=1)
-        if mark == Mark.point
-        else chart.mark_line()
-    )
+    if mark == Mark.point:
+        kwargs = {"filled": True, "opacity": 1} if mark_kwargs is None else mark_kwargs
+        chart = chart.mark_point(**kwargs)
+    else:
+        kwargs = {} if mark_kwargs is None else mark_kwargs
+        chart = chart.mark_line(**kwargs)
 
     # Create chart
     return chart.transform_fold(fold=list(data_dct.keys())).encode(
