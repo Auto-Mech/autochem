@@ -160,10 +160,19 @@ class Mark:
     line = "line"
 
 
+def regular_scale(val_range: tuple[float, float]) -> alt.Scale:
+    """Generate a regular scale specification.
+
+    :param val_range: Range
+    :return: Scale
+    """
+    return alt.Scale(domain=val_range)
+
+
 def log_scale(val_range: tuple[float, float]) -> alt.Scale:
     """Generate a log scale specification.
 
-    :param val_range: Rante
+    :param val_range: Range
     :return: Scale
     """
     return alt.Scale(type="log", domain=log_scale_domain(val_range))
@@ -293,8 +302,8 @@ def transformed_spline_interpolator(
 def general(
     y_data: Sequence[Sequence[float]],
     x_data: Sequence[float],  # noqa: N803
+    labels: Sequence[str],
     *,
-    labels: Sequence[str] | None = None,
     colors: Sequence[str] | None = None,
     x_label: str | None = None,  # noqa: RUF001
     y_label: str | None = None,  # noqa: RUF001
@@ -303,18 +312,11 @@ def general(
     x_axis: alt.Axis | None = None,
     y_axis: alt.Axis | None = None,
     mark: str = Mark.line,
+    mark_kwargs: dict | None = None,
+    legend: bool = True,
 ) -> alt.Chart:
     """Display as simple plot.
 
-    We should eventually be able to handle everything through this.
-
-    :param others: Other rate constants
-    :param others_labels: Labels for other rate constants
-    :param T_range: Temperature range
-    :param P: Pressure
-    :param x_label: X-axis label
-    :param y_label: Y-axis label
-    :param point: Whether to mark with points instead of a line
     :return: Chart
     """
     x_label = "" if x_label is None else x_label
@@ -331,12 +333,10 @@ def general(
         else [*POINT_COLOR_CYCLE, *LINE_COLOR_CYCLE]
     )
 
-    nk, nT = np.shape(y_data)  # noqa: N806
-    colors = colors or list(itertools.islice(itertools.cycle(color_cycle), nk))
-    keep_legend = labels is not None
-    labels = labels or [f"k{i + 1}" for i in range(nk)]
-    assert len(x_data) == nT, f"{x_data} !~ {y_data}"
-    assert len(labels) == nk, f"{labels} !~ {y_data}"
+    ny, nx = np.shape(y_data)  # noqa: N806
+    colors = colors or list(itertools.islice(itertools.cycle(color_cycle), ny))
+    assert len(x_data) == nx, f"{x_data} !~ {y_data}"
+    assert len(labels) == ny, f"{labels} !~ {y_data}"
 
     # Gather data from functons
     data_dct = dict(zip(labels, y_data, strict=True))
@@ -348,15 +348,15 @@ def general(
     color = alt.Color(
         "key:N",
         scale=alt.Scale(domain=labels, range=colors),
-        legend=alt.Undefined if keep_legend else None,
+        legend=alt.Undefined if legend else None,
     )
 
     chart = alt.Chart(data)
-    chart = (
-        chart.mark_point(filled=True, opacity=1)
-        if mark == Mark.point
-        else chart.mark_line()
-    )
+    kwargs = {} if mark_kwargs is None else mark_kwargs
+    if mark == Mark.point:
+        chart = chart.mark_point(**kwargs)
+    else:
+        chart = chart.mark_line(**kwargs)
 
     # Create chart
     return chart.transform_fold(fold=list(data_dct.keys())).encode(
