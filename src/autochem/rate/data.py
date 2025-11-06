@@ -13,13 +13,13 @@ import pint
 import pydantic
 from numpy.polynomial import chebyshev
 from numpy.typing import ArrayLike, NDArray
-from pydantic import BeforeValidator
+from pydantic import BeforeValidator, model_validator
 from pydantic_core import core_schema
 
 from .. import unit_
 from ..unit_ import UNITS, C, D, Dimension, UnitManager, Units, UnitsData, const
 from ..util import arrh, chemkin, func, mess, plot
-from ..util.type_ import Frozen, NDArray_, Scalable, Scalers, SubclassTyped
+from ..util.type_ import NDArray_, Scalable, Scalers, SubclassTyped
 from . import blend
 from .blend import BlendingFunction_
 
@@ -34,7 +34,7 @@ class Key:
     k = "k"
 
 
-class BaseRate(UnitManager, Frozen, Scalable, SubclassTyped, abc.ABC):
+class BaseRate(UnitManager, Scalable, SubclassTyped, abc.ABC):
     """Abstract base class for rate constants."""
 
     order: int = 1
@@ -188,6 +188,16 @@ class Rate(BaseRate):
         "k_data": D.rate_constant,
         "k_high": D.rate_constant,
     }
+
+    @model_validator(mode="after")
+    def sort_temperatures(self) -> Self:
+        idxs = np.argsort(self.T)
+        self.T = np.take(self.T, idxs).tolist()
+        self.k_data = self.k_data[idxs]
+        self.k_high = (
+            None if self.k_high is None else np.take(self.k_high, idxs).tolist()
+        )
+        return self
 
     def __truediv__(self, other: "Rate" | ArrayLike) -> Self:
         """Scalar division.
