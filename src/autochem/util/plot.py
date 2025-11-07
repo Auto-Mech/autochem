@@ -176,7 +176,13 @@ def regular_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
     :return: Axis
     """
     val_min, val_max = val_range
-    fmt = ".1f" if (val_max - val_min) < 3 else ".0f"
+    val_scale = val_max - val_min
+    if val_scale < 1:
+        fmt = ".2f"
+    elif val_scale < 3:
+        fmt = ".1f"
+    else:
+        fmt = ".0f"
     return alt.Axis(format=fmt)
 
 
