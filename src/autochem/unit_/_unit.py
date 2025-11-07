@@ -8,4 +8,4 @@ def string(unit: pint.Unit) -> str:
 
 
 def pretty_string(unit: pint.Unit) -> str:
-    return format(unit, "~P")
+    return format(unit, "~P").replace("particle", "molecule")

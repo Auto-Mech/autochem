@@ -9,13 +9,12 @@ import numpy as np
 import pydantic
 from numpy.typing import NDArray
 
-from ..util.type_ import Frozen
 from . import dim
 from .dim import Dimension
 from .system import UNITS, Units, UnitsData
 
 
-class UnitManager(Frozen, abc.ABC):
+class UnitManager(abc.ABC):
     _dimensions: ClassVar[dict[str, Dimension]]
 
     def __init__(self, units: UnitsData | None = None, **kwargs: object) -> None:
