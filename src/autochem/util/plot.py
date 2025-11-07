@@ -199,7 +199,7 @@ def log_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
     fmt = ".0e" if max_exp > 3 else alt.Undefined
     vals = log_scale_values(val_range)
     label_expr_condition = " ||\n".join(
-        f"(abs(datum.value - {v}) < 1e-5)" for v in vals
+        f"(abs(datum.value - {v}) / abs({v}) < 1e-5)" for v in vals
     )
     label_expr = f"({label_expr_condition}) ? datum.label : ''"
     return alt.Axis(format=fmt, values=log_scale_ticks(val_range), labelExpr=label_expr)
