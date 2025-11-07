@@ -302,6 +302,9 @@ def transformed_spline_interpolator(
     :param x_data: X data
     :return: Y interpolator
     """
+    valid = np.isfinite(y_data)
+    x_data = np.compress(valid, x_data)
+    y_data = np.compress(valid, y_data)
     interp_trans_ = CubicSpline(x_trans(x_data), y_trans(y_data))
 
     def interp_(x: Any) -> np.ndarray:
