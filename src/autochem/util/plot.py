@@ -169,6 +169,15 @@ def regular_scale(val_range: tuple[float, float]) -> alt.Scale:
     return alt.Scale(domain=val_range)
 
 
+def regular_scale_axis() -> alt.Axis:
+    """Generate a nice regular scale axis.
+
+    :param val_range: Range
+    :return: Axis
+    """
+    return alt.Axis(format=".0f")
+
+
 def log_scale(val_range: tuple[float, float]) -> alt.Scale:
     """Generate a log scale specification.
 
