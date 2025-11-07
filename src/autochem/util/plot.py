@@ -169,6 +169,17 @@ def regular_scale(val_range: tuple[float, float]) -> alt.Scale:
     return alt.Scale(domain=val_range)
 
 
+def regular_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
+    """Generate a nice regular scale axis.
+
+    :param val_range: Range
+    :return: Axis
+    """
+    val_min, val_max = val_range
+    fmt = ".1f" if (val_max - val_min) < 3 else ".0f"
+    return alt.Axis(format=fmt)
+
+
 def log_scale(val_range: tuple[float, float]) -> alt.Scale:
     """Generate a log scale specification.
 
@@ -188,7 +199,7 @@ def log_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
     fmt = ".0e" if max_exp > 3 else alt.Undefined
     vals = log_scale_values(val_range)
     label_expr_condition = " ||\n".join(
-        f"(abs(datum.value - {v}) < 1e-5)" for v in vals
+        f"(abs(datum.value - {v}) / abs({v}) < 1e-5)" for v in vals
     )
     label_expr = f"({label_expr_condition}) ? datum.label : ''"
     return alt.Axis(format=fmt, values=log_scale_ticks(val_range), labelExpr=label_expr)
@@ -291,6 +302,9 @@ def transformed_spline_interpolator(
     :param x_data: X data
     :return: Y interpolator
     """
+    valid = np.isfinite(y_data)
+    x_data = np.compress(valid, x_data)
+    y_data = np.compress(valid, y_data)
     interp_trans_ = CubicSpline(x_trans(x_data), y_trans(y_data))
 
     def interp_(x: Any) -> np.ndarray:
