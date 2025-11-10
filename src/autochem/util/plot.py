@@ -176,7 +176,13 @@ def regular_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
     :return: Axis
     """
     val_min, val_max = val_range
-    fmt = ".1f" if (val_max - val_min) < 3 else ".0f"
+    val_scale = val_max - val_min
+    if val_scale < 1:
+        fmt = ".2f"
+    elif val_scale < 3:
+        fmt = ".1f"
+    else:
+        fmt = ".0f"
     return alt.Axis(format=fmt)
 
 
@@ -302,10 +308,17 @@ def transformed_spline_interpolator(
     :param x_data: X data
     :return: Y interpolator
     """
+
+    def nan_(x: Any) -> np.ndarray:
+        return np.full_like(x, fill_value=np.nan, dtype=np.float64)
+
     valid = np.isfinite(y_data)
     x_data = np.compress(valid, x_data)
     y_data = np.compress(valid, y_data)
-    interp_trans_ = CubicSpline(x_trans(x_data), y_trans(y_data))
+    try:
+        interp_trans_ = CubicSpline(x_trans(x_data), y_trans(y_data))
+    except ValueError:
+        return nan_
 
     def interp_(x: Any) -> np.ndarray:
         return np.asarray(y_trans_inv(interp_trans_(x_trans(x))))
