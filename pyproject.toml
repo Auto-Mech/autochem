@@ -1,6 +1,6 @@
 [project]
 name = "autochem"
-version = "2025.10.2"
+version = "2025.11.0"
 description = "Cheminformatics libraries used by the AutoMech project"
 readme = "README.md"
 authors = [{name = "avcopan", email = "avcopan@gmail.com"}]
