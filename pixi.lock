@@ -970,8 +970,8 @@ packages:
   timestamp: 1759762331492
 - pypi: ./
   name: autochem
-  version: 0.2024.0
-  sha256: 58a85dae9623997b23815a36f0c4d7979705c9aee2c5ce35c4122be12dca283a
+  version: 0.2025.0
+  sha256: 98f664d3cc0fda39b817ac99a2598477c133218fac3940e4ae80d6ccca7b0381
   requires_python: '>=3.11'
   editable: true
 - pypi: https://files.pythonhosted.org/packages/b7/b8/3fe70c75fe32afc4bb507f75563d39bc5642255d1d94f1f23604725780bf/babel-2.17.0-py3-none-any.whl

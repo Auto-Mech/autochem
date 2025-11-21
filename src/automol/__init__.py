@@ -95,7 +95,7 @@ from . import (
 from .const import ReactionClass, ReactionInfo, ReactionSpin
 
 
-__version__ = "0.2024.0"
+__version__ = "0.2025.0"
 
 __all__ = [
     # L1
