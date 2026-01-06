@@ -183,7 +183,7 @@ def geometry_correct_linear_vinyls(
     rng_bkeys = set(itertools.chain(*rings_bond_keys(gra)))
     nkeys_dct = atoms_neighbor_atom_keys(gra, ts_=False)
 
-    vin_dct = vinyl_radical_atom_bond_keys(gra)
+    vin_dct = vinyl_radical_atom_bond_keys(gra, min_ncount=0)
 
     for key, bkey in vin_dct.items():
         if bkey not in rng_bkeys and not bkey & excl_keys:

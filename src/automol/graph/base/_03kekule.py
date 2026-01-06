@@ -664,14 +664,14 @@ def nonresonant_radical_atom_keys(gra):
     return atm_rad_keys
 
 
-def vinyl_radical_atom_bond_keys(gra):
+def vinyl_radical_atom_bond_keys(gra, min_ncount: int=1):
     """Get a mapping of vinyl radical bonds onto their radical atoms
 
     :param gra: A graph
     :return: A mappping of vinyl radical bond keys onto vinyl atom keys
     :rtype: Dict[int, frozenset[int]]
     """
-    cand_dct = vinyl_radical_bond_candidates(gra)
+    cand_dct = vinyl_radical_bond_candidates(gra, min_ncount=min_ncount)
     hyb_dct = atom_hybridizations(gra)
     vin_dct = {k: bk for bk, k in cand_dct.items() if hyb_dct[k] == 2}
     return vin_dct
