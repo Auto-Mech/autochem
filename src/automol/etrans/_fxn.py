@@ -11,8 +11,10 @@ def troe_lj_collision_frequency(eps, sig, red_mass, temp):
     """ Collision Frequency formula from Troe that uses
         Lennard-Jones epsilons and sigma parameters
 
-        Z = sqrt( (8*kB*T)/(pi*mu) ) * sig^2 * omega
+        Z = pi * sqrt( (8*kB*T)/(pi*mu) ) * sig^2 * omega
         omega = [ 0.7 + 0.5 log10( (kB*T)/eps ) ]^-1
+
+        See Eq. 12 from Jasper, J. Phys. Chem. A 2009, 113, 19, 5612-5619
 
         :param eps: Target+Bath Lennard-Jones epsilon value (in hart)
         :type eps: float
@@ -35,7 +37,7 @@ def troe_lj_collision_frequency(eps, sig, red_mass, temp):
     kbt = phycon.KB * temp
 
     # Prefactor term with physical constants and masses
-    pref1 = numpy.sqrt((8.0 * kbt) / (numpy.pi * red_mass))
+    pref1 = numpy.pi * numpy.sqrt((8.0 * kbt) / (numpy.pi * red_mass))
 
     # Omega integral
     omega_s = (0.7 + 0.52 * (numpy.log10(kbt / eps)))**(-1)
