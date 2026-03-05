@@ -1,6 +1,6 @@
 [project]
 name = "autochem"
-version = "0.2026.1"
+version = "0.2026.2"
 description = "Cheminformatics libraries used by the AutoMech project"
 readme = "README.md"
 authors = [{name = "avcopan", email = "avcopan@gmail.com"}]
@@ -121,7 +121,7 @@ ignore = [
 ]
 
 [tool.bumpver]
-current_version = "0.2026.1"
+current_version = "0.2026.2"
 version_pattern = "MAJOR.YYYY.PATCH"
 commit_message = "Release {new_version}"
 tag_message = "{new_version}"

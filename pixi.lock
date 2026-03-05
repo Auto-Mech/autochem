@@ -982,8 +982,8 @@ packages:
   timestamp: 1759762331492
 - pypi: ./
   name: autochem
-  version: 0.2026.1
-  sha256: ad2527fd3103c61c9a394e7883ed4ad4eebd5f2f308ba3e2377ad992671611dd
+  version: 0.2026.2
+  sha256: 9501bbbefb1adb15bcc4cec731548c452e7643e31510a2d7c2d0d5f453819ade
   requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/b7/b8/3fe70c75fe32afc4bb507f75563d39bc5642255d1d94f1f23604725780bf/babel-2.17.0-py3-none-any.whl
   name: babel
