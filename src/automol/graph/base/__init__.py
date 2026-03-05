@@ -28,6 +28,7 @@ something needs to be updated or altered in it.
 # # constructors
 # submodules:
 from . import enum, ts, vmat
+from .enum import ReactionSmarts
 
 # # getters
 # # setters

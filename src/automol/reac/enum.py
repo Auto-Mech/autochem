@@ -1,6 +1,6 @@
 """Functions for enumerating reactions."""
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence, Collection
 
 from .. import amchi, graph, smiles
 from .. import smarts as smarts_
@@ -65,6 +65,44 @@ def from_graphs(
         prds_keys = list(map(sorted, map(graph.atom_keys, prd_gras)))
         rxns.append(from_data(ts_gra, rcts_keys, prds_keys))
     return rxns
+
+
+def classify_from_amchis(
+    class_smarts: dict[str, str], rct_chis: Sequence[str], prd_chis: Collection[str]
+) -> str | None:
+    """Classify a reaction by matching it to a set of SMARTS templates.
+
+    :param class_smarts: Dictionary mapping class names to SMARTS strings
+    :param rct_chis: Reactant ChIs
+    :param prd_chis: Product ChIs
+    :return: Class name or None if no match is found
+    """
+    if any(map(amchi.has_stereo, rct_chis)) or any(map(amchi.has_stereo, prd_chis)):
+        msg = f"Cannot match SMARTS for AMChIs with stereo:\n{rct_chis} = {prd_chis}"
+        raise ValueError(msg)
+
+    comp_prd_chis = set(prd_chis)
+
+    # Prepare reactants graph
+    rct_gras = [graph.explicit(amchi.graph(c)) for c in rct_chis]
+    rct_gras, _ = graph.standard_keys_for_sequence(rct_gras)
+    rcts_gra = graph.union_from_sequence(rct_gras)
+
+    for class_, smarts in class_smarts.items():
+        nrcts, nprds = smarts_.shape(smarts)
+        if len(rct_chis) != nrcts or len(prd_chis) != nprds:
+            continue
+
+        # Enumerate reactions
+        ts_gras = graph.enum.reactions(smarts, rcts_gra)
+        for ts_gra in ts_gras:
+            prds_gra = graph.ts.products_graph(ts_gra, stereo=False, dummy=False)
+            prd_gras = graph.connected_components(prds_gra)
+            prd_chis = set(map(graph.amchi, prd_gras))
+            if prd_chis == comp_prd_chis:
+                return class_
+
+    return None
 
 
 # helpers

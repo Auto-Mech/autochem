@@ -56,6 +56,7 @@ from ._3super_func_group import (
 # # isomorphisms and equivalence
 # submodules:
 from .base import enum, ts, vmat
+from .base import ReactionSmarts
 
 # # getters
 # # setters
