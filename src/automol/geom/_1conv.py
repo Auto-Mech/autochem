@@ -9,6 +9,7 @@ import numpy
 import pyparsing as pp
 from numpy.typing import ArrayLike
 from pyparsing import pyparsing_common as ppc
+from rdkit.Chem.inchi import MolBlockToInchiAndAuxInfo
 from phydat import phycon
 
 from .. import vmat
@@ -340,38 +341,10 @@ def inchi_with_numbers(geo, stereo=True, gra=None):
         gra = graph_base.set_stereo_from_geometry(gra, geo)
 
     mlf, key_map_inv = molfile_with_atom_mapping(gra, geo=geo)
-    rdm = rdkit_.from_molfile(mlf)
-    ich, aux_info = rdkit_.to_inchi(rdm, with_aux_info=True)
+    ich, aux_info = MolBlockToInchiAndAuxInfo(mlf)
 
     nums_lst = _parse_sort_order_from_aux_info(aux_info)
     nums_lst = tuple(tuple(map(key_map_inv.__getitem__, nums)) for nums in nums_lst)
-
-    # Assuming the MolFile InChI works, the above code is all we need. What
-    # follows is to correct cases where it fails.
-    # This only appears to work sometimes, so when it doesn't, we fall back on
-    # the original inchi output.
-    if geo is not None:
-        gra = graph_base.set_stereo_from_geometry(gra, geo)
-        gra = graph_base.implicit(gra)
-        sub_ichs = inchi_base.split(ich)
-
-        failed = False
-
-        new_sub_ichs = []
-        for sub_ich, nums in zip(sub_ichs, nums_lst):
-            sub_gra = graph_base.subgraph(gra, nums, stereo=True)
-            sub_ich = _connected_inchi_with_graph_stereo(sub_ich, sub_gra, nums)
-            if sub_ich is None:
-                failed = True
-                break
-
-            new_sub_ichs.append(sub_ich)
-
-        # If it worked, replace the InChI with our forced-stereo InChI.
-        if not failed:
-            ich = inchi_base.join(new_sub_ichs)
-            ich = inchi_base.standard_form(ich)
-
     return ich, nums_lst
 
 
