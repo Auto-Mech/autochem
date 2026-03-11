@@ -45,6 +45,11 @@ class BaseTherm(ThermCalculator, UnitManager, Frozen, Scalable, SubclassTyped, a
     formula: Formula_
     charge: int = 0
 
+    @abc.abstractmethod
+    def racemize(self) -> Self:
+        """Racemize the thermodynamic functions for a chiral species."""
+        return self
+
     def display(  # noqa: PLR0913
         self,
         props: Sequence[Literal["Cv", "Cp", "S", "H", "dH"]] = ("Cp", "S", "H"),
@@ -225,6 +230,11 @@ class Therm(BaseTherm):
             ),
         )
         self.model_config["frozen"] = frozen
+        return self
+
+    def racemize(self) -> Self:
+        """Racemize the thermodynamic functions for a chiral species."""
+        self.Z0 = np.add(self.Z0, np.log(2)).tolist()
         return self
 
     # Replace this with a model validator (before or after), allowing extra arguments
@@ -529,6 +539,12 @@ class Nasa7ThermFit(ThermFit):
             calc_low.in_bounds(T, include_max=False),
             calc_high.in_bounds(T, include_max=True),
         ]
+
+    def racemize(self) -> Self:
+        """Racemize the thermodynamic functions for a chiral species."""
+        self.coeffs_low[-1] += np.log(2).item()
+        self.coeffs_high[-1] += np.log(2).item()
+        return self
 
     def heat_capacity(
         self,

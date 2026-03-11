@@ -1,8 +1,9 @@
 """Thermodynamic data."""
 
 import datetime
+import re
 from collections.abc import Sequence
-from typing import ClassVar, Literal
+from typing import ClassVar, Literal, Self
 
 import altair as alt
 import numpy as np
@@ -22,6 +23,17 @@ class Species(Scalable):
 
     name: str
     therm: Therm_
+
+    def racemize(
+        self, enant_suffixes: tuple[str, str] = ("0", "1"), rac_suffix: str = "R"
+    ) -> Self:
+        """Racemize the thermodynamic functions for a chiral species."""
+        suffix0, suffix1 = enant_suffixes
+        pattern = re.compile(rf"(?:{re.escape(suffix0)}|{re.escape(suffix1)})$")
+        if pattern.search(self.name):
+            self.name = pattern.sub(rac_suffix, self.name)
+            self.therm = self.therm.racemize()
+        return self
 
     # Private attributes
     _scalers: ClassVar[Scalers] = {"therm": (lambda c, x: c * x)}
