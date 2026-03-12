@@ -166,7 +166,7 @@ def regular_scale(val_range: tuple[float, float]) -> alt.Scale:
     :param val_range: Range
     :return: Scale
     """
-    return alt.Scale(domain=val_range)
+    return alt.Scale(domain=val_range, domainMax=val_range[-1], nice=True)
 
 
 def regular_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
