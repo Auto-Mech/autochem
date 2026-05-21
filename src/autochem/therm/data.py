@@ -50,15 +50,45 @@ class BaseTherm(ThermCalculator, UnitManager, Frozen, Scalable, SubclassTyped, a
         """Racemize the thermodynamic functions for a chiral species."""
         return self
 
+    @property
+    def plot_mark(self) -> str:
+        """Plot mark to use in altair."""
+        return plot.Mark.line
+
+    def plot_data(
+        self,
+        *,
+        T_range: tuple[float, float] = (200, 3000),  # noqa: N803
+        units: UnitsData | None = None,
+    ) -> tuple[NDArray[np.float64], dict[str, NDArray[np.float64]]]:
+        """Get data for plotting.
+
+        :return: Tuple of (x values, dict of y values by property)
+        """
+        units = UNITS if units is None else Units.model_validate(units)
+
+        prop_func_dct = {
+            Key.Cv: heat_capacity_constant_volume,
+            Key.Cp: heat_capacity_constant_pressure,
+            Key.S: entropy,
+            Key.H: enthalpy,
+            Key.dH: delta_enthalpy,
+        }
+
+        x_data = np.linspace(*T_range, num=1000)
+        y_data_dct = {
+            k: f_(self, x_data, units=units) for k, f_ in prop_func_dct.items()
+        }
+        return x_data, y_data_dct
+
     def display(  # noqa: PLR0913
         self,
         props: Sequence[Literal["Cv", "Cp", "S", "H", "dH"]] = ("Cp", "S", "H"),
         *,
-        others: "Sequence[BaseTherm]" = (),
-        others_labels: Sequence[str] = (),
         T_range: tuple[float, float] = (200, 3000),  # noqa: N803
         units: UnitsData | None = None,
-        label: str = "This work",
+        label: str | None = None,
+        color: str | None = None,
         x_label: str = "𝑇",  # noqa: RUF001
         y_labels: Sequence[str | None] | None = None,
         horizontal: bool = False,
@@ -75,111 +105,33 @@ class BaseTherm(ThermCalculator, UnitManager, Frozen, Scalable, SubclassTyped, a
         :param horizontal: Whether to display horizontally
         :return: Chart
         """
-        y_labels = y_labels or [None] * len(props)
-        charts = [
-            self._display(
-                prop=prop,
-                others=others,
-                others_labels=others_labels,
-                T_range=T_range,
-                units=units,
-                label=label,
+        prop_label_dct = (
+            dict(zip(props, y_labels, strict=True))
+            if y_labels is not None
+            else {
+                Key.Cv: "𝐶ᵥ",
+                Key.Cp: "𝐶ₚ",
+                Key.S: "𝑆",  # noqa: RUF001
+                Key.H: "𝐻",  # noqa: RUF001
+                Key.dH: "Δ𝐻",
+            }
+        )
+        x_data, y_data_dct = self.plot_data(T_range=T_range, units=units)
+        charts = []
+        for key in props:
+            data = y_data_dct[key]
+            chart = plot.general(
+                y_data=[data],
+                x_data=x_data,
+                labels=[label] if label is not None else None,
+                colors=[color] if color is not None else None,
                 x_label=x_label,
-                y_label=y_label,
+                y_label=prop_label_dct[key],
+                mark=self.plot_mark,
             )
-            for prop, y_label in zip(props, y_labels, strict=True)
-        ]
+            charts.append(chart)
         concat_ = alt.hconcat if horizontal else alt.vconcat
         return concat_(*charts)
-
-    def _display(  # noqa: PLR0913
-        self,
-        prop: Literal["Cv", "Cp", "S", "H", "dH"],
-        others: "Sequence[BaseTherm]" = (),
-        others_labels: Sequence[str] = (),
-        T_range: tuple[float, float] = (200, 3000),  # noqa: N803
-        units: UnitsData | None = None,
-        label: str = "This work",
-        x_label: str = "𝑇",  # noqa: RUF001
-        y_label: str | None = None,
-    ) -> alt.Chart:
-        """Display as a thermodynamic function plot.
-
-        :param prop: Thermodynamic properties to display
-        :param others: Other thermodynamic data to compare to
-        :param others_labels: Labels for other thermodynamic data
-        :param T_range: Temperature range
-        :param units: Units
-        :param x_label: X-axis label
-        :param y_labels: Y-axis labels, by property
-        :return: Chart
-        """
-        units = UNITS if units is None else Units.model_validate(units)
-
-        # Property units
-        prop_unit_dct = {
-            Key.Cv: units.energy_per_substance / units.temperature,
-            Key.Cp: units.energy_per_substance / units.temperature,
-            Key.S: units.energy_per_substance / units.temperature,
-            Key.H: units.energy_per_substance,
-            Key.dH: units.energy_per_substance,
-        }
-        prop_func_dct = {
-            Key.Cv: heat_capacity_constant_volume,
-            Key.Cp: heat_capacity_constant_pressure,
-            Key.S: entropy,
-            Key.H: enthalpy,
-            Key.dH: delta_enthalpy,
-        }
-        prop_label_dct = {
-            Key.Cv: "𝐶ᵥ",
-            Key.Cp: "𝐶ₚ",
-            Key.S: "𝑆",  # noqa: RUF001
-            Key.H: "𝐻",  # noqa: RUF001
-            Key.dH: "Δ𝐻",
-        }
-
-        # Process units
-        x_unit = unit_.pretty_string(units.temperature)
-        y_unit = unit_.pretty_string(prop_unit_dct.get(prop))
-
-        # Add units to labels
-        x_label = f"{x_label} ({x_unit})"
-        y_label = f"{y_label or prop_label_dct.get(prop)} ({y_unit})"
-
-        # Get property function
-        func_ = prop_func_dct[prop]
-
-        # Gather objects and labels
-        assert len(others) == len(others_labels), f"{others_labels} !~ {others}"
-        all_objs = [self, *others]
-        all_labels = [label, *others_labels]
-        all_colors = plot.LINE_COLOR_CYCLE[: len(all_labels)]
-
-        # Gather data from functons
-        T = np.linspace(*T_range, num=500)  # noqa: N806
-        data_dct = {L: func_(o, T) for L, o in zip(all_labels, all_objs, strict=True)}
-        data = pd.DataFrame({"x": T, **data_dct})
-
-        # Prepare encoding parameters
-        x = alt.X("x", title=x_label)
-        y = alt.Y("value:Q", title=y_label)
-        color = (
-            alt.Color(
-                "key:N",
-                scale=alt.Scale(domain=all_labels, range=all_colors),
-            )
-            if others
-            else alt.value(all_colors[0])
-        )
-
-        # Create chart
-        return (
-            alt.Chart(data)
-            .mark_line()
-            .transform_fold(fold=list(data_dct.keys()))
-            .encode(x=x, y=y, color=color)
-        )
 
 
 class Therm(BaseTherm):
@@ -206,6 +158,40 @@ class Therm(BaseTherm):
         "Z1": D.temperature**-1,
         "Z2": D.temperature**-2,
     }
+
+    @property
+    def plot_mark(self) -> str:
+        """Plot mark to use in altair."""
+        return plot.Mark.point
+
+    def plot_data(
+        self,
+        *,
+        T_range: tuple[float, float] = (200, 3000),  # noqa: N803
+        units: UnitsData | None = None,
+    ) -> tuple[NDArray[np.float64], dict[str, NDArray[np.float64]]]:
+        """Get data for plotting.
+
+        :return: Tuple of (x values, dict of y values by property)
+        """
+        units = UNITS if units is None else Units.model_validate(units)
+
+        prop_func_dct = {
+            Key.Cv: heat_capacity_constant_volume,
+            Key.Cp: heat_capacity_constant_pressure,
+            Key.S: entropy,
+            Key.H: enthalpy,
+            Key.dH: delta_enthalpy,
+        }
+
+        (i_,) = np.where(
+            np.greater_equal(self.T, T_range[0]) & np.less_equal(self.T, T_range[1])
+        )
+        x_data = np.take(self.T, i_)
+        y_data_dct = {
+            k: f_(self, x_data, units=units) for k, f_ in prop_func_dct.items()
+        }
+        return x_data, y_data_dct
 
     @property
     def T_min(self) -> float:  # noqa: N802
@@ -612,6 +598,36 @@ class Nasa7ThermFit(ThermFit):
         return np.piecewise(T, conds, funcs)
 
     @classmethod
+    def from_therm(
+        cls,
+        therm: Therm,
+        *,
+        T_min: float | None = None,  # noqa: N803
+        T_mid: float = 1000,  # noqa: N803
+        T_max: float | None = None,  # noqa: N803
+    ) -> "Nasa7ThermFit":
+        """Fit data to Nasa-7 therm fit object."""
+        T = therm.temperature_data()  # noqa: N806
+        Cp = therm.heat_capacity_data(const="P")  # noqa: N806
+        S = therm.entropy_data(P=1, units={"pressure": "bar"})  # noqa: N806
+        H = therm.enthalpy_data()  # noqa: N806
+
+        T_min = T_min or np.min(T)  # noqa: N806
+        T_max = T_max or np.max(T)  # noqa: N806
+
+        return Nasa7ThermFit.fit(
+            T=T,
+            Cp=Cp,
+            S=S,
+            H=H,
+            formula=therm.formula,
+            charge=therm.charge,
+            T_min=T_min,
+            T_mid=T_mid,
+            T_max=T_max,
+        )
+
+    @classmethod
     def fit(  # noqa: PLR0913
         cls,
         T: ArrayLike,  # noqa: N803
@@ -909,6 +925,91 @@ def from_pac99_output_parse_results(
         formula=formula,
         charge=charge,
     )
+
+
+# Display
+def display(  # noqa: PLR0913
+    therm_: BaseTherm | Sequence[BaseTherm],
+    *,
+    props: Sequence[Literal["Cv", "Cp", "S", "H", "dH"]] = ("Cp", "S", "H"),
+    T_range: tuple[float, float] = (200, 3000),  # noqa: N803
+    units: UnitsData | None = None,
+    label: str | Sequence[str] | None = None,
+    color: str | Sequence[str] | None = None,
+    x_label: str = "temperature",
+    y_labels: Sequence[str | None] | None = None,
+    x_unit: str | None = "K",
+    y_unit: str | Sequence[str | None] | None = None,
+    horizontal: bool = False,
+) -> alt.Chart:
+    """Display as a thermodynamic function plot.
+
+    :param props: Thermodynamic properties to display
+    :param others: Other thermodynamic data to compare to
+    :param others_labels: Labels for other thermodynamic data
+    :param T_range: Temperature range
+    :param units: Units
+    :param x_label: X-axis label
+    :param y_labels: Y-axis labels, by property
+    :param horizontal: Whether to display horizontally
+    :return: Chart
+    """
+    therms = [therm_] if isinstance(therm_, BaseTherm) else therm_
+    labels = [label] if isinstance(label, str) else label
+    colors = [color] if isinstance(color, str) else color
+    y_units = [y_unit] if isinstance(y_unit, str) else y_unit
+    prop_unit_dct = (
+        dict(zip(props, y_units, strict=True)) if y_units is not None else {}
+    )
+
+    prop_label_dct = (
+        dict(zip(props, y_labels, strict=True))
+        if y_labels is not None
+        else {
+            Key.Cv: "constant volume heat capacity",
+            Key.Cp: "constant pressure heat capacity",
+            Key.S: "entropy",
+            Key.H: "enthalpy",
+            Key.dH: "thermal enthalpy increment",
+        }
+    )
+    x_datas, y_data_dcts = zip(
+        *[therm_.plot_data(T_range=T_range, units=units) for therm_ in therms],
+        strict=True,
+    )
+    x_range = T_range
+    charts = []
+    for key in props:
+        y_vals = np.concatenate([d[key] for d in y_data_dcts])
+        y_range = (np.min(y_vals), np.max(y_vals))
+        mark_charts = []
+        for mark in (plot.Mark.line, plot.Mark.point):
+            ixs = [i for i, t in enumerate(therms) if t.plot_mark == mark]
+            if ixs:
+                x_data, *x_datas_ = [x_datas[i] for i in ixs]
+                for x_data_ in x_datas_:
+                    assert np.allclose(x_data, x_data_), f"{x_data=} != {x_data_=}"
+
+                y_datas = [y_data_dcts[i][key] for i in ixs]
+                y_label = prop_label_dct[key]
+                y_unit = prop_unit_dct.get(key)
+                chart = plot.general(
+                    y_data=y_datas,
+                    x_data=x_data,
+                    labels=None if labels is None else [labels[i] for i in ixs],
+                    colors=None if colors is None else [colors[i] for i in ixs],
+                    x_label=x_label if x_unit is None else f"{x_label} ({x_unit})",
+                    y_label=y_label if y_unit is None else f"{y_label} ({y_unit})",
+                    x_scale=plot.regular_scale(x_range),
+                    y_scale=plot.regular_scale(y_range),
+                    x_axis=plot.regular_scale_axis(x_range),
+                    y_axis=plot.regular_scale_axis(y_range),
+                    mark=mark,
+                )
+                mark_charts.append(chart)
+        charts.append(alt.layer(*mark_charts).resolve_scale(color="independent"))
+    concat_ = alt.hconcat if horizontal else alt.vconcat
+    return concat_(*charts)
 
 
 # Helpers

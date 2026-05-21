@@ -81,10 +81,8 @@ def test__from_chemkin_string(name, spc_str0):
     # Plot
     therm.display(spc)
     therm.display(
-        spc,
-        label="original",
-        others=[spc_times_2, spc_divided_by_2],
-        others_labels=["doubled", "halved"],
+        [spc, spc_times_2, spc_divided_by_2],
+        label=["original","doubled", "halved"]
     )
 
 
@@ -105,7 +103,7 @@ def test__fit(name, spc_str0):
         units={"energy": "kcal"},
     )
     spc_fit = therm.fit(spc)
-    therm.display(spc, label="data", others=[spc_fit], others_labels=["fit"])
+    therm.display([spc, spc_fit], label=["data", "fit"])
 
 
 if __name__ == "__main__":
