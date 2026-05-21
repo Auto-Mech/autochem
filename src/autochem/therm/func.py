@@ -127,12 +127,12 @@ class ThermCalculator(Frozen, abc.ABC):
         """
 
     @abc.abstractmethod
-    def delta_enthalpy(
+    def thermal_enthalpy(
         self,
         T: ArrayLike,  # noqa: N803
         units: UnitsData | None = None,
     ) -> NDArray[np.float64]:
-        """Evaluate enthalpy change, dH(T).
+        """Evaluate thermal enthalpy, H(T) - H(0).
 
         :param T: Temperature(s)
         :param units: Unit system
@@ -226,15 +226,7 @@ class Nasa7Calculator(Bounded, ThermCalculator):
         self.assert_all_in_bounds(T)
 
         R = unit_.const.value(C.gas, UNITS)  # noqa: N806
-        T = np.array(T, dtype=np.float64)  # noqa: N806
-        return R * (
-            self.a1 * np.log(T)
-            + self.a2 * T
-            + (self.a3 / 2) * T**2
-            + (self.a4 / 3) * T**3
-            + (self.a5 / 4) * T**4
-            + self.a7
-        )
+        return R * self.a7 + self.thermal_entropy(T)
 
     @unit_.manage_units([], D.energy_per_substance)
     def enthalpy(
@@ -256,10 +248,37 @@ class Nasa7Calculator(Bounded, ThermCalculator):
         self.assert_all_in_bounds(T)
 
         R = unit_.const.value(C.gas, UNITS)  # noqa: N806
-        return R * self.a6 + self.delta_enthalpy(T)
+        return R * self.a6 + self.thermal_enthalpy(T)
+
+    @unit_.manage_units([], D.energy_per_substance / D.temperature)
+    def thermal_entropy(
+        self,
+        T: ArrayLike,  # noqa: N803
+        units: UnitsData | None = None,  # noqa: ARG002
+    ) -> NDArray[np.float64]:
+        """Evaluate entropy, S(T).
+
+        Formula:
+            S(T) = R (a1 ln(T) + a2 T + (a3/2) T^2 + (a4/3) T^3 + (a5/4) T^4 + a7)
+
+        :param T: Temperature(s)
+        :param units: Unit system
+        :return: Function value(s)
+        """
+        self.assert_all_in_bounds(T)
+
+        R = unit_.const.value(C.gas, UNITS)  # noqa: N806
+        T = np.array(T, dtype=np.float64)  # noqa: N806
+        return R * (
+            self.a1 * np.log(T)
+            + self.a2 * T
+            + (self.a3 / 2) * T**2
+            + (self.a4 / 3) * T**3
+            + (self.a5 / 4) * T**4
+        )
 
     @unit_.manage_units([], D.energy_per_substance)
-    def delta_enthalpy(
+    def thermal_enthalpy(
         self,
         T: ArrayLike,  # noqa: N803
         units: UnitsData | None = None,  # noqa: ARG002
@@ -292,29 +311,110 @@ class Nasa7Calculator(Bounded, ThermCalculator):
         Cp: ArrayLike,  # noqa: N803
         S: ArrayLike,  # noqa: N803
         H: ArrayLike,  # noqa: N803
+        T_mid: float = 1000,  # noqa: N803
+        T_min: float | None = None,  # noqa: N803
+        T_max: float | None = None,  # noqa: N803
+    ) -> tuple["Nasa7Calculator", "Nasa7Calculator"]:
+        """Fit data to Nasa-7 calculator coefficients.
+
+        Step 1: Fit heat capacity data to get a1 - a5 for low and high
+        temperature ranges.
+
+        Step 2: Determine integration constants as follows.
+
+            a6_low = (
+                sum_low     (H(T) - Hth_fit_low(T))
+                + sum_high  (H(T) - Hth_fit_high(T) - delta_H_low)
+            ) / (N * R)
+
+            delta_H_low = Hth_fit_low(T_mid) - Hth_fit_high(T_mid)
+
+        Equations for a6_high, a7_low, a7_high are obtained by replacing "low"
+        with "high" and "H" with "S".
+
+        :param T: Temperatures
+        :param Cp: Constant-pressure heat capacities
+        :param S: Entropies
+        :param H: Enthalpies
+        :return: Fitted object
+        """
+        calc_low = cls.heat_capacity_fit(
+            T=T, Cp=Cp, T_min=T_min, T_max=T_mid, T_ref=T_mid
+        )
+        calc_high = cls.heat_capacity_fit(
+            T=T, Cp=Cp, T_min=T_mid, T_max=T_max, T_ref=T_mid
+        )
+
+        low = (T_min <= T) * (T_mid >= T)
+        high = (T_mid <= T) * (T_max >= T)
+
+        Hth_high = calc_high.thermal_enthalpy(T_mid)  # noqa: N806
+        Hth_low = calc_low.thermal_enthalpy(T_mid)  # noqa: N806
+        Sth_high = calc_high.thermal_entropy(T_mid)  # noqa: N806
+        Sth_low = calc_low.thermal_entropy(T_mid)  # noqa: N806
+        delta_H_low = Hth_low - Hth_high  # noqa: N806
+        delta_H_high = Hth_high - Hth_low  # noqa: N806
+        delta_S_low = Sth_low - Sth_high  # noqa: N806
+        delta_S_high = Sth_high - Sth_low  # noqa: N806
+
+        nT = np.sum(low) + np.sum(high)  # noqa: N806
+        R = unit_.const.value(C.gas, UNITS)  # noqa: N806
+
+        # Enthalpy integration constants
+        num_a6_low = np.sum(H[low] - calc_low.thermal_enthalpy(T[low])) + np.sum(
+            H[high] - calc_high.thermal_enthalpy(T[high]) - delta_H_low
+        )
+        num_a6_high = np.sum(
+            H[low] - calc_low.thermal_enthalpy(T[low]) - delta_H_high
+        ) + np.sum(H[high] - calc_high.thermal_enthalpy(T[high]))
+
+        # Entropy integration constants
+        num_a7_low = np.sum(S[low] - calc_low.thermal_entropy(T[low])) + np.sum(
+            S[high] - calc_high.thermal_entropy(T[high]) - delta_S_low
+        )
+        num_a7_high = np.sum(
+            S[low] - calc_low.thermal_entropy(T[low]) - delta_S_high
+        ) + np.sum(S[high] - calc_high.thermal_entropy(T[high]))
+
+        a6_low = num_a6_low / (nT * R)
+        a6_high = num_a6_high / (nT * R)
+        a7_low = num_a7_low / (nT * R)
+        a7_high = num_a7_high / (nT * R)
+        return calc_low.model_copy(
+            update={"a6": a6_low, "a7": a7_low}
+        ), calc_high.model_copy(update={"a6": a6_high, "a7": a7_high})
+
+    @classmethod
+    def heat_capacity_fit(
+        cls,
+        T: ArrayLike,  # noqa: N803
+        Cp: ArrayLike,  # noqa: N803
+        T_ref: float = 1000,  # noqa: N803
+        T_min: float | None = None,  # noqa: N803
+        T_max: float | None = None,  # noqa: N803
     ) -> "Nasa7Calculator":
         """Fit data to Nasa-7 calculator coefficients.
 
-        Construct a matrix mapping (unknown) polynomial coefficients to property values.
+        Parametrization:
 
-            Cp/R = a1 + a2 T + a3 T^2 + a4 T^3 + a5 T^4
-            S/R = a1 ln(T) + a2 T + (a3/2) T^2 + (a4/3) T^3 + (a5/4) T^4 + a7
-            H/R = a1 T + (a2/2) T^2 + (a3/3) T^3 + (a4/4) T^4 + (a5/5) T^5 + a6
+            Cp/R = A0 + A1 T + A2 T^2 + A3 T^3 + A4 T^4
+            H/R = A0 T + (A1/2) T^2 + (A2/3) T^3 + (A3/4) T^4 + (A4/5) T^5 + A5
+            S/R = A0 ln(T) + A1 T + (A2/2) T^2 + (A3/3) T^3 + (A4/4) T^4 + A6
 
+        1. Reduced linear equation for A0 - A4:
 
-        The matrix is solved using least squares to find the polynomial coefficients:
+            [t1 - 1, t1^2 - 1, t1^3 - 1, t1^4 - 1] [a1]   [(Cp(T1) - Cp(T_ref))/R]
+            [t2 - 1, t2^2 - 1, t2^3 - 1, t2^4 - 1] [a2] = [(Cp(T2) - Cp(T_ref))/R]
+            [   ...,      ...,      ...,      ...] [a3]   [                ...]
+            [tN - 1, tN^2 - 1, tN^3 - 1, tN^4 - 1] [a4]   [(Cp(TN) - Cp(T_ref))/R]
 
-            [     1,    T1,      T1^2,      T1^3,      T1^4, 0, 0]        [Cp(T1)/R]
-            [     1,    T2,      T2^2,      T2^3,      T2^4, 0, 0] [a1]   [Cp(T2)/R]
-            [   ...,   ...,       ...,       ...,       ..., 0, 0] [a2]   [   ...  ]
-            [ln(T1),    T1, (1/2)T1^2, (1/3)T1^3, (1/4)T1^4, 0, 1] [a3]   [ S(T1)/R]
-            [ln(T2),    T2, (1/2)T2^2, (1/3)T2^3, (1/4)T2^4, 0, 1] [a4] = [ S(T2)/R]
-            [   ...,   ...,       ...,       ...,       ..., 0, 1] [a5]   [   ...  ]
-            [    T1,  T1^2, (1/3)T1^3, (1/4)T1^4, (1/5)T1^5, 1, 0] [a6]   [ H(T1)/R]
-            [    T2,  T2^2, (1/3)T2^3, (1/4)T2^4, (1/5)T2^5, 1, 0] [a7]   [ H(T2)/R]
-            [   ...,   ...,       ...,       ...,       ..., 1, 0]        [   ...  ]
+            t = T / T_ref
 
-            Dimension: 3*n_T x 7    (n_T = number of temperature values)
+            A0 = Cp(T_ref) / R - (a1 + a2 + a3 + a4)
+            A1 = a1 / T_ref
+            A2 = a2 / T_ref^2
+            A3 = a3 / T_ref^3
+            A4 = a4 / T_ref^4
 
         :param T: Temperatures
         :param Cp: Constant-pressure heat capacities
@@ -323,31 +423,35 @@ class Nasa7Calculator(Bounded, ThermCalculator):
         :return: Fitted object
         """
         T = np.array(T, dtype=np.float64)  # noqa: N806
-        _0 = np.zeros_like(T)
-        _1 = np.ones_like(T)
+        select = (T_min <= T) * (T_max >= T)
+
+        Cp_refs = np.compress(np.isclose(T, T_ref), Cp)  # noqa: N806
+        if not Cp_refs.size:
+            msg = f"No temperature matches {T_ref = }: {T = }"
+            raise ValueError(msg)
+
+        (Cp_ref,) = Cp_refs  # noqa: N806
+
+        t = np.compress(select, T / T_ref)
+        _1 = np.ones_like(t)
 
         # Transformation matrix
-        M_Cp = np.column_stack([_1, T, T**2, T**3, T**4, _0, _0])  # noqa: N806
-        M_S = np.column_stack(  # noqa: N806
-            [np.log(T), T, T**2 / 2, T**3 / 3, T**4 / 4, _0, _1],
-        )
-        M_H = np.column_stack([T, T**2 / 2, T**3 / 3, T**4 / 4, T**5 / 5, _1, _0])  # noqa: N806
-        M = np.vstack((M_Cp, M_S, M_H))  # noqa: N806
+        M = np.column_stack([t - _1, t**2 - _1, t**3 - _1, t**4 - _1])  # noqa: N806
 
         # Data vector
         R = unit_.const.value(C.gas, UNITS)  # noqa: N806
-        v = np.concatenate((Cp / R, S / R, H / R))
+        v = (np.compress(select, Cp) - Cp_ref) / R
 
-        T_min, T_max = np.min(T), np.max(T)  # noqa: N806
-        (a1, a2, a3, a4, a5, a6, a7), *_ = np.linalg.lstsq(M, v, rcond=1e-24)
+        (a1, a2, a3, a4), *_ = np.linalg.lstsq(M, v)
+
         return cls(
             T_min=T_min,
             T_max=T_max,
-            a1=a1,
-            a2=a2,
-            a3=a3,
-            a4=a4,
-            a5=a5,
-            a6=a6,
-            a7=a7,
+            a1=Cp_ref / R - (a1 + a2 + a3 + a4),
+            a2=a1 / T_ref,
+            a3=a2 / T_ref**2,
+            a4=a3 / T_ref**3,
+            a5=a4 / T_ref**4,
+            a6=0,
+            a7=0,
         )
