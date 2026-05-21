@@ -648,7 +648,10 @@ class ArrheniusRateFit(RateFit):
         if not validate or bad_fit == "fill":
             try:
                 with np.errstate(all="raise"):
-                    obj(T=T)
+                    vals = obj(T=T)
+                    if not np.all(np.isfinite(vals)):
+                        msg = "Fitted rate gives non-finite values over the input temperature range."
+                        raise FloatingPointError(msg)
             except FloatingPointError as e:
                 if A_fill is not None:
                     return cls(order=order, A=A_fill, b=0, E=0)
@@ -917,22 +920,25 @@ class PlogRateFit(RateFit):
             (Options: "fill", replace with the fill value, or numpy.seterr options)
         :return: Rate fit
         """
-        bad_fits = [
-            "fill" if np.any(np.isclose(p, bad_fit_fill_pressures)) else bad_fit
-            for p in Ps
-        ]
-        k_data_fits = [
-            ArrheniusRateFit.fit(
+        k_fits = []
+        for k_data, P in zip(np.transpose(k_data), Ps, strict=True):
+            if validate:
+                print(f"Fitting Arrhenius rate for {P = }")
+
+            bad_fit = (
+                "fill" if np.any(np.isclose(P, bad_fit_fill_pressures)) else bad_fit
+            )
+            k_fit = ArrheniusRateFit.fit(
                 Ts=Ts,
-                ks=ks,
+                ks=k_data,
                 A_fill=A_fill,
-                bad_fit=f,  # pyright: ignore[reportArgumentType]
+                bad_fit=bad_fit,
                 validate=validate,
                 order=order,
                 units=units,
             )
-            for ks, f in zip(np.transpose(k_data), bad_fits, strict=True)
-        ]
+            k_fits.append(k_fit)
+
         k_high_fit = None
         if k_high is not None:
             k_high_fit = ArrheniusRateFit.fit(
@@ -943,9 +949,9 @@ class PlogRateFit(RateFit):
 
         return cls(
             order=order,
-            As=[f.A for f in k_data_fits],
-            bs=[f.b for f in k_data_fits],
-            Es=[f.E for f in k_data_fits],
+            As=[f.A for f in k_fits],
+            bs=[f.b for f in k_fits],
+            Es=[f.E for f in k_fits],
             Ps=Ps,  # pyright: ignore[reportArgumentType]
         )
 

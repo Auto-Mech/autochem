@@ -24,11 +24,12 @@ class FMT():
     COUNTS_KEY = 'counts'
     ATOM_KEY = 'atom'
     BOND_KEY = 'bond'
-    STRING = (_HEAD + _BEGIN(_CTAB) +
-              _ENTRY(key=COUNTS_KEY, fmt='s') +
-              _BEGIN(_ATOM) + _ENTRY(key=ATOM_KEY, fmt='s') + _END(_ATOM) +
-              _BEGIN(_BOND) + _ENTRY(key=BOND_KEY, fmt='s') + _END(_BOND) +
-              _END(_CTAB) + _FOOT).format
+
+    HEADER_ = (
+        _HEAD + _BEGIN(_CTAB) + _ENTRY(key=COUNTS_KEY, fmt='s')).format
+    ATOM_BLOCK_ = (_BEGIN(_ATOM) + _ENTRY(key=ATOM_KEY, fmt='s') + _END(_ATOM)).format
+    BOND_BLOCK_ = (_BEGIN(_BOND) + _ENTRY(key=BOND_KEY, fmt='s') + _END(_BOND)).format
+    FOOTER = _END(_CTAB) + _FOOT
 
     class COUNTS():
         """ _ """
@@ -90,15 +91,23 @@ def from_data(atm_keys, bnd_keys, atm_syms, atm_bnd_vlcs, atm_rad_vlcs,
         **{FMT.COUNTS.NA_KEY: natms,
            FMT.COUNTS.NB_KEY: nbnds})
 
-    atom_block = _atom_block(atm_keys, key_map, atm_syms, atm_bnd_vlcs,
+    inner_atom_block = _atom_block(atm_keys, key_map, atm_syms, atm_bnd_vlcs,
                              atm_rad_vlcs, atm_xyzs=atm_xyzs)
 
-    bond_block = _bond_block(bnd_keys, key_map, bnd_ords,
+    inner_bond_block = _bond_block(bnd_keys, key_map, bnd_ords,
                              with_stereo=(atm_xyzs is not None))
 
-    mlf = FMT.STRING(**{FMT.COUNTS_KEY: counts_line,
-                        FMT.ATOM_KEY: atom_block,
-                        FMT.BOND_KEY: bond_block})
+    parts = [
+        FMT.HEADER_(**{FMT.COUNTS_KEY: counts_line}),
+        FMT.ATOM_BLOCK_(**{FMT.ATOM_KEY: inner_atom_block}),
+    ]
+
+    if nbnds > 0:
+        parts.append(FMT.BOND_BLOCK_(**{FMT.BOND_KEY: inner_bond_block}))
+
+    parts.append(FMT.FOOTER)
+
+    mlf = ''.join(parts)
 
     # for recovering the original keys from those used in the molfile
     key_map_inv = dict(map(reversed, key_map.items()))

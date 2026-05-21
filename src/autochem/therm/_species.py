@@ -1,8 +1,9 @@
 """Thermodynamic data."""
 
 import datetime
+import re
 from collections.abc import Sequence
-from typing import ClassVar, Literal
+from typing import ClassVar, Literal, Self
 
 import altair as alt
 import numpy as np
@@ -22,6 +23,17 @@ class Species(Scalable):
 
     name: str
     therm: Therm_
+
+    def racemize(
+        self, enant_suffixes: tuple[str, str] = ("0", "1"), rac_suffix: str = "R"
+    ) -> Self:
+        """Racemize the thermodynamic functions for a chiral species."""
+        suffix0, suffix1 = enant_suffixes
+        pattern = re.compile(rf"(?:{re.escape(suffix0)}|{re.escape(suffix1)})$")
+        if pattern.search(self.name):
+            self.name = pattern.sub(rac_suffix, self.name)
+            self.therm = self.therm.racemize()
+        return self
 
     # Private attributes
     _scalers: ClassVar[Scalers] = {"therm": (lambda c, x: c * x)}
@@ -259,16 +271,17 @@ def fit(
 
 # Display
 def display(  # noqa: PLR0913
-    spc: Species,
+    spc: Species | Sequence[Species],
     *,
     props: Sequence[Literal["Cv", "Cp", "S", "H", "dH"]] = ("Cp", "S", "H"),
-    others: Sequence[Species] = (),
-    others_labels: Sequence[str] = (),
     T_range: tuple[float, float] = (200, 3000),  # noqa: N803
     units: UnitsData | None = None,
-    label: str = "This work",
-    x_label: str = "𝑇",  # noqa: RUF001
+    label: str | Sequence[str] | None = None,
+    color: str | Sequence[str] | None = None,
+    x_label: str = "temperature",
     y_labels: Sequence[str | None] | None = None,
+    x_unit: str | None = "K",
+    y_unit: str | Sequence[str | None] | None = None,
     horizontal: bool = False,
 ) -> alt.Chart:
     """Display as an Arrhenius plot, optionally comparing to other rates.
@@ -284,15 +297,19 @@ def display(  # noqa: PLR0913
     :param y_label: Y-axis label
     :return: Chart
     """
-    return spc.therm.display(
+    spcs = [spc] if isinstance(spc, Species) else spc
+    therms = [s.therm for s in spcs]
+    return data.display(
+        therm_=therms,
         props=props,
-        others=[o.therm for o in others],
-        others_labels=others_labels,
         T_range=T_range,
         units=units,
         label=label,
+        color=color,
         x_label=x_label,
         y_labels=y_labels,
+        x_unit=x_unit,
+        y_unit=y_unit,
         horizontal=horizontal,
     )
 

@@ -166,7 +166,7 @@ def regular_scale(val_range: tuple[float, float]) -> alt.Scale:
     :param val_range: Range
     :return: Scale
     """
-    return alt.Scale(domain=val_range)
+    return alt.Scale(domain=val_range, domainMax=val_range[-1], nice=True)
 
 
 def regular_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
@@ -179,7 +179,7 @@ def regular_scale_axis(val_range: tuple[float, float]) -> alt.Axis:
     val_scale = val_max - val_min
     if val_scale < 1:
         fmt = ".2f"
-    elif val_scale < 3:
+    elif val_scale < 5:
         fmt = ".1f"
     else:
         fmt = ".0f"
@@ -329,8 +329,8 @@ def transformed_spline_interpolator(
 def general(
     y_data: Sequence[Sequence[float]],
     x_data: Sequence[float],  # noqa: N803
-    labels: Sequence[str],
     *,
+    labels: Sequence[str] | None = None,
     colors: Sequence[str] | None = None,
     x_label: str | None = None,  # noqa: RUF001
     y_label: str | None = None,  # noqa: RUF001
@@ -360,6 +360,10 @@ def general(
         else [*POINT_COLOR_CYCLE, *LINE_COLOR_CYCLE]
     )
 
+    nseries = len(y_data)
+    keep_legend = (labels is not None) and legend
+    labels = labels or [f"{i + 1}" for i in range(nseries)]
+
     ny, nx = np.shape(y_data)  # noqa: N806
     colors = colors or list(itertools.islice(itertools.cycle(color_cycle), ny))
     assert len(x_data) == nx, f"{x_data} !~ {y_data}"
@@ -375,14 +379,15 @@ def general(
     color = alt.Color(
         "key:N",
         scale=alt.Scale(domain=labels, range=colors),
-        legend=alt.Undefined if legend else None,
+        legend=alt.Undefined if keep_legend else None,
     )
 
     chart = alt.Chart(data)
-    kwargs = {} if mark_kwargs is None else mark_kwargs
     if mark == Mark.point:
+        kwargs = {"filled": True, "opacity": 1} if mark_kwargs is None else mark_kwargs
         chart = chart.mark_point(**kwargs)
     else:
+        kwargs = {} if mark_kwargs is None else mark_kwargs
         chart = chart.mark_line(**kwargs)
 
     # Create chart
