@@ -701,10 +701,13 @@ def halide_groups(gra):
             hal_neighs = neighbors_of_type(gra, hal_idx, symb="C")
             if not hal_neighs:
                 hal_neighs = neighbors_of_type(gra, hal_idx, symb="S")
-                hal_neighs = neighbors_of_type(gra, hal_idx, symb="B")
+                hal_neighs += neighbors_of_type(gra, hal_idx, symb="B")
                 hal_neighs += neighbors_of_type(gra, hal_idx, symb="O")
                 hal_neighs += neighbors_of_type(gra, hal_idx, symb="N")
-            hal_grps += ((hal_neighs[0], hal_idx),)
+            if hal_neighs:
+                hal_grps += ((hal_neighs[0], hal_idx),)
+            else:
+                hal_grps += ((None, hal_idx),)
 
     return hal_grps
 
