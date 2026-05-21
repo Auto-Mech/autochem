@@ -195,8 +195,8 @@ def pac99_input_string(
     Hf298 = spc.therm.enthalpy_of_formation(units={"energy": "J"})  # noqa: N806
     Ts = spc.therm.T  # noqa: N806
     # Enthalpy units are set to kJ by "KJOULE" keyword below
-    dH298 = spc.therm.delta_enthalpy(T=298, method="nearest", units={"energy": "kJ"})  # noqa: N806
-    dHs = spc.therm.delta_enthalpy_data(units={"energy": "kJ"})  # noqa: N806
+    dH298 = spc.therm.thermal_enthalpy(T=298, method="nearest", units={"energy": "kJ"})  # noqa: N806
+    dHs = spc.therm.thermal_enthalpy_data(units={"energy": "kJ"})  # noqa: N806
     # Entropy and heat capacity are always in Joules
     # (see https://ntrs.nasa.gov/citations/19930003779, p. 33)
     Ss = spc.therm.entropy_data(P=1, units={"pressure": "bar", "energy": "J"})  # noqa: N806

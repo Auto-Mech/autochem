@@ -72,7 +72,7 @@ class BaseTherm(ThermCalculator, UnitManager, Frozen, Scalable, SubclassTyped, a
             Key.Cp: heat_capacity_constant_pressure,
             Key.S: entropy,
             Key.H: enthalpy,
-            Key.dH: delta_enthalpy,
+            Key.dH: thermal_enthalpy,
         }
 
         x_data = np.linspace(*T_range, num=1000)
@@ -181,7 +181,7 @@ class Therm(BaseTherm):
             Key.Cp: heat_capacity_constant_pressure,
             Key.S: entropy,
             Key.H: enthalpy,
-            Key.dH: delta_enthalpy,
+            Key.dH: thermal_enthalpy,
         }
 
         (i_,) = np.where(
@@ -241,10 +241,10 @@ class Therm(BaseTherm):
 
         if int(Tf) == 0:
             # Access through __dict__ here since model is frozen
-            self.__dict__["Hf"] += self.delta_enthalpy(
+            self.__dict__["Hf"] += self.thermal_enthalpy(
                 T=298,
                 method="nearest",
-            ) - elemental_delta_enthalpy_room_temperature(self.formula)
+            ) - elemental_thermal_enthalpy_room_temperature(self.formula)
         elif int(Tf) != 298:
             msg = f"Invalid reference temperature Tf = {Tf}"
             raise ValueError(msg)
@@ -268,7 +268,7 @@ class Therm(BaseTherm):
             Key.Cv: self.heat_capacity_data(const="V"),
             Key.Cp: self.heat_capacity_data(const="P"),
             Key.S: self.entropy_data(),
-            Key.dH: self.delta_enthalpy_data(),
+            Key.dH: self.thermal_enthalpy_data(),
         }
         return xarray.Dataset(
             data_vars={k: ([coord_key], v) for k, v in data_arrs.items()},
@@ -373,14 +373,14 @@ class Therm(BaseTherm):
         :param units: Units
         :return: Enthalpy
         """
-        return self.Hf + self.delta_enthalpy_data() - self.delta_enthalpy(T=298.15)
+        return self.Hf + self.thermal_enthalpy_data() - self.thermal_enthalpy(T=298.15)
 
     @unit_.manage_units([], D.energy_per_substance)
-    def delta_enthalpy_data(
+    def thermal_enthalpy_data(
         self,
         units: UnitsData | None = None,  # noqa: ARG002
     ) -> NDArray[np.float64]:
-        """Calculate delta enthalpy data.
+        """Calculate thermal enthalpy data.
 
         Formula:
 
@@ -450,12 +450,12 @@ class Therm(BaseTherm):
         """
         return (
             self.Hf
-            + self.delta_enthalpy(T=T, method=method)
-            - self.delta_enthalpy(T=298.15, method=method)
+            + self.thermal_enthalpy(T=T, method=method)
+            - self.thermal_enthalpy(T=298.15, method=method)
         )
 
     @unit_.manage_units([], D.energy_per_substance)
-    def delta_enthalpy(
+    def thermal_enthalpy(
         self,
         T: ArrayLike,  # noqa: N803
         units: UnitsData | None = None,  # noqa: ARG002
@@ -582,19 +582,19 @@ class Nasa7ThermFit(ThermFit):
         funcs = [calc.enthalpy for calc in self.piecewise_calculators()]
         return np.piecewise(T, conds, funcs)
 
-    def delta_enthalpy(
+    def thermal_enthalpy(
         self,
         T: ArrayLike,  # noqa: N803
         units: UnitsData | None = None,  # noqa: ARG002
     ) -> NDArray[np.float64]:
-        """Evaluate enthalpy change, dH(T).
+        """Evaluate thermal enthalpy, H(T) - H(0).
 
         :param T: Temperature(s)
         :param units: Unit system
         :return: Function value(s)
         """
         conds = self.piecewise_conditions(T)
-        funcs = [calc.delta_enthalpy for calc in self.piecewise_calculators()]
+        funcs = [calc.thermal_enthalpy for calc in self.piecewise_calculators()]
         return np.piecewise(T, conds, funcs)
 
     @classmethod
@@ -642,26 +642,26 @@ class Nasa7ThermFit(ThermFit):
     ) -> "Nasa7ThermFit":
         """Fit data to Nasa-7 therm fit object.
 
-        Construct a matrix mapping (unknown) polynomial coefficients to property values.
+        Parametrization:
 
-            Cp/R = a1 + a2 T + a3 T^2 + a4 T^3 + a5 T^4
-            S/R = a1 ln(T) + a2 T + (a3/2) T^2 + (a4/3) T^3 + (a5/4) T^4 + a7
-            H/R = a1 T + (a2/2) T^2 + (a3/3) T^3 + (a4/4) T^4 + (a5/5) T^5 + a6
+            Cp/R = A0 + A1 T + A2 T^2 + A3 T^3 + A4 T^4
+            H/R = A0 T + (A1/2) T^2 + (A2/3) T^3 + (A3/4) T^4 + (A4/5) T^5 + A5
+            S/R = A0 ln(T) + A1 T + (A2/2) T^2 + (A3/3) T^3 + (A4/4) T^4 + A6
 
+        1. Reduced linear equation for A0 - A4:
 
-        The matrix is solved using least squares to find the polynomial coefficients:
+            [t1 - 1, t1^2 - 1, t1^3 - 1, t1^4 - 1] [a1]   [(Cp(T1) - Cp(T_ref))/R]
+            [t2 - 1, t2^2 - 1, t2^3 - 1, t2^4 - 1] [a2] = [(Cp(T2) - Cp(T_ref))/R]
+            [   ...,      ...,      ...,      ...] [a3]   [                ...]
+            [tN - 1, tN^2 - 1, tN^3 - 1, tN^4 - 1] [a4]   [(Cp(TN) - Cp(T_ref))/R]
 
-            [     1,    T1,      T1^2,      T1^3,      T1^4, 0, 0]        [Cp(T1)/R]
-            [     1,    T2,      T2^2,      T2^3,      T2^4, 0, 0] [a1]   [Cp(T2)/R]
-            [   ...,   ...,       ...,       ...,       ..., 0, 0] [a2]   [   ...  ]
-            [ln(T1),    T1, (1/2)T1^2, (1/3)T1^3, (1/4)T1^4, 0, 1] [a3]   [ S(T1)/R]
-            [ln(T2),    T2, (1/2)T2^2, (1/3)T2^3, (1/4)T2^4, 0, 1] [a4] = [ S(T2)/R]
-            [   ...,   ...,       ...,       ...,       ..., 0, 1] [a5]   [   ...  ]
-            [    T1,  T1^2, (1/3)T1^3, (1/4)T1^4, (1/5)T1^5, 1, 0] [a6]   [ H(T1)/R]
-            [    T2,  T2^2, (1/3)T2^3, (1/4)T2^4, (1/5)T2^5, 1, 0] [a7]   [ H(T2)/R]
-            [   ...,   ...,       ...,       ...,       ..., 1, 0]        [   ...  ]
+            t = T / T_ref
 
-            Dimension: 3*n_T x 7    (n_T = number of temperature values)
+            A0 = Cp(T_ref) / R - (a1 + a2 + a3 + a4)
+            A1 = a1 / T_ref
+            A2 = a2 / T_ref^2
+            A3 = a3 / T_ref^3
+            A4 = a4 / T_ref^4
 
         :param T: Temperatures
         :param Cp: Constant-pressure heat capacities
@@ -678,10 +678,9 @@ class Nasa7ThermFit(ThermFit):
         H = np.array(H, dtype=np.float64)  # noqa: N806
         T_min = T_min or np.min(T)  # noqa: N806
         T_max = T_max or np.max(T)  # noqa: N806
-        low = (T_min <= T) & (T_mid >= T)
-        high = (T_mid <= T) & (T_max >= T)
-        calc_low = Nasa7Calculator.fit(T=T[low], Cp=Cp[low], S=S[low], H=H[low])
-        calc_high = Nasa7Calculator.fit(T=T[high], Cp=Cp[high], S=S[high], H=H[high])
+        calc_low, calc_high = Nasa7Calculator.fit(
+            T=T, Cp=Cp, S=S, H=H, T_min=T_min, T_mid=T_mid, T_max=T_max
+        )
         return cls(
             formula=formula,
             charge=charge,
@@ -776,18 +775,18 @@ def enthalpy(
     return therm.enthalpy(T=T, units=units)
 
 
-def delta_enthalpy(
+def thermal_enthalpy(
     therm: ThermCalculator,
     T: ArrayLike,  # noqa: N803
     units: UnitsData | None = None,
 ) -> NDArray[np.float64]:
-    """Evaluate enthalpy change, dH(T).
+    """Evaluate thermal enthalpy, H(T) - H(0).
 
     :param T: Temperature(s)
     :param units: Unit system
     :return: Function value(s)
     """
-    return therm.delta_enthalpy(T=T, units=units)
+    return therm.thermal_enthalpy(T=T, units=units)
 
 
 # Conversions
@@ -1059,10 +1058,10 @@ ENTHALPY_CHANGE_0K_TO_298K = {
 }
 
 
-def elemental_delta_enthalpy_room_temperature(
+def elemental_thermal_enthalpy_room_temperature(
     formula: FormulaData,
 ) -> float:
-    """Get change in enthalpy of formation 0 K to room temperature (298 K).
+    """Get change in thermal enthalpy of formation 0 K to room temperature (298 K).
 
     :param formula: Formula
     """
